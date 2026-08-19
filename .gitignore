@@ -19,3 +19,7 @@ frontend/.shots/
 .idea/
 *.swp
 *.swo
+
+# oh-my-claudecode (OMC) runtime state — session/notepad/logs/plans, not project config
+.omc/*
+!.omc/skills/
