@@ -897,24 +897,24 @@ await page.goto(`${base}/market`, { waitUntil: 'load' });
 await page.waitForTimeout(500);
 
 /**
- * 상품명은 **두 줄까지** 보여주고 그걸 넘어가는 시점부터 … 으로 잘린다.
- * 글자 수가 아니라 실제 렌더 높이로 판정한다 (한글·영문·숫자 폭이 달라 글자 수로는 못 잰다).
+ * 상품명 표기 규칙 (두 종류다).
+ *
+ *  - 마켓 상품 카드: 두 줄까지 보여주고 넘어가면 … (line-clamp: 2)
+ *    디센더 여유(padding)를 주면 그 틈으로 잘렸어야 할 세 번째 줄이 노출되므로 pad 는 0 이어야 한다.
+ *  - 추천 배너 · 상품 상세: **무조건 한 줄** + 넘치면 … (nowrap + text-overflow)
+ *    두 줄이 되면 아래 태그·가격을 밀거나 덮는다. nowrap 이라 다음 줄이 없어
+ *    디센더 여유(padding)를 줘도 안전하다.
+ *
+ * 글자 수가 아니라 실제 렌더 결과로 판정한다 (한글·영문·숫자 폭이 달라 글자 수로는 못 잰다).
  */
-const readNames = () =>
-  page.evaluate(() => {
-    const els = [...document.querySelectorAll('[data-name="ProductName"], [data-name="BannerProductName"]')];
-    const rows = els.map((el) => {
+const readCardNames = () =>
+  page.evaluate(() =>
+    [...document.querySelectorAll('[data-name="ProductName"]')].map((el) => {
       const cs = getComputedStyle(el);
       const line = parseFloat(cs.lineHeight) || 16.5;
-      // 디센더가 잘리지 않게 padding-bottom 이 들어 있으므로 줄 수 계산에서 뺀다
       const pad = parseFloat(cs.paddingBottom) || 0;
 
-      /**
-       * 실제로 잘렸는지 판정.
-       * scrollHeight 비교로는 안 된다 — -webkit-box 는 clamp 와 무관하게 전체 높이를
-       * 돌려주고, padding 도 양쪽에 함께 들어가 차이가 흐려진다.
-       * clamp 를 잠깐 풀어 전체 높이를 재고 되돌린다.
-       */
+      // 잘렸는지 판정 — clamp 를 잠깐 풀어 전체 높이를 재고 되돌린다
       const prevClamp = el.style.webkitLineClamp;
       const prevOverflow = el.style.overflow;
       const clampedH = el.clientHeight;
@@ -926,44 +926,74 @@ const readNames = () =>
 
       return {
         text: el.textContent.trim(),
-        lines: Math.round((el.clientHeight - pad) / line),
+        lines: Math.round((clampedH - pad) / line),
         clamp: cs.webkitLineClamp,
         pad,
-        overflowing: fullH > clampedH + 1,
+        truncated: fullH > clampedH + 1,
       };
-    });
-    return {
-      count: rows.length,
-      overTwoLines: rows.filter((r) => r.lines > 2).map((r) => `${r.text}(${r.lines}줄)`),
-      wrongClamp: rows.filter((r) => r.clamp !== '2').map((r) => `${r.text}(clamp=${r.clamp})`),
-      noPad: rows.filter((r) => r.pad <= 0).map((r) => r.text),
-      clamped: rows.filter((r) => r.overflowing).map((r) => r.text),
-      sample: rows.slice(0, 3).map((r) => `${r.text}[${r.lines}줄]`),
-    };
-  });
+    }),
+  );
 
-// 피쓰 서울 · 윔 스토어 양쪽을 본다 (긴 이름은 윔 쪽에 있다)
-const nameChecks = {};
+const readSingleLineName = (sel) =>
+  page.evaluate((sel) => {
+    const el = document.querySelector(sel);
+    if (!el) return null;
+    const cs = getComputedStyle(el);
+    const line = parseFloat(cs.lineHeight) || 16.5;
+    const pad = parseFloat(cs.paddingBottom) || 0;
+    return {
+      text: el.textContent.trim(),
+      lines: Math.round((el.clientHeight - pad) / line),
+      whiteSpace: cs.whiteSpace,
+      textOverflow: cs.textOverflow,
+      pad,
+      truncated: el.scrollWidth > el.clientWidth + 1,
+    };
+  }, sel);
+
+// ── 카드 이름: 두 줄 규칙 ──
+const cardNameChecks = {};
 for (const [label, path] of [['피쓰 서울', '/market'], ['윔 스토어', '/market/wim']]) {
   await page.goto(`${base}${path}`, { waitUntil: 'load' });
   await page.waitForTimeout(600);
-  const r = await readNames();
-  nameChecks[label] = r;
+  const rows = await readCardNames();
+  cardNameChecks[label] = rows;
 
-  check(`M) ${label} 상품명이 두 줄을 넘지 않는다`,
-    r.count > 0 && r.overTwoLines.length === 0,
-    `${r.count}개 검사 / 위반 ${JSON.stringify(r.overTwoLines)}`);
-  check(`M) ${label} 상품명에 2줄 line-clamp 가 걸려 있다`,
-    r.wrongClamp.length === 0,
-    `위반 ${JSON.stringify(r.wrongClamp)} / 예시 ${r.sample.join(' | ')}`);
-  // 디센더(g·y·p)가 잘리지 않도록 클립 박스에 여유가 있어야 한다
-  check(`M) ${label} 상품명에 디센더 여유(padding-bottom)가 있다`,
-    r.noPad.length === 0,
-    `여유 없는 이름 ${JSON.stringify(r.noPad.slice(0, 2))}`);
+  check(`M) ${label} 카드 상품명이 두 줄을 넘지 않는다`,
+    rows.length > 0 && rows.every((r) => r.lines <= 2),
+    `${rows.length}개 / 위반 ${JSON.stringify(rows.filter((r) => r.lines > 2).map((r) => `${r.text}(${r.lines}줄)`))}`);
+  check(`M) ${label} 카드 상품명에 2줄 line-clamp`,
+    rows.every((r) => r.clamp === '2'),
+    `위반 ${JSON.stringify(rows.filter((r) => r.clamp !== '2').map((r) => r.text))}`);
+  // 여유를 주면 잘렸어야 할 다음 줄이 그 틈으로 보인다
+  check(`M) ${label} 카드 상품명에 다음 줄이 노출되는 여유가 없다`,
+    rows.every((r) => r.pad === 0),
+    `pad 있는 이름 ${JSON.stringify(rows.filter((r) => r.pad > 0).map((r) => `${r.text}(pad=${r.pad})`))}`);
 }
-check('M) 두 줄을 넘는 이름은 실제로 잘린다',
-  nameChecks['윔 스토어'].clamped.length > 0,
-  `윔에서 잘린 이름 ${nameChecks['윔 스토어'].clamped.length}개: ${nameChecks['윔 스토어'].clamped.slice(0, 2).join(' | ')}`);
+check('M) 두 줄을 넘는 카드 이름은 실제로 잘린다',
+  cardNameChecks['윔 스토어'].some((r) => r.truncated),
+  `윔에서 잘린 이름 ${cardNameChecks['윔 스토어'].filter((r) => r.truncated).length}개`);
+
+// ── 배너 · 상세 이름: 한 줄 고정 규칙 ──
+await page.goto(`${base}/market/wim`, { waitUntil: 'load' });
+await page.waitForTimeout(600);
+const bannerName = await readSingleLineName('[data-name="BannerProductName"]');
+check('M) 배너 상품명은 한 줄 고정', bannerName?.lines === 1 && bannerName?.whiteSpace === 'nowrap',
+  JSON.stringify(bannerName));
+check('M) 배너 상품명이 넘치면 … 로 잘린다',
+  bannerName?.textOverflow === 'ellipsis' && bannerName?.truncated === true,
+  `textOverflow=${bannerName?.textOverflow} / 잘림=${bannerName?.truncated}`);
+check('M) 배너 상품명에 디센더 여유가 있다 (한 줄이라 안전)', (bannerName?.pad ?? 0) > 0,
+  `pad=${bannerName?.pad}`);
+
+await page.goto(`${base}/market/product/${encodeURIComponent('저당, 저탄수, 고단백 윔쉐이크 초코 대용량 800g')}`, { waitUntil: 'load' });
+await page.waitForTimeout(600);
+const pdName = await readSingleLineName('[data-testid="pd-name"]');
+check('M) 상세 상품명은 한 줄 고정', pdName?.lines === 1 && pdName?.whiteSpace === 'nowrap',
+  JSON.stringify(pdName));
+check('M) 상세 상품명이 넘치면 … 로 잘린다',
+  pdName?.textOverflow === 'ellipsis' && pdName?.truncated === true,
+  `textOverflow=${pdName?.textOverflow} / 잘림=${pdName?.truncated}`);
 
 await page.goto(`${base}/market`, { waitUntil: 'load' });
 await page.waitForTimeout(500);

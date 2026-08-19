@@ -21,13 +21,13 @@ export const NAME_MAX_LINES = 2;
  *
  * `g` `y` `p` `q` `j` `340g` 처럼 베이스라인 아래로 내려가는 글자는 자기 **줄 박스보다
  * 아래까지 잉크가 뻗는다.** 이 프로젝트는 Figma 실측대로 line-height 를 글자 크기에
- * 가깝게(예: 16px 글자에 16.5px 줄간격) 잡아 두었기 때문에 그 삐져나옴이 특히 크다.
- * 배너 상품명에서는 2.7px 가량 넘친다.
+ * 가깝게(16px 글자에 16.5px 줄간격) 잡아 두어 그 삐져나옴이 2.7px 에 달한다.
+ * 여기에 `overflow: hidden` 이 겹치면 넘친 잉크가 그대로 잘린다(`800g` 의 g 아래가 날아갔다).
  *
- * 여기에 `overflow: hidden`(line-clamp 에 필수) 이 겹치면 넘친 잉크가 그대로 잘린다.
- * 그래서 클립 박스에 padding-bottom 을 줘서 **자르는 선만 아래로 내리고**,
- * 같은 크기의 음수 margin-bottom 으로 주변 레이아웃은 원래대로 유지한다.
- * (line-height 를 키우면 글자 위치가 밀려 시안과 어긋난다)
+ * 그래서 클립 박스에 padding-bottom 을 줘서 자르는 선만 아래로 내린다.
+ *
+ * **한 줄 고정(nowrap)에서만 쓴다.** 여러 줄 clamp 에 이 여유를 주면 그 틈으로
+ * 다음 줄 글자 윗부분이 삐져나와 보인다(잘렸어야 할 세 번째 줄이 4px 노출).
  */
 const DESCENDER_ROOM = 4;
 
@@ -45,11 +45,11 @@ export function displayProductName(product) {
 }
 
 /**
- * `line-clamp` 스타일 객체.
- * 지정한 줄 수를 넘으면 마지막 줄 끝에 `…` 이 붙는다.
+ * 여러 줄 `line-clamp` 스타일.
+ * 지정한 줄 수를 넘으면 마지막 줄 끝에 `…` 이 붙는다. (마켓 상품 카드에 쓴다)
  *
- * padding/margin 한 쌍은 디센더가 잘리지 않게 자르는 선만 내리는 장치다
- * (DESCENDER_ROOM 주석 참고). 차지하는 높이는 그대로다.
+ * 디센더 여유(padding)를 주지 않는다 — 그 틈으로 잘렸어야 할 다음 줄이 노출된다.
+ * 카드 이름은 12px / 줄간격 16.5px 라 잉크 삐져나옴이 0.2px 수준이어서 눈에 띄지 않는다.
  *
  * @param {number} [lines] 허용 줄 수
  */
@@ -59,6 +59,23 @@ export function clampLines(lines = NAME_MAX_LINES) {
     WebkitBoxOrient: 'vertical',
     WebkitLineClamp: lines,
     overflow: 'hidden',
+  };
+}
+
+/**
+ * 한 줄 고정 + 넘치면 `…` 스타일.
+ *
+ * 추천 배너와 상품 상세의 제품명에 쓴다. 이 두 곳은 이름이 두 줄로 늘어나면
+ * 아래 태그·가격을 밀거나 덮어 버려서 **무조건 한 줄로만** 보여준다.
+ *
+ * `nowrap` 이라 두 번째 줄이 애초에 만들어지지 않으므로, 디센더 여유(padding)를 줘도
+ * 다음 줄이 노출될 걱정이 없다 — 여기서만 DESCENDER_ROOM 을 쓴다.
+ */
+export function clampSingleLine() {
+  return {
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
     paddingBottom: DESCENDER_ROOM,
     marginBottom: -DESCENDER_ROOM,
   };

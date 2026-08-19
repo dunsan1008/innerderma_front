@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { clampLines, joinNameLines } from '@/lib/productName';
+import { clampSingleLine, joinNameLines } from '@/lib/productName';
 
 /**
  * 추천 상품 배너 (Figma `Frame 74` 870:5061 / `Frame 77` 870:5523 / `Frame 78` 870:5342).
@@ -151,15 +151,19 @@ export default function FeaturedBanner({ banner, slides, onOpen }) {
         data-name="Paragraph"
       >
         {/*
-          폭은 부모(214) 를 따른다. 예전에는 w-[338px] 로 부모를 넘겨 놨는데,
-          이름을 18자로 잘라 쓰던 동안에는 문제가 없었지만 두 줄 clamp 로 바꾸면서
-          긴 이름이 오른쪽 가격 위까지 뻗어 글자가 겹쳤다.
+          이름 박스 — 두 줄 높이(33)를 잡고 **아래 정렬**한다.
+
+          Figma 는 여기에 두 줄 박스를 두고 첫 줄을 빈 줄(제로폭 공백)로, 둘째 줄에
+          이름을 넣어 놨다. 아래 정렬로 두면 그 둘째 줄 자리에 이름이 그대로 온다.
+
+          이름은 **무조건 한 줄**이고 넘치면 … 으로 자른다. 두 줄이 되면 아래 태그를
+          밀거나 덮어 버리기 때문이다. 폭은 부모(214)를 따른다 — 넘기면 오른쪽 가격
+          위로 글자가 뻗는다.
         */}
-        <div className="relative h-[44px] w-full shrink-0 font-sans text-[16px] font-semibold leading-[0] text-ink [word-break:break-word]">
-          <p className="mb-0 leading-[16.5px]">&#8203;</p>
+        <div className="relative flex h-[33px] w-full shrink-0 flex-col justify-end font-sans text-[16px] font-semibold text-ink">
           <p
             className="leading-[16.5px]"
-            style={clampLines()}
+            style={clampSingleLine()}
             data-name="BannerProductName"
           >
             {joinNameLines(current)}

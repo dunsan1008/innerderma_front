@@ -7,7 +7,7 @@ import { productKey, useWishlistStore } from '@/store/wishlistStore';
 import { PRODUCT_DETAIL } from '@/constants/productDetail';
 import { findProductByKey } from '@/constants/marketScreens';
 import { formatPrice } from '@/constants/cartItems';
-import { clampLines, joinNameLines } from '@/lib/productName';
+import { clampSingleLine, joinNameLines } from '@/lib/productName';
 import backIcon from '@/assets/figma/pd-back.svg';
 import shareIcon from '@/assets/figma/pd-share.svg';
 import plusIcon from '@/assets/figma/pd-plus.svg';
@@ -268,9 +268,8 @@ export default function ProductDetailScreen() {
       </button>
 
       {/*
-        상품명 — 마켓 카드와 같은 18자 규칙을 적용한다.
-        내부 텍스트 박스(338)가 바깥 박스(214)보다 넓어 찜·공유 버튼 위를 덮으므로
-        클릭이 막히지 않게 pointer-events 를 끈다.
+        상품명 — 두 줄까지 보여주고 그걸 넘어가는 시점부터 … (마켓 카드·배너와 같은 규칙).
+        클릭이 막히지 않게 pointer-events 를 끈다(찜·공유 버튼 위를 덮는다).
       */}
       <div
         className="pointer-events-none absolute left-[15.83px] flex h-[46px] w-[214px] flex-col items-start"
@@ -278,11 +277,15 @@ export default function ProductDetailScreen() {
         data-node-id="1026:2591"
         data-name="Paragraph"
       >
-        {/* 폭은 부모(214) 를 따른다 — 넘기면 오른쪽 가격과 글자가 겹친다 */}
-        <div className="relative h-[44px] w-full shrink-0 font-sans text-[16px] font-semibold leading-[0] text-ink [word-break:break-word]">
-          <p className="mb-0 leading-[16.5px]">&#8203;</p>
-          {/* 두 줄까지 표시하고 넘치면 … (마켓 카드·배너와 같은 규칙) */}
-          <p className="leading-[16.5px]" style={clampLines()} data-testid="pd-name">
+        {/*
+          두 줄 높이(33)를 잡고 아래 정렬한다 — Figma 의 "빈 첫 줄 + 이름" 구조에서
+          이름이 놓이던 둘째 줄 자리에 그대로 온다.
+
+          이름은 **무조건 한 줄**이고 넘치면 … 으로 자른다. 두 줄이 되면 바로 아래
+          가격과 겹쳤다. 폭은 부모(214)를 따른다 — 넘기면 오른쪽 가격과 글자가 겹친다.
+        */}
+        <div className="relative flex h-[33px] w-full shrink-0 flex-col justify-end font-sans text-[16px] font-semibold text-ink">
+          <p className="leading-[16.5px]" style={clampSingleLine()} data-testid="pd-name">
             {view.name}
           </p>
         </div>
