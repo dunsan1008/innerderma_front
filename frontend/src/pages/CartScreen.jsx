@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useT } from '@/i18n';
 import Screen from '@/components/layout/Screen';
 import TabBar from '@/components/layout/TabBar';
 import StatusBar from '@/components/layout/StatusBar';
@@ -44,6 +45,7 @@ const SUMMARY_TOP_MIN = 728.333;
 
 /** 배송방법 셀렉트 (Figma 1026:2444) — 디자인은 정적이지만 실제로 고를 수 있게 한다 */
 function DeliverySelect({ value, onChange }) {
+  const t = useT();
   return (
     <div
       className="relative flex shrink-0 items-center gap-[5px] rounded-[6px] border-[0.667px] border-solid border-card-line px-[8px] py-[4px]"
@@ -57,7 +59,7 @@ function DeliverySelect({ value, onChange }) {
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        aria-label="배송방법"
+        aria-label={t.cart.shippingMethodAria}
         className="absolute inset-0 cursor-pointer opacity-0"
       >
         {DELIVERY_OPTIONS.map((opt) => (
@@ -72,6 +74,7 @@ function DeliverySelect({ value, onChange }) {
 
 /** 수량 스테퍼 (Figma 1026:2449) */
 function QuantityStepper({ value, onChange }) {
+  const t = useT();
   return (
     <div
       className="relative flex h-[27.333px] w-[87.333px] shrink-0 items-center overflow-clip rounded-[6px] border-[0.667px] border-solid border-card-line"
@@ -79,7 +82,7 @@ function QuantityStepper({ value, onChange }) {
     >
       <button
         type="button"
-        aria-label="수량 줄이기"
+        aria-label={t.cart.decreaseQtyAria}
         onClick={() => onChange(value - 1)}
         disabled={value <= 1}
         className="relative flex h-[26px] w-[28px] shrink-0 items-center justify-center border-r-[0.667px] border-solid border-card-line disabled:opacity-40"
@@ -91,7 +94,7 @@ function QuantityStepper({ value, onChange }) {
       </span>
       <button
         type="button"
-        aria-label="수량 늘리기"
+        aria-label={t.cart.increaseQtyAria}
         onClick={() => onChange(value + 1)}
         className="relative flex h-[26px] w-[28px] shrink-0 items-center justify-center border-l-[0.667px] border-solid border-card-line"
       >
@@ -103,6 +106,7 @@ function QuantityStepper({ value, onChange }) {
 
 /** 장바구니 상품 카드 (Figma 1026:2426) */
 function CartItemCard({ item, selected, onToggle, onRemove, onQuantity, onDelivery, top }) {
+  const t = useT();
   return (
     <div
       className="absolute left-[16px] flex w-[361px] flex-col items-start rounded-[12px] border-[0.667px] border-solid border-card-line bg-white p-[12px]"
@@ -118,7 +122,7 @@ function CartItemCard({ item, selected, onToggle, onRemove, onQuantity, onDelive
             type="button"
             role="checkbox"
             aria-checked={selected}
-            aria-label={`${item.name} 선택`}
+            aria-label={`${item.name} ${t.common.select}`}
             onClick={() => onToggle(item.id)}
             className={`relative flex size-[18px] shrink-0 items-center justify-center rounded-[4px] border-[0.667px] border-solid transition-colors ${
               selected ? 'border-header-dark bg-header-dark' : 'border-card-line bg-white'
@@ -151,7 +155,7 @@ function CartItemCard({ item, selected, onToggle, onRemove, onQuantity, onDelive
         {/* 삭제 */}
         <button
           type="button"
-          aria-label={`${item.name} 삭제`}
+          aria-label={`${item.name} ${t.common.delete}`}
           onClick={() => onRemove(item.id)}
           className="relative flex h-[22px] w-[20px] shrink-0 flex-col items-start justify-center px-[4px] pb-[4px] pt-[6px]"
         >
@@ -174,6 +178,7 @@ function CartItemCard({ item, selected, onToggle, onRemove, onQuantity, onDelive
 }
 
 export default function CartScreen() {
+  const t = useT();
   const navigate = useNavigate();
   const items = useCartStore((s) => s.items);
   const selectedIds = useCartStore((s) => s.selectedIds);
@@ -227,7 +232,7 @@ export default function CartScreen() {
         data-name="Heading 1"
       >
         <p className="relative shrink-0 whitespace-nowrap font-sans text-[20px] font-bold leading-[25px] text-text-strong">
-          MY 장바구니
+          {t.cart.title}
         </p>
       </div>
 
@@ -240,7 +245,7 @@ export default function CartScreen() {
           type="button"
           role="checkbox"
           aria-checked={allChecked ? 'true' : someChecked ? 'mixed' : 'false'}
-          aria-label="전체 선택"
+          aria-label={t.common.selectAll}
           onClick={toggleSelectAll}
           className="relative flex shrink-0 items-center gap-[6px]"
           data-node-id="1026:2409"
@@ -260,7 +265,7 @@ export default function CartScreen() {
             ) : null}
           </span>
           <span className="whitespace-nowrap text-center font-sans text-[12px] font-medium leading-[18px] text-header-dark">
-            전체
+            {t.filter.all}
           </span>
         </button>
 
@@ -270,7 +275,7 @@ export default function CartScreen() {
           data-node-id="1026:2415"
         >
           <span className="whitespace-nowrap text-center font-sans text-[12px] font-normal leading-[18px] text-tool-gray">
-            배송방법 변경
+            {t.market.changeDelivery}
           </span>
           <span className="relative flex size-[6px] shrink-0 items-center justify-center">
             <span className="flex-none rotate-90">
@@ -281,10 +286,10 @@ export default function CartScreen() {
             value=""
             onChange={(e) => e.target.value && setDeliveryForSelected(e.target.value)}
             disabled={selectedIds.length === 0}
-            aria-label="선택 상품 배송방법 일괄 변경"
+            aria-label={t.cart.changeDeliveryBulkAria}
             className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-not-allowed"
           >
-            <option value="">선택</option>
+            <option value="">{t.common.select}</option>
             {DELIVERY_OPTIONS.map((opt) => (
               <option key={opt} value={opt}>
                 {opt}
@@ -306,7 +311,7 @@ export default function CartScreen() {
           data-node-id="1026:2422"
           data-testid="cart-delete-selected"
         >
-          선택삭제
+          {t.market.selectDelete}
         </button>
       </div>
 
@@ -326,7 +331,7 @@ export default function CartScreen() {
         ))
       ) : (
         <p className="absolute left-0 top-[380px] w-[393px] text-center font-sans text-[13px] font-normal leading-[20px] text-body">
-          장바구니가 비었어요. 마켓에서 상품을 담아보세요.
+          {t.cart.emptyMessage}
         </p>
       )}
 
@@ -338,7 +343,7 @@ export default function CartScreen() {
       >
         <div className="relative flex w-full shrink-0 items-center justify-between px-[4px]" data-node-id="1026:2529">
           <p className="whitespace-nowrap font-sans text-[13px] font-normal leading-[19.5px] text-cart-sub">
-            선택 {selectedIds.length}개
+            {t.common.selectedCount(selectedIds.length)}
           </p>
           <p className="whitespace-nowrap font-sans text-[16px] font-bold leading-[24px] text-header-dark">
             {formatPrice(total)}
@@ -361,7 +366,7 @@ export default function CartScreen() {
                 selectedIds.length > 0 ? 'text-white' : 'text-disabled-text'
               }`}
             >
-              구매하기
+              {t.cart.purchase}
             </span>
           </button>
         </div>

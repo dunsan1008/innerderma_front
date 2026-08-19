@@ -149,7 +149,7 @@ export default function CameraScreen({ initialDetected = false }) {
 
         <button
           type="button"
-          aria-label="닫기"
+          aria-label={t.common.close}
           onClick={() => navigate('/home')}
           className="absolute left-[337px] top-[64px] flex size-[32px] items-center justify-center rounded-full bg-white-15"
           data-node-id="870:3695"
@@ -188,8 +188,11 @@ export default function CameraScreen({ initialDetected = false }) {
             className="relative w-[329px] shrink-0 text-center font-sans text-[13px] font-medium leading-[0] text-guide-pending [word-break:break-word] whitespace-pre-wrap"
             data-node-id="870:3699"
           >
-            <p className="mb-0 leading-[20px]">{`안경을 벗고, 얼굴을 가운데에 맞춰주세요. `}</p>
-            <p className="leading-[20px]">조명이 밝을수록 정확해요.</p>
+            {t.camera.guideDefault.split('\n').map((line, i) => (
+              <p key={i} className={i === 0 ? 'mb-0 leading-[20px]' : 'leading-[20px]'}>
+                {line}
+              </p>
+            ))}
           </div>
         </div>
       )}
@@ -202,7 +205,7 @@ export default function CameraScreen({ initialDetected = false }) {
         {detected ? (
           <button
             type="button"
-            aria-label="촬영"
+            aria-label={t.common.capture}
             onClick={shoot}
             className="relative flex size-[68px] shrink-0 items-center justify-center rounded-full bg-white"
             style={{ filter: 'drop-shadow(0px 0px 0px rgba(255,255,255,0.25))' }}

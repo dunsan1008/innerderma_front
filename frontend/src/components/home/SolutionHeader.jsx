@@ -36,7 +36,7 @@ export default function SolutionHeader({
         프레임 이름 "홈화면 상단 검은 배경 클릭 시" 대로, 헤더의 검은 배경을 누르면
         그 달 전체 캘린더가 펼쳐진다. 로고·아이콘·요일 칩보다 아래에 깔아 둔다.
       */}
-      <button type="button" aria-label="캘린더 열기(배경)" onClick={onOpenCalendar} className="absolute inset-0" />
+      <button type="button" aria-label={t.calendar.openCalendar} onClick={onOpenCalendar} className="absolute inset-0" />
       <div className="relative flex shrink-0 flex-col items-start pl-[13px] pt-[7px]" data-node-id="870:3575">
         <StatusBar tone="white" className="relative h-[44px] w-[366px] shrink-0" />
       </div>
@@ -57,11 +57,11 @@ export default function SolutionHeader({
         </div>
         <div className="relative flex h-[19px] w-[52px] shrink-0 items-center justify-between" data-node-id="870:3581" data-name="Group 3">
           {/* 번역(지구본) 아이콘 */}
-          <button type="button" aria-label="언어 선택" onClick={onOpenLang} className="flex size-[21px] items-center justify-center">
+          <button type="button" aria-label={t.common.selectLanguage} onClick={onOpenLang} className="flex size-[21px] items-center justify-center">
             <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#fff" strokeWidth="1.8"/><ellipse cx="12" cy="12" rx="5" ry="10" stroke="#fff" strokeWidth="1.5"/><path d="M2 12h20M3.5 7h17M3.5 17h17" stroke="#fff" strokeWidth="1.3"/></svg>
           </button>
           {/* 마이페이지 아이콘 */}
-          <button type="button" aria-label="마이페이지" onClick={onOpenMyPage} className="flex size-[19px] items-center justify-center">
+          <button type="button" aria-label={t.common.mypage} onClick={onOpenMyPage} className="flex size-[19px] items-center justify-center">
             <svg width="16" height="18" viewBox="0 0 16 18" fill="none"><circle cx="8" cy="5" r="3.5" stroke="#fff" strokeWidth="1.5"/><path d="M1 16.5c0-3 3-5.5 7-5.5s7 2.5 7 5.5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/></svg>
           </button>
         </div>

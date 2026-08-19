@@ -87,7 +87,7 @@ function MonthNav({ view, onPrev, onNext, onTogglePicker, pickerOpen }) {
         type="button"
         onClick={onTogglePicker}
         aria-expanded={pickerOpen}
-        aria-label={`${t.calendar.yearMonth(view.year, view.month)} — 연·월 선택`}
+        aria-label={`${t.calendar.yearMonth(view.year, view.month)} — ${t.calendar.selectYearMonth}`}
         className="relative h-[19px] w-[81.929px] shrink-0"
       >
         <span className="absolute left-0 top-0 whitespace-nowrap font-sans text-[16px] font-bold leading-[25px] text-white [word-break:break-word]">
@@ -364,7 +364,7 @@ export default function CalendarModal({
                       <button
                         type="button"
                         onClick={() => pick(cell)}
-                        aria-label={`${cell.day}일`}
+                        aria-label={t.calendar.dayAria(cell.day)}
                         aria-current={cell.dateKey === selectedDate ? 'date' : undefined}
                         className="absolute left-0 top-[21px] size-[32px]"
                       >
@@ -390,7 +390,7 @@ export default function CalendarModal({
                       type="button"
                       key={cell.day}
                       onClick={() => pick(cell)}
-                      aria-label={`${cell.day}일`}
+                      aria-label={t.calendar.dayAria(cell.day)}
                       aria-current={cell.dateKey === selectedDate ? 'date' : undefined}
                       className="absolute top-0 size-[32px]"
                       style={{ left: COLUMN_X[i] }}

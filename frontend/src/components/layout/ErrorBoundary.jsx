@@ -1,4 +1,5 @@
 import { Component } from 'react';
+import { getT } from '@/i18n';
 
 /**
  * 렌더 에러 안전망.
@@ -36,6 +37,12 @@ export default class ErrorBoundary extends Component {
     const { error } = this.state;
     if (!error) return this.props.children;
 
+    /**
+     * 클래스 컴포넌트라 useT() 훅을 쓸 수 없어 getT() 로 현재 언어를 읽는다.
+     * (zustand 상태를 구독하지 않으므로 에러 표시 중 언어를 바꿔도 다시 그리지는 않는다)
+     */
+    const t = getT();
+
     return (
       <div
         className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-[12px] bg-white px-[28px]"
@@ -43,7 +50,7 @@ export default class ErrorBoundary extends Component {
         role="alert"
       >
         <p className="text-center font-sans text-[15px] font-semibold leading-[22px] text-text-strong">
-          화면을 그리는 중 문제가 생겼어요
+          {t.errorBoundary.message}
         </p>
         <p className="max-h-[160px] overflow-auto text-center font-sans text-[11px] font-normal leading-[16px] text-body">
           {String(error?.message ?? error)}
@@ -53,7 +60,7 @@ export default class ErrorBoundary extends Component {
           onClick={() => this.setState({ error: null })}
           className="mt-[4px] h-[40px] w-[160px] rounded-[12px] bg-header-dark font-sans text-[13px] font-semibold text-white"
         >
-          다시 시도
+          {t.errorBoundary.retry}
         </button>
       </div>
     );

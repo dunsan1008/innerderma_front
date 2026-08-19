@@ -10,10 +10,10 @@ import Screen from '@/components/layout/Screen';
  *
  * 기획 안전 원칙에 따라 진단이 아니라 '관리 목적' 표현을 쓴다.
  */
-const TAGS = [
-  { label: '피부 장벽 회복', nodeId: '870:3765', textNodeId: '870:3766' },
-  { label: '약한 붉어짐', nodeId: '870:3767', textNodeId: '870:3768' },
-  { label: '수분 부족', nodeId: '870:3769', textNodeId: '870:3770' },
+const TAG_LAYOUT = [
+  { nodeId: '870:3765', textNodeId: '870:3766' },
+  { nodeId: '870:3767', textNodeId: '870:3768' },
+  { nodeId: '870:3769', textNodeId: '870:3770' },
 ];
 
 /**
@@ -32,6 +32,9 @@ const STAGGER = { label: 0, headline: 110, tags: 220 };
 export default function SolutionSummaryScreen() {
   const t = useT();
   const navigate = useNavigate();
+  /** 레이아웃(nodeId) + 현재 언어 라벨을 합친다 */
+  const TAGS = TAG_LAYOUT.map((layout, i) => ({ ...layout, label: t.whyTags[i] }));
+  const [headlineLine1, headlineLine2] = t.solutionSummary.headline.split('\n');
   /** 'enter' → 'hold' → 'leave' */
   const [shown, setShown] = useState(false);
   const [leaving, setLeaving] = useState(false);
@@ -74,8 +77,8 @@ export default function SolutionSummaryScreen() {
         data-node-id="870:3763"
         data-testid="summary-headline"
       >
-        <p className="mb-0 leading-[32px]">오늘은 피부장벽 회복에</p>
-        <p className="leading-[32px]">집중해 주세요.</p>
+        <p className="mb-0 leading-[32px]">{headlineLine1}</p>
+        <p className="leading-[32px]">{headlineLine2}</p>
       </div>
 
       <div

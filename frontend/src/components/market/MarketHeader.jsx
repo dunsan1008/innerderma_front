@@ -1,3 +1,4 @@
+import { useT } from '@/i18n';
 import StatusBar from '@/components/layout/StatusBar';
 import outlineHeartIcon from '@/assets/figma/market-heart-outline.svg';
 import cartIcon from '@/assets/figma/market-cart-icon.svg';
@@ -11,6 +12,7 @@ import cartIcon from '@/assets/figma/market-cart-icon.svg';
  *  - 마켓 2·3·찜 화면에는 boxicons:heart 24x24 @ (283, 20) 가 하나 더 붙는다
  */
 export default function MarketHeader({ showHeart = false, onWish, onCart }) {
+  const t = useT();
   return (
     <div
       className="relative flex h-[129px] w-[393px] flex-col items-start overflow-clip bg-header-dark"
@@ -39,7 +41,7 @@ export default function MarketHeader({ showHeart = false, onWish, onCart }) {
 
         <button
           type="button"
-          aria-label="찜 목록"
+          aria-label={t.market.wishlistAria}
           onClick={onWish}
           className="absolute"
           style={{ left: 307, top: 28.983642578125, width: 19.94499969482422, height: 17.966428756713867 }}
@@ -50,7 +52,7 @@ export default function MarketHeader({ showHeart = false, onWish, onCart }) {
 
         <button
           type="button"
-          aria-label="장바구니"
+          aria-label={t.common.cart}
           onClick={onCart}
           className="absolute left-[343.97px] top-[28px] size-[20px]"
           data-name="Vector"

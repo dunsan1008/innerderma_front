@@ -9,14 +9,19 @@ import divider from '@/assets/figma/step-divider.svg';
  *  - 마지막 카드를 뺀 나머지 뒤에는 StepDivider(이중 셰브론 25x14, py-4)가 붙는다
  */
 
-/** 카테고리 태그 색 쌍. Figma 에서 카테고리별로 고정되어 있다. */
+/**
+ * 카테고리 태그 색 쌍. Figma 에서 카테고리별로 고정되어 있다.
+ * `step.tag` 는 useRoutineText() 가 현재 언어로 번역해 덮어쓰므로, 스타일은
+ * 번역되지 않는 안정적인 `step.tagKey` 로 찾는다(번역 텍스트로 찾으면 한국어 외
+ * 언어에서 클래스가 매칭되지 않는다).
+ */
 const TAG_STYLE = {
-  '수분 공급': 'bg-tag-moist-bg text-tag-moist-text',
-  '성분 공급': 'bg-tag-nutrient-bg text-tag-nutrient-text',
-  '보습막 형성': 'bg-tag-barrier-bg text-tag-barrier-text',
-  '수분 잠금': 'bg-tag-lock-bg text-tag-lock-text',
-  '노폐물 제거': 'bg-tag-waste-bg text-tag-waste-text',
-  '자외선 차단': 'bg-tag-uv-bg text-tag-uv-text',
+  moist: 'bg-tag-moist-bg text-tag-moist-text',
+  nutrient: 'bg-tag-nutrient-bg text-tag-nutrient-text',
+  barrier: 'bg-tag-barrier-bg text-tag-barrier-text',
+  lock: 'bg-tag-lock-bg text-tag-lock-text',
+  waste: 'bg-tag-waste-bg text-tag-waste-text',
+  uv: 'bg-tag-uv-bg text-tag-uv-text',
 };
 
 function StepCard({ step, nodeId }) {
@@ -43,7 +48,7 @@ function StepCard({ step, nodeId }) {
             </div>
           </div>
           <div
-            className={`relative flex shrink-0 flex-col items-start rounded-full px-[8px] py-[2px] ${TAG_STYLE[step.tag]}`}
+            className={`relative flex shrink-0 flex-col items-start rounded-full px-[8px] py-[2px] ${TAG_STYLE[step.tagKey]}`}
             data-name="CategoryTag"
           >
             <p className="relative shrink-0 whitespace-nowrap font-sans text-[10px] font-medium leading-[15px] [word-break:break-word]">

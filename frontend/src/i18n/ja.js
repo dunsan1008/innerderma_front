@@ -18,6 +18,13 @@ export default {
     delete: '削除',
     selectAll: '全選択',
     language: 'Language',
+    select: '選択',
+    viewDetail: '詳細を見る',
+    selectLanguage: '言語選択',
+    cart: 'カート',
+    back: '戻る',
+    share: '共有',
+    selectedCount: (n) => `${n}件選択`,
   },
 
   weekdays: { mon: '月', tue: '火', wed: '水', thu: '木', fri: '金', sat: '土', sun: '日' },
@@ -54,6 +61,8 @@ export default {
     yearMonth: (y, m) => `${y}年${m}月`,
     yearLabel: (y) => `${y}年`,
     monthLabel: (m) => `${m}月`,
+    selectYearMonth: '年月選択',
+    dayAria: (day) => `${day}日`,
   },
 
   solution: {
@@ -77,6 +86,7 @@ export default {
     completeBtnDisabledTip: '当日のみ完了記録ができます',
     todayRecommend: '今日のおすすめ',
     supplementWarning: '⚠ 空腹時に不快感が生じる場合があります。',
+    recommendTitle: '今日のソリューションに合うおすすめ商品',
   },
 
   noSolution: {
@@ -135,6 +145,7 @@ export default {
     subQuestion: 'もう一度確認してみてください！',
     done: '完了しました！',
     notYet: 'まだです！',
+    ariaLabel: '洗顔確認',
   },
 
   solutionSummary: {
@@ -150,6 +161,10 @@ export default {
     selectDelete: '選択削除',
     addWish: 'お気に入り登録',
     removeWish: 'お気に入り解除',
+    wishlistAria: 'お気に入りリスト',
+    bannerIndicatorAria: (n) => `おすすめ商品${n}番目`,
+    categoryOily: 'インナードライ',
+    categoryElasticity: '弾力',
   },
 
   filter: {
@@ -168,6 +183,49 @@ export default {
     pigment: 'シミ/美白',
     elasticity: '弾力/シワ',
     pore: '毛穴/皮脂',
+    closeAria: 'フィルターを閉じる',
+  },
+
+  cart: {
+    title: 'マイカート',
+    shippingMethodAria: '配送方法',
+    decreaseQtyAria: '数量を減らす',
+    increaseQtyAria: '数量を増やす',
+    emptyMessage: 'カートが空です。ショップで商品を追加してください。',
+    purchase: '購入する',
+    changeDeliveryBulkAria: '選択した商品の配送方法を一括変更',
+  },
+
+  productDetail: {
+    buyNow: '今すぐ購入',
+    comboCollapseAria: 'ベストコンボを閉じる',
+    comboExpandAria: 'ベストコンボを開く',
+    comboTitle: '人気のベストコンボ',
+    comboCta: 'カートにまとめて追加',
+  },
+
+  selfCheck: {
+    title: 'デイリーセルフチェック',
+    directCheck: '手動チェック',
+    saveItems: '保存',
+  },
+  selfCheckItems: {
+    tight: '肌がひどくつっぱる',
+    hot: 'ほてって熱を感じる',
+    sting: 'ピリピリする',
+    rough: '肌がカサカサする',
+    none: '特に異常はありません。',
+    other: 'その他',
+  },
+
+  solutionLoading: {
+    deriving: 'ソリューションを作成中です。\n少々お待ちください',
+    aggregating: 'データを集計しています。',
+  },
+
+  errorBoundary: {
+    message: '画面の描画中に問題が発生しました',
+    retry: '再試行',
   },
 
   mypage: {

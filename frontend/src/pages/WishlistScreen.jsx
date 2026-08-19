@@ -102,7 +102,7 @@ export default function WishlistScreen() {
       >
         <div className="relative flex shrink-0 flex-col items-start">
           <p className="relative shrink-0 whitespace-nowrap font-sans text-[20px] font-bold leading-[19.5px] text-text-strong [word-break:break-word]">
-            MY 찜
+            {t.market.wishlist}
           </p>
         </div>
       </div>
@@ -118,7 +118,7 @@ export default function WishlistScreen() {
             type="button"
             role="checkbox"
             aria-checked={allChecked ? 'true' : someChecked ? 'mixed' : 'false'}
-            aria-label="전체 선택"
+            aria-label={t.common.selectAll}
             onClick={toggleAll}
             className={`flex size-[13px] shrink-0 items-center justify-center rounded-[3px] border-[1.1px] border-solid border-tool-gray ${
               activeSelected.length > 0 ? 'bg-tool-gray' : 'bg-transparent'

@@ -29,10 +29,11 @@ function OptionRow({ label, selected, onClick, top, bold }) {
 
 /** 성별 (filter 1) — 단일 선택 */
 function GenderOptions({ selected, onSelect }) {
+  const t = useT();
   const options = [
-    { value: 'all', label: '전체', top: 450, bold: true },
-    { value: 'female', label: '여성', top: 505, bold: false },
-    { value: 'male', label: '남성', top: 563, bold: false },
+    { value: 'all', label: t.filter.all, top: 450, bold: true },
+    { value: 'female', label: t.filter.female, top: 505, bold: false },
+    { value: 'male', label: t.filter.male, top: 563, bold: false },
   ];
 
   return (
@@ -56,12 +57,13 @@ function GenderOptions({ selected, onSelect }) {
 
 /** 연령대 (filter 2) — 중복 선택 가능 */
 function AgeOptions({ selected, onToggle }) {
+  const t = useT();
   const options = [
-    { value: 'all', label: '전체', top: 447, bold: true },
-    { value: '10s', label: '10대', top: 504 },
-    { value: '20s', label: '20대', top: 564 },
-    { value: '30s', label: '30대', top: 624 },
-    { value: '40s', label: '40대', top: 684 },
+    { value: 'all', label: t.filter.all, top: 447, bold: true },
+    { value: '10s', label: t.filter.teens, top: 504 },
+    { value: '20s', label: t.filter.twenties, top: 564 },
+    { value: '30s', label: t.filter.thirties, top: 624 },
+    { value: '40s', label: t.filter.forties, top: 684 },
   ];
 
   return (
@@ -85,14 +87,14 @@ function AgeOptions({ selected, onToggle }) {
 }
 
 /** 맞춤형 진단 — 피부 진단 기본 요소 */
-const METRICS = [
-  { label: '수분/보습', labelTop: 53, barTop: 74, value: '76%' },
-  { label: '기미/미백', labelTop: 113, barTop: 130, value: '76%' },
-  { label: '탄력/주름', labelTop: 169, barTop: 186, value: '76%' },
-  { label: '모공/피지', labelTop: 225, barTop: 242, value: '76%' },
-];
-
 function DiagnosisPanel() {
+  const t = useT();
+  const METRICS = [
+    { label: t.filter.moisture, labelTop: 53, barTop: 74, value: '76%' },
+    { label: t.filter.pigment, labelTop: 113, barTop: 130, value: '76%' },
+    { label: t.filter.elasticity, labelTop: 169, barTop: 186, value: '76%' },
+    { label: t.filter.pore, labelTop: 225, barTop: 242, value: '76%' },
+  ];
   return (
     <div
       className="absolute bg-white"
@@ -107,7 +109,7 @@ function DiagnosisPanel() {
       >
         <p className="font-sans text-[20px] font-bold leading-[18px] text-text-strong">8/15</p>
         <div className="flex items-center rounded-full bg-text-strong px-[8px] py-[2px]">
-          <p className="font-sans text-[10px] font-semibold leading-[15px] text-white">진단완료</p>
+          <p className="font-sans text-[10px] font-semibold leading-[15px] text-white">{t.filter.diagnosisComplete}</p>
         </div>
       </div>
 

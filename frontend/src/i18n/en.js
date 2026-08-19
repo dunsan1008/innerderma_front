@@ -18,6 +18,13 @@ export default {
     delete: 'Delete',
     selectAll: 'Select All',
     language: 'Language',
+    select: 'Select',
+    viewDetail: 'View details',
+    selectLanguage: 'Select language',
+    cart: 'Cart',
+    back: 'Back',
+    share: 'Share',
+    selectedCount: (n) => `${n} selected`,
   },
 
   weekdays: { mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun' },
@@ -57,6 +64,8 @@ export default {
       const names = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       return names[m] || `${m}`;
     },
+    selectYearMonth: 'Select year and month',
+    dayAria: (day) => `${day}`,
   },
 
   solution: {
@@ -80,6 +89,7 @@ export default {
     completeBtnDisabledTip: 'You can only mark completion for today',
     todayRecommend: "Today's pick",
     supplementWarning: '⚠ May cause discomfort if taken on an empty stomach.',
+    recommendTitle: "Products to pair with today's solution",
   },
 
   noSolution: {
@@ -138,6 +148,7 @@ export default {
     subQuestion: 'Please double-check!',
     done: 'Yes, done!',
     notYet: 'Not yet!',
+    ariaLabel: 'Face-washing confirmation',
   },
 
   solutionSummary: {
@@ -154,6 +165,10 @@ export default {
     selectDelete: 'Delete Selected',
     addWish: 'Add to Wishlist',
     removeWish: 'Remove from Wishlist',
+    wishlistAria: 'Wishlist',
+    bannerIndicatorAria: (n) => `Recommended item ${n}`,
+    categoryOily: 'Oily & Dehydrated',
+    categoryElasticity: 'Elasticity',
   },
 
   filter: {
@@ -172,6 +187,49 @@ export default {
     pigment: 'Pigmentation',
     elasticity: 'Elasticity',
     pore: 'Pore/Sebum',
+    closeAria: 'Close filter',
+  },
+
+  cart: {
+    title: 'My Cart',
+    shippingMethodAria: 'Shipping method',
+    decreaseQtyAria: 'Decrease quantity',
+    increaseQtyAria: 'Increase quantity',
+    emptyMessage: 'Your cart is empty. Add items from the shop.',
+    purchase: 'Checkout',
+    changeDeliveryBulkAria: 'Bulk-change shipping method for selected items',
+  },
+
+  productDetail: {
+    buyNow: 'Buy Now',
+    comboCollapseAria: 'Collapse best combo',
+    comboExpandAria: 'Expand best combo',
+    comboTitle: 'Best-Selling Combo',
+    comboCta: 'Add Combo to Cart',
+  },
+
+  selfCheck: {
+    title: 'Daily Self-Check',
+    directCheck: 'Manual Check',
+    saveItems: 'Save',
+  },
+  selfCheckItems: {
+    tight: 'My skin feels very tight',
+    hot: 'It feels hot and irritated',
+    sting: 'It feels stinging',
+    rough: 'My skin feels rough and dry',
+    none: 'Nothing feels wrong.',
+    other: 'Other',
+  },
+
+  solutionLoading: {
+    deriving: 'Generating your solution.\nPlease wait a moment',
+    aggregating: 'Aggregating your data.',
+  },
+
+  errorBoundary: {
+    message: 'Something went wrong while rendering this screen',
+    retry: 'Try Again',
   },
 
   mypage: {

@@ -1,3 +1,5 @@
+import { useT } from '@/i18n';
+
 /**
  * 마켓 카테고리 탭 (Figma `Container` 870:4935).
  *  - 래퍼: 흰 배경, 하단 보더 0.667px #e5e9f0, px-20 py-10
@@ -7,10 +9,13 @@
  *      · '수부지' 칩만 border 0.5px #e2e2e2, 나머지는 0.667px #e5e9f0 (Figma 그대로)
  */
 const TABS = [
-  { key: 'all', label: '전체', nodeId: '870:4937' },
-  { key: 'oily', label: '수부지', nodeId: '870:4939', thinBorder: true },
-  { key: 'skin', label: '피부탄력', nodeId: '870:4941' },
+  { key: 'all', nodeId: '870:4937' },
+  { key: 'oily', nodeId: '870:4939', thinBorder: true },
+  { key: 'skin', nodeId: '870:4941' },
 ];
+
+/** 탭 key → 번역 라벨 */
+const labelFor = (t, key) => (key === 'all' ? t.filter.all : key === 'oily' ? t.market.categoryOily : t.market.categoryElasticity);
 
 /**
  * @param {string} [value] 활성 탭 key
@@ -20,6 +25,7 @@ const TABS = [
  * @param {Function} [onChange]
  */
 export default function CategoryTabs({ value = 'all', staticKeys, onChange, className = '' }) {
+  const t = useT();
   const isStatic = (key) => Boolean(staticKeys?.includes(key));
 
   return (
@@ -55,7 +61,7 @@ export default function CategoryTabs({ value = 'all', staticKeys, onChange, clas
                   active ? 'text-white' : 'text-body'
                 }`}
               >
-                {tab.label}
+                {labelFor(t, tab.key)}
               </span>
             </button>
           );

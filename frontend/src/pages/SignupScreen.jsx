@@ -37,8 +37,11 @@ export default function SignupScreen() {
         className="absolute left-[82px] top-[299px] h-[55px] w-[226px] font-sans text-[20px] font-semibold leading-[0] text-ink [word-break:break-word] whitespace-pre-wrap"
         data-node-id="870:3431"
       >
-        <p className="mb-0 leading-[27px]">{`Q. 웰니스하우스 서울에서 `}</p>
-        <p className="leading-[27px]">{`어떤 서비스를 받으셨나요? `}</p>
+        {t.onboarding.signupQuestion.split('\n').map((line, i) => (
+          <p key={i} className={i === 0 ? 'mb-0 leading-[27px]' : 'leading-[27px]'}>
+            {line}
+          </p>
+        ))}
       </div>
 
       <Button
@@ -63,7 +66,7 @@ export default function SignupScreen() {
         className="absolute left-[196px] top-[559px] h-[20px] w-[286px] -translate-x-1/2 text-center font-sans text-[9px] font-medium leading-[14px] text-muted [word-break:break-word] whitespace-pre-wrap"
         data-node-id="870:3434"
       >
-        {`방문 시 이용한 서비스를 선택해 주세요. 맞춤 관리 루틴을 준비해 드릴게요. `}
+        {t.onboarding.signupHint}
         <br aria-hidden />
         <br aria-hidden />
       </p>

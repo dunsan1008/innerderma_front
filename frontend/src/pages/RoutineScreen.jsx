@@ -347,7 +347,7 @@ export default function RoutineScreen({ cycle: cycleProp }) {
         L.recommendTitle,
         <div className="flex w-full flex-col items-start px-[20px]" data-node-id="989:1220">
           <p className="relative shrink-0 whitespace-nowrap font-sans text-[18px] font-bold leading-[26px] text-text-strong">
-            오늘의 솔루션과 어울리는 제품 추천
+            {t.solution.recommendTitle}
           </p>
         </div>,
         'recommendTitle',

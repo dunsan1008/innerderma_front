@@ -1,3 +1,4 @@
+import { useT } from '@/i18n';
 import heartFilled from '@/assets/figma/heart-red.svg';
 import heartEmpty from '@/assets/figma/heart-empty.svg';
 import { productKey, useWishlistStore } from '@/store/wishlistStore';
@@ -31,6 +32,7 @@ const HEART = { filled: heartFilled, empty: heartEmpty };
  * @param {Function} [onOpen]     카드 본문을 누르면 상세로 이동
  */
 export default function PostCard({ product, selectable = false, selected = false, onToggleSelect, onOpen }) {
+  const t = useT();
   const { left, top, imageWidth, layers, name, nameLines, price, tags, sizes, nodeId } = product;
 
   /** 두 줄까지 표시하고 넘치면 … (줄 수 판정은 CSS line-clamp) */
@@ -63,7 +65,7 @@ export default function PostCard({ product, selectable = false, selected = false
             type="button"
             role="checkbox"
             aria-checked={selected}
-            aria-label={`${nameLines ? nameLines.join('') : name} 선택`}
+            aria-label={`${nameLines ? nameLines.join('') : name} ${t.common.select}`}
             onClick={(e) => {
               e.stopPropagation();
               onToggleSelect?.(product);
@@ -108,7 +110,7 @@ export default function PostCard({ product, selectable = false, selected = false
 
         <button
           type="button"
-          aria-label={wished ? '찜 해제' : '찜하기'}
+          aria-label={wished ? t.market.removeWish : t.market.addWish}
           aria-pressed={wished}
           onClick={() => toggle(product)}
           className="absolute left-[128.33px] top-[0.17px] z-10 h-[17.25px] w-[19.5px] transition-transform active:scale-90"
@@ -204,7 +206,7 @@ export default function PostCard({ product, selectable = false, selected = false
       {onOpen ? (
         <button
           type="button"
-          aria-label={`${nameLines ? nameLines.join('') : name} 상세보기`}
+          aria-label={`${nameLines ? nameLines.join('') : name} ${t.common.viewDetail}`}
           onClick={() => onOpen(product)}
           className="absolute inset-0 z-0 cursor-pointer"
           data-name="OpenDetail"
