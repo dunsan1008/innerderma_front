@@ -1,0 +1,6 @@
+# Git LFS tracking for large binary assets
+frontend/src/assets/figma/products/*.png filter=lfs diff=lfs merge=lfs -text
+frontend/src/assets/figma/*.png filter=lfs diff=lfs merge=lfs -text
+*.png filter=lfs diff=lfs merge=lfs -text
+*.jpg filter=lfs diff=lfs merge=lfs -text
+*.jpeg filter=lfs diff=lfs merge=lfs -text
