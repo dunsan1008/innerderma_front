@@ -16,7 +16,7 @@ import m317 from '@/assets/figma/products/m3-17.jpg';
 import m320 from '@/assets/figma/products/m3-20.jpg';
 import m321 from '@/assets/figma/products/m3-21.jpg';
 import m322 from '@/assets/figma/products/m3-22.jpg';
-import { CARD_IMAGE_BLEED, CARD_SIZES, CARD_SLOTS } from '@/constants/cardLayout';
+import { CARD_IMAGE_BLEED, CARD_SIZES, CARD_SLOTS, buildSlots } from '@/constants/cardLayout';
 
 /**
  * 마켓 상품 카드 데이터.
@@ -193,6 +193,26 @@ export const MARKET_SKIN_PRODUCTS = toCards([
     tags: ['피부재생', '피부탄력', '수부지'],
   },
 ]);
+
+/**
+ * 피쓰 서울 '전체' 탭 — 수부지·피부탄력 제품을 모두 포함한다.
+ * 이름이 같은 제품은 첫 등장만 남기고 중복 제거한다(찜 키가 이름이라 겹치면 안 된다).
+ * 격자 좌표는 상품 수에 따라 동적으로 생성한다.
+ */
+const allRaw = [...MARKET_ALL_PRODUCTS, ...MARKET_OILY_PRODUCTS, ...MARKET_SKIN_PRODUCTS];
+const seenNames = new Set();
+const uniqueProducts = allRaw.filter((p) => {
+  const key = p.nameLines ? p.nameLines.join('').trim() : p.name;
+  if (seenNames.has(key)) return false;
+  seenNames.add(key);
+  return true;
+});
+const allSlots = buildSlots(uniqueProducts.length);
+export const MARKET_ALL_COMBINED = uniqueProducts.map((p, i) => ({
+  ...p,
+  left: allSlots[i].left,
+  top: allSlots[i].top,
+}));
 
 /**
  * 솔루션 화면 하단 "오늘의 솔루션과 어울리는 제품 추천" 4칸

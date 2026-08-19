@@ -136,7 +136,7 @@ export default function MarketScreen({ variant = 'all' }) {
       >
         <div className="relative flex shrink-0 flex-col items-start">
           <p className="relative shrink-0 whitespace-nowrap font-sans text-[20px] font-bold leading-[19.5px] text-text-strong [word-break:break-word]">
-            {t.market.recommendation}
+            {beforeSolution ? t.market.recommendationPre : t.market.recommendation}
           </p>
         </div>
       </div>
@@ -156,7 +156,7 @@ export default function MarketScreen({ variant = 'all' }) {
       >
         <CategoryTabs
           value={config.category}
-          staticKeys={isWim ? ['oily', 'skin'] : undefined}
+          staticKeys={isWim ? ['all', 'oily', 'skin'] : undefined}
           onChange={(next) => navigate(ROUTE_BY_CATEGORY[next])}
         />
       </div>

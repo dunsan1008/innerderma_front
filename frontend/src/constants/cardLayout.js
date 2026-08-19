@@ -45,6 +45,7 @@ export const CARD_SIZES = {
   tagBox: 29,
 };
 
+
 /** 2열 6칸 배치 — 마켓 1 Group 54 기준으로 좌열/우열을 정렬했다 */
 export const CARD_SLOTS = [
   { left: 20, top: 670 },
@@ -54,3 +55,22 @@ export const CARD_SLOTS = [
   { left: 20, top: 1258 },
   { left: 204, top: 1258 },
 ];
+
+/** 2열 격자 좌표 */
+const COL_LEFT = [20, 204];
+const FIRST_ROW_TOP = 670;
+const ROW_GAP = 294;
+
+/**
+ * 상품 개수에 맞춰 2열 격자 좌표를 생성한다.
+ * 6개까지는 CARD_SLOTS 과 동일하고, 7개 이상이면 행이 늘어난다.
+ *
+ * @param {number} count 상품 수
+ * @returns {{ left: number, top: number }[]}
+ */
+export function buildSlots(count) {
+  return Array.from({ length: count }, (_, i) => ({
+    left: COL_LEFT[i % 2],
+    top: FIRST_ROW_TOP + Math.floor(i / 2) * ROW_GAP,
+  }));
+}

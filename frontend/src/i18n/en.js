@@ -159,6 +159,7 @@ export default {
   market: {
     emptyWishlist: 'No saved items yet. Tap the heart in the shop to save.',
     recommendation: 'Daily Analysis Product Picks',
+    recommendationPre: 'Product Picks',
     wishlist: 'My Wishlist',
     // 앞의 "All" 은 체크박스 라벨(filter.all)이 따로 렌더한다
     changeDelivery: 'Change Delivery',
