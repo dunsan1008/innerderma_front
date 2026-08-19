@@ -72,10 +72,16 @@ docker compose --env-file /opt/innerderma.env -f docker-compose.prod.yml restart
 
 ```
 GitHub Actions
-  1. npm ci && npm run build            (frontend/ 디렉토리, 러너 위)
-  2. rsync -avzr --delete frontend/dist/  →  /opt/innerderma-frontend/dist/   (서버)
-  3. SSH로 docker compose restart frontend 실행
+  [build job]
+    1. npm ci && npm run build          (frontend/ 디렉토리, 러너 위)
+    2. dist/ 를 Actions artifact로 업로드
+  [deploy job] (needs: build)
+    3. artifact 다운로드
+    4. rsync -avzr --delete dist/  →  /opt/innerderma-frontend/dist/   (서버)
+    5. SSH로 docker compose restart frontend 실행
 ```
+
+`build`와 `deploy`는 별도 Job이라 Actions 탭에서 로그가 나뉘어 보이고, `deploy`는 `build`가 성공해야만 시작된다(`needs: build`).
 
 rsync 대상이 `/opt/innerderma-frontend/dist/`이므로, 서버에 레포를 클론해둘 필요도 없다 — 지금 수동으로 걸어둔 `frontend/dist` 심볼릭 링크는 rsync가 심볼릭 링크를 따라가므로 그대로 둬도 동작하지만, CI만 쓸 계획이면 굳이 유지하지 않고 `/opt/innerderma-frontend/dist`를 평범한 디렉토리로 되돌려도 무방하다(placeholder `index.html`은 첫 워크플로 실행 시 `--delete` 옵션으로 정리된다).
 
