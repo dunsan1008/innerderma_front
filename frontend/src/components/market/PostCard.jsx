@@ -149,23 +149,21 @@ export default function PostCard({ product, selectable = false, selected = false
           </p>
         </div>
 
-        {/* Figma 에 존재하는 빈 Paragraph 자리(카드마다 높이가 달라 간격이 맞는다) */}
+        {/* Figma 에 존재하는 빈 Paragraph 자리 — 공통 규격에서는 쓰지 않는다 */}
         {sizes.spacer ? (
           <div className="relative w-full shrink-0" style={{ height: sizes.spacer }} data-name="Paragraph" />
         ) : null}
 
         {/*
-          가격 — 카드 폭을 다 쓰고 줄바꿈하지 않는다.
-          예전에는 컨테이너가 w-[57px] 로 묶여 있어 "34,000원" 같은 값이
-          "34,000" / "원" 두 줄로 쪼개졌다.
+          가격 — 이름 아래로 간격을 두고 오른쪽 정렬.
+          제품명이 두 줄일 때 이름과 너무 붙지 않도록 mt-auto 로 카드 본문 아래쪽에 둔다.
         */}
         <div
-          className="relative flex w-full shrink-0 flex-col items-start"
-          style={sizes.priceBox ? { height: sizes.priceBox } : undefined}
+          className="relative mt-auto flex w-full shrink-0 items-end justify-end pt-[4px]"
           data-name="Paragraph"
         >
           <p
-            className="relative w-full shrink-0 whitespace-nowrap font-sans font-semibold leading-[16.5px] text-ink"
+            className="relative shrink-0 whitespace-nowrap text-right font-sans font-semibold leading-[16.5px] text-ink"
             style={{ fontSize: sizes.priceSize }}
           >
             {price}

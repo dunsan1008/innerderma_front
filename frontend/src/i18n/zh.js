@@ -145,6 +145,7 @@ export default {
   market: {
     emptyWishlist: '还没有收藏的商品。在商城点击爱心即可收藏。',
     recommendation: '每日分析定制商品推荐',
+    recommendationPre: '定制商品推荐',
     wishlist: '我的收藏',
     changeDelivery: '更改配送方式',
     selectDelete: '删除选中',

@@ -4,7 +4,7 @@ import banner59 from '@/assets/figma/products/banner-59.jpg';
 import img17 from '@/assets/figma/products/img-17.jpg';
 import img19 from '@/assets/figma/products/img-19.jpg';
 import { CARD_IMAGE_BLEED, CARD_SIZES } from '@/constants/cardLayout';
-import { MARKET_ALL_PRODUCTS, MARKET_OILY_PRODUCTS, MARKET_SKIN_PRODUCTS } from '@/constants/marketProducts';
+import { MARKET_ALL_COMBINED, MARKET_ALL_PRODUCTS, MARKET_OILY_PRODUCTS, MARKET_SKIN_PRODUCTS } from '@/constants/marketProducts';
 import { WIM_BANNER_SLIDE, WIM_PRE_SOLUTION_SLIDE, WIM_PRODUCTS } from '@/constants/wimProducts';
 
 /**
@@ -70,7 +70,11 @@ export const PITH_PRE_SOLUTION_SLIDES = [
  */
 export const MARKET_SCREENS = {
   all: {
-    frameHeight: 1637,
+    /** frameHeight 는 상품 수에 따라 동적으로 계산한다 */
+    get frameHeight() {
+      const last = MARKET_ALL_COMBINED[MARKET_ALL_COMBINED.length - 1];
+      return last ? last.top + 272 + 107 : 1637; // 마지막 카드 top + 카드 높이 + 하단 여백
+    },
     nodeId: '870:6067',
     name: '마켓 1',
     category: 'all',
@@ -100,10 +104,10 @@ export const MARKET_SCREENS = {
         { label: '맞춤형 진단', x: 303, caretX: 365, width: 58 },
       ],
     },
-    products: MARKET_ALL_PRODUCTS,
+    products: MARKET_ALL_COMBINED,
     bannerSlides: [SLIDE_TONER, SLIDE_SUN_ESSENCE, SLIDE_CORE_CREAM],
     preSolutionSlides: PITH_PRE_SOLUTION_SLIDES,
-    tabBarTop: 1541,
+    get tabBarTop() { return this.frameHeight - 96; },
   },
 
   oily: {

@@ -124,6 +124,14 @@ export default function ProductDetailScreen() {
     navigate('/market/cart');
   };
 
+  /** 베스트 조합 3개를 각각 1개씩 장바구니에 담는다 */
+  const addComboToCart = () => {
+    for (const item of PRODUCT_DETAIL.combo.products) {
+      add({ ...item, quantity: 1 });
+    }
+    navigate('/market/cart');
+  };
+
   return (
     <Screen
       className="bg-white"
@@ -364,7 +372,7 @@ export default function ProductDetailScreen() {
         {/* CTA — 접으면 위로 올라가며 사라진다 */}
         <button
           type="button"
-          onClick={() => addToCart(3)}
+          onClick={() => addComboToCart()}
           tabIndex={comboOpen ? 0 : -1}
           aria-hidden={!comboOpen}
           className="absolute left-[33px] top-[120px] h-[28px] w-[307px] rounded-[5px] bg-header-dark transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"

@@ -23,5 +23,15 @@ export const PRODUCT_DETAIL = {
     title: '많이 구매하는 베스트 조합',
     images: [combo1, combo2, combo3],
     cta: '장바구니에 바로 담기',
+    /**
+     * 콤보에 포함된 실제 상품 3개.
+     * 장바구니에 담을 때 이 정보를 쓴다 — 예전에는 메인 상품을 수량 3으로 담았다.
+     * 이미지 순서는 Figma 좌→우와 같다.
+     */
+    products: [
+      { id: 'combo-core-cream', name: '피쓰 코어 리빌드 크림', option: '50ml', price: 54000, image: combo1 },
+      { id: 'combo-hyalcharger', name: '하이알차저™ 온리', option: '#일자형 고분자 히알루론산', price: 27000, image: combo2 },
+      { id: 'combo-sun-essence', name: '피쓰 판테티놀 선 에센스', option: '30ml', price: 36000, image: combo3 },
+    ],
   },
 };

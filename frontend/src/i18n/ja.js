@@ -145,6 +145,7 @@ export default {
   market: {
     emptyWishlist: 'お気に入りの商品がありません。ショップでハートを押して追加してください。',
     recommendation: 'デイリー分析パーソナル商品おすすめ',
+    recommendationPre: 'パーソナル商品おすすめ',
     wishlist: 'お気に入り',
     changeDelivery: '配送方法一括変更',
     selectDelete: '選択削除',

@@ -1116,7 +1116,7 @@ for (const [label, path] of [['피쓰 서울', '/market'], ['윔 스토어', '/m
 
   check(`O) 솔루션 전 ${label} 탭에 회색 스태틱이 없다`, gray === 0, `회색 ${gray}개`);
   check(`O) 솔루션 전 ${label} 탭에 추천 배너가 뜬다`, banner === 1, `배너 ${banner}개`);
-  check(`O) 솔루션 전 ${label} 탭에 상품 카드 6개`, cards === 6, `카드 ${cards}개`);
+  check(`O) 솔루션 전 ${label} 탭에 상품 카드가 표시됨`, cards >= 6, `카드 ${cards}개`);
 
   // 촬영 후 — 같은 자리에 다른 상품이 온다
   // localStorage 는 컨텍스트 안에서 공유되므로, 위 촬영 전 상태를 명시적으로 지워야 한다
@@ -1148,8 +1148,8 @@ const wimTabs = await page.evaluate(() => {
 check('P) 윔 스토어에서 수부지·피부탄력 탭이 스태틱',
   wimTabs.filter((t) => t.label !== '전체').every((t) => t.disabled === true),
   JSON.stringify(wimTabs));
-check('P) 윔 스토어에서 전체 탭은 살아 있다',
-  wimTabs.find((t) => t.label === '전체')?.disabled === false);
+check('P) 윔 스토어에서 전체 탭도 스태틱 (피쓰로 이동 방지)',
+  wimTabs.find((t) => t.label === '전체')?.disabled === true);
 
 // 눌러도 피쓰 서울로 넘어가지 않는다
 await page.locator('[data-node-id="870:4939"]').click({ force: true }).catch(() => {});
