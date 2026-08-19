@@ -1,8 +1,8 @@
-import banner53 from '@/assets/figma/products/banner-53.png';
-import banner58 from '@/assets/figma/products/banner-58.png';
-import banner59 from '@/assets/figma/products/banner-59.png';
-import img17 from '@/assets/figma/products/img-17.png';
-import img19 from '@/assets/figma/products/img-19.png';
+import banner53 from '@/assets/figma/products/banner-53.jpg';
+import banner58 from '@/assets/figma/products/banner-58.jpg';
+import banner59 from '@/assets/figma/products/banner-59.jpg';
+import img17 from '@/assets/figma/products/img-17.jpg';
+import img19 from '@/assets/figma/products/img-19.jpg';
 import { CARD_IMAGE_BLEED, CARD_SIZES } from '@/constants/cardLayout';
 import { MARKET_ALL_PRODUCTS, MARKET_OILY_PRODUCTS, MARKET_SKIN_PRODUCTS } from '@/constants/marketProducts';
 import { WIM_BANNER_SLIDE, WIM_PRE_SOLUTION_SLIDE, WIM_PRODUCTS } from '@/constants/wimProducts';

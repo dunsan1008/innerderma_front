@@ -1,6 +1,4 @@
-# Git LFS tracking for large binary assets
-frontend/src/assets/figma/products/*.png filter=lfs diff=lfs merge=lfs -text
-frontend/src/assets/figma/*.png filter=lfs diff=lfs merge=lfs -text
-*.png filter=lfs diff=lfs merge=lfs -text
-*.jpg filter=lfs diff=lfs merge=lfs -text
-*.jpeg filter=lfs diff=lfs merge=lfs -text
+# LFS 규칙 제거됨.
+# 이미지를 리사이즈 + JPEG 변환해 합계 ~1MB 로 줄였으므로
+# 일반 git blob 으로 관리해도 GitHub 제한에 여유가 있다.
+# (LFS 없이도 커밋·푸쉬에 문제 없음)

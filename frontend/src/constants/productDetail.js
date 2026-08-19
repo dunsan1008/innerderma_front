@@ -1,7 +1,7 @@
-import hero from '@/assets/figma/pd-hero.png';
-import combo1 from '@/assets/figma/pd-combo-1.png';
-import combo2 from '@/assets/figma/pd-combo-2.png';
-import combo3 from '@/assets/figma/pd-combo-3.png';
+import hero from '@/assets/figma/pd-hero.jpg';
+import combo1 from '@/assets/figma/pd-combo-1.jpg';
+import combo2 from '@/assets/figma/pd-combo-2.jpg';
+import combo3 from '@/assets/figma/pd-combo-3.jpg';
 
 /**
  * 상품 상세 (Figma 1026:2575 ProductDetail).

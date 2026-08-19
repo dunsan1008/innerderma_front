@@ -1,10 +1,10 @@
-import wimBanner from '@/assets/figma/products/wim-banner.png';
-import wim1 from '@/assets/figma/products/wim-1.png';
-import wim2 from '@/assets/figma/products/wim-2.png';
-import wim3 from '@/assets/figma/products/wim-3.png';
-import wim4 from '@/assets/figma/products/wim-4.png';
-import wim5 from '@/assets/figma/products/wim-5.png';
-import wim6 from '@/assets/figma/products/wim-6.png';
+import wimBanner from '@/assets/figma/products/wim-banner.jpg';
+import wim1 from '@/assets/figma/products/wim-1.jpg';
+import wim2 from '@/assets/figma/products/wim-2.jpg';
+import wim3 from '@/assets/figma/products/wim-3.jpg';
+import wim4 from '@/assets/figma/products/wim-4.jpg';
+import wim5 from '@/assets/figma/products/wim-5.jpg';
+import wim6 from '@/assets/figma/products/wim-6.jpg';
 import { CARD_IMAGE_BLEED, CARD_SIZES, CARD_SLOTS } from '@/constants/cardLayout';
 
 /**

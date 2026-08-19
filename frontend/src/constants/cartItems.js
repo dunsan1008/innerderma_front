@@ -1,6 +1,6 @@
-import serum from '@/assets/figma/cart-serum.png';
-import cream from '@/assets/figma/cart-cream.png';
-import cleanser from '@/assets/figma/cart-cleanser.png';
+import serum from '@/assets/figma/cart-serum.jpg';
+import cream from '@/assets/figma/cart-cream.jpg';
+import cleanser from '@/assets/figma/cart-cleanser.jpg';
 
 /**
  * MY 장바구니 초기 상태.
