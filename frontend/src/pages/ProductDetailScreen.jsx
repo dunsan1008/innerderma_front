@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useT } from '@/i18n';
 import Screen from '@/components/layout/Screen';
 import StatusBar from '@/components/layout/StatusBar';
 import { useCartStore } from '@/store/cartStore';
@@ -63,6 +64,7 @@ const COMBO_OPEN_H = 167;
 const COMBO_CLOSED_H = 121;
 
 export default function ProductDetailScreen() {
+  const t = useT();
   const navigate = useNavigate();
   const { id } = useParams();
   const add = useCartStore((s) => s.add);
@@ -147,7 +149,7 @@ export default function ProductDetailScreen() {
             {/* 뒤로가기 — Figma 는 19x10 셰브론을 90도 돌려 쓴다 */}
             <button
               type="button"
-              aria-label="뒤로"
+              aria-label={t.common.back}
               onClick={() => navigate(-1)}
               className="absolute left-[22.83px] top-[24px] flex h-[19px] w-[10px] items-center justify-center"
               data-node-id="1026:2584"
@@ -186,7 +188,7 @@ export default function ProductDetailScreen() {
               data-node-id="1026:2634"
               data-testid="pd-select-toggle"
             >
-              선택 {quantity}개
+              {t.common.selectedCount(quantity)}
             </button>
             <p
               className="relative shrink-0 whitespace-nowrap font-sans text-[16px] font-bold leading-[24px] text-text-strong"
@@ -205,7 +207,7 @@ export default function ProductDetailScreen() {
             data-testid="pd-add-cart"
           >
             <span className="absolute left-[73.5px] top-[14px] -translate-x-1/2 whitespace-nowrap text-center font-sans text-[16px] font-semibold leading-[24px] text-ink">
-              장바구니
+              {t.common.cart}
             </span>
           </button>
 
@@ -218,7 +220,7 @@ export default function ProductDetailScreen() {
             data-testid="pd-buy-now"
           >
             <span className="absolute left-[110.5px] top-[14px] -translate-x-1/2 whitespace-nowrap text-center font-sans text-[16px] font-semibold leading-[24px] text-white">
-              바로구매
+              {t.productDetail.buyNow}
             </span>
           </button>
         </div>
@@ -245,7 +247,7 @@ export default function ProductDetailScreen() {
       {/* 찜 — 목록과 동기화 */}
       <button
         type="button"
-        aria-label={wished ? '찜 해제' : '찜하기'}
+        aria-label={wished ? t.market.removeWish : t.market.addWish}
         aria-pressed={wished}
         onClick={() => (view.wishTarget ? toggleWish(view.wishTarget) : toggleWish({ name: view.name }))}
         className="absolute left-[310px] z-10 h-[17.966px] w-[19.945px] transition-transform active:scale-90"
@@ -259,7 +261,7 @@ export default function ProductDetailScreen() {
       {/* 공유 — Figma Vector(1026:2630) */}
       <button
         type="button"
-        aria-label="공유"
+        aria-label={t.common.share}
         className="absolute left-[345px] z-10 h-[20px] w-[18px]"
         style={{ top: INFO_TOP + 29 }}
         data-node-id="1026:2630"
@@ -341,7 +343,7 @@ export default function ProductDetailScreen() {
         style={{ top: COMBO_TITLE_TOP }}
         data-node-id="1026:2612"
       >
-        {PRODUCT_DETAIL.combo.title}
+        {t.productDetail.comboTitle}
       </p>
 
       {/*
@@ -388,7 +390,7 @@ export default function ProductDetailScreen() {
           data-testid="combo-add"
         >
           <span className="absolute left-[153px] top-[2px] -translate-x-1/2 whitespace-nowrap text-center font-sans text-[10px] font-semibold leading-[24px] text-white">
-            {PRODUCT_DETAIL.combo.cta}
+            {t.productDetail.comboCta}
           </span>
         </button>
 
@@ -399,7 +401,7 @@ export default function ProductDetailScreen() {
         <button
           type="button"
           aria-expanded={comboOpen}
-          aria-label={comboOpen ? '베스트 조합 접기' : '베스트 조합 펼치기'}
+          aria-label={comboOpen ? t.productDetail.comboCollapseAria : t.productDetail.comboExpandAria}
           onClick={() => setComboOpen((v) => !v)}
           className="absolute bottom-0 left-1/2 flex h-[19px] w-[60px] -translate-x-1/2 items-center justify-center"
           data-testid="combo-toggle"

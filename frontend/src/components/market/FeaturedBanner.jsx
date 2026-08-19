@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useT } from '@/i18n';
 import { clampSingleLine, joinNameLines } from '@/lib/productName';
 
 /**
@@ -21,6 +22,7 @@ const INTERVAL_MS = 4000;
 const SWIPE_THRESHOLD = 40;
 
 export default function FeaturedBanner({ banner, slides, onOpen }) {
+  const t = useT();
   const [fx, fy, fw, fh] = banner.frame;
   const items = slides?.length ? slides : [banner];
   const [index, setIndex] = useState(0);
@@ -72,7 +74,7 @@ export default function FeaturedBanner({ banner, slides, onOpen }) {
       <div
         role={onOpen ? 'button' : undefined}
         tabIndex={onOpen ? 0 : undefined}
-        aria-label={onOpen ? `${current.name} 상세보기` : undefined}
+        aria-label={onOpen ? `${current.name} ${t.common.viewDetail}` : undefined}
         onKeyDown={onOpen ? (e) => (e.key === 'Enter' || e.key === ' ') && onOpen(current) : undefined}
         className={`absolute flex flex-col items-start ${onOpen ? 'cursor-pointer' : ''}`}
         style={{ left: fx, top: fy, width: fw, height: fh }}
@@ -122,7 +124,7 @@ export default function FeaturedBanner({ banner, slides, onOpen }) {
                 <button
                   key={slide.name}
                   type="button"
-                  aria-label={`${i + 1}번째 추천 상품`}
+                  aria-label={t.market.bannerIndicatorAria(i + 1)}
                   aria-current={i === index}
                   onClick={() => go(i)}
                   className={`h-[6px] rounded-full transition-all ${

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useT } from '@/i18n';
 import Screen from '@/components/layout/Screen';
 import StatusBar from '@/components/layout/StatusBar';
 import Spinner from '@/components/ui/Spinner';
@@ -12,6 +13,7 @@ import Spinner from '@/components/ui/Spinner';
  * 추후 백엔드 연동 시 setTimeout 대신 솔루션 생성 API 응답을 기다린다.
  */
 export default function SolutionLoadingScreen() {
+  const t = useT();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,7 +40,7 @@ export default function SolutionLoadingScreen() {
             className="relative shrink-0 whitespace-pre-line break-words text-center font-sans text-[22px] font-bold leading-[33px] text-text-strong"
             data-node-id="970:1136"
           >
-            {'솔루션을 도출 중입니다.\n잠시만 기다려주세요'}
+            {t.solutionLoading.deriving}
           </div>
 
           <div className="relative flex shrink-0 flex-col items-start pt-[8px]" data-node-id="970:1137">
@@ -46,7 +48,7 @@ export default function SolutionLoadingScreen() {
               className="relative shrink-0 whitespace-nowrap text-center font-sans text-[14px] font-normal leading-[21px] text-body [word-break:break-word]"
               data-node-id="970:1138"
             >
-              데이터를 취합 중입니다.
+              {t.solutionLoading.aggregating}
             </p>
           </div>
         </div>

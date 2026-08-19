@@ -61,6 +61,17 @@ export const PITH_PRE_SOLUTION_SLIDES = [
 ];
 
 /**
+ * 필터 행의 세 드롭다운. 네 화면(마켓 1/2/3/윔) 모두 같은 좌표를 쓴다.
+ * `label` 대신 안정적인 `key` 를 쓴다 — 라벨은 `t.filter[key]` 로 언어별로 번역되므로,
+ * 번역된 문자열을 라우팅 키로 쓰면 한국어 외 언어에서 매칭이 깨진다.
+ */
+const FILTER_ITEMS = [
+  { key: 'gender', x: 191, caretX: 219, width: 25 },
+  { key: 'age', x: 244, caretX: 282, width: 35 },
+  { key: 'diagnosis', x: 303, caretX: 365, width: 58 },
+];
+
+/**
  * 마켓 화면 3종의 배치값. 모두 Figma 프레임 실측 절대 좌표다.
  *  - all  : 마켓 1 (870:6067 / 사후관리-전체)   — 배너 텍스트가 프레임 밖 형제 노드
  *  - oily : 마켓 2 (870:6068 / 사후관리-수부지) — 배너 텍스트가 프레임 안 자식 노드
@@ -98,11 +109,7 @@ export const MARKET_SCREENS = {
     tabs: { x: 3, y: 543, width: 393 },
     filters: {
       top: 609,
-      items: [
-        { label: '성별', x: 191, caretX: 219, width: 25 },
-        { label: '나이대', x: 244, caretX: 282, width: 35 },
-        { label: '맞춤형 진단', x: 303, caretX: 365, width: 58 },
-      ],
+      items: FILTER_ITEMS,
     },
     products: MARKET_ALL_COMBINED,
     bannerSlides: [SLIDE_TONER, SLIDE_SUN_ESSENCE, SLIDE_CORE_CREAM],
@@ -135,11 +142,7 @@ export const MARKET_SCREENS = {
     tabs: { x: 3, y: 543, width: 393 },
     filters: {
       top: 609,
-      items: [
-        { label: '성별', x: 191, caretX: 219, width: 25 },
-        { label: '나이대', x: 244, caretX: 282, width: 35 },
-        { label: '맞춤형 진단', x: 303, caretX: 365, width: 58 },
-      ],
+      items: FILTER_ITEMS,
     },
     products: MARKET_OILY_PRODUCTS,
     bannerSlides: [SLIDE_SUN_ESSENCE, SLIDE_CORE_CREAM, SLIDE_TONER],
@@ -174,11 +177,7 @@ export const MARKET_SCREENS = {
     tabs: { x: 3, y: 543, width: 393 },
     filters: {
       top: 609,
-      items: [
-        { label: '성별', x: 191, caretX: 219, width: 25 },
-        { label: '나이대', x: 244, caretX: 282, width: 35 },
-        { label: '맞춤형 진단', x: 303, caretX: 365, width: 58 },
-      ],
+      items: FILTER_ITEMS,
     },
     products: MARKET_SKIN_PRODUCTS,
     bannerSlides: [SLIDE_CORE_CREAM, SLIDE_TONER, SLIDE_SUN_ESSENCE],
@@ -217,11 +216,7 @@ export const MARKET_SCREENS = {
     tabs: { x: 3, y: 543, width: 393 },
     filters: {
       top: 609,
-      items: [
-        { label: '성별', x: 191, caretX: 219, width: 25 },
-        { label: '나이대', x: 244, caretX: 282, width: 35 },
-        { label: '맞춤형 진단', x: 303, caretX: 365, width: 58 },
-      ],
+      items: FILTER_ITEMS,
     },
     products: WIM_PRODUCTS,
     bannerSlides: [WIM_BANNER_SLIDE],

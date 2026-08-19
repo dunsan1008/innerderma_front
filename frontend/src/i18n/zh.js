@@ -18,6 +18,13 @@ export default {
     delete: '删除',
     selectAll: '全选',
     language: 'Language',
+    select: '选择',
+    viewDetail: '查看详情',
+    selectLanguage: '选择语言',
+    cart: '购物车',
+    back: '返回',
+    share: '分享',
+    selectedCount: (n) => `已选${n}件`,
   },
 
   weekdays: { mon: '一', tue: '二', wed: '三', thu: '四', fri: '五', sat: '六', sun: '日' },
@@ -54,6 +61,8 @@ export default {
     yearMonth: (y, m) => `${y}年${m}月`,
     yearLabel: (y) => `${y}年`,
     monthLabel: (m) => `${m}月`,
+    selectYearMonth: '选择年月',
+    dayAria: (day) => `${day}日`,
   },
 
   solution: {
@@ -77,6 +86,7 @@ export default {
     completeBtnDisabledTip: '只能在当天记录完成',
     todayRecommend: '今日推荐',
     supplementWarning: '⚠ 空腹服用可能引起不适。',
+    recommendTitle: '搭配今日方案的推荐商品',
   },
 
   noSolution: {
@@ -135,6 +145,7 @@ export default {
     subQuestion: '请再确认一下！',
     done: '已完成！',
     notYet: '还没有！',
+    ariaLabel: '洗脸确认',
   },
 
   solutionSummary: {
@@ -151,6 +162,10 @@ export default {
     selectDelete: '删除选中',
     addWish: '收藏',
     removeWish: '取消收藏',
+    wishlistAria: '收藏列表',
+    bannerIndicatorAria: (n) => `推荐商品第${n}个`,
+    categoryOily: '缺水出油',
+    categoryElasticity: '弹力',
   },
 
   filter: {
@@ -169,6 +184,49 @@ export default {
     pigment: '色素/美白',
     elasticity: '弹力/皱纹',
     pore: '毛孔/皮脂',
+    closeAria: '关闭筛选',
+  },
+
+  cart: {
+    title: '我的购物车',
+    shippingMethodAria: '配送方式',
+    decreaseQtyAria: '减少数量',
+    increaseQtyAria: '增加数量',
+    emptyMessage: '购物车是空的。快去商城挑选商品吧。',
+    purchase: '去购买',
+    changeDeliveryBulkAria: '批量修改所选商品的配送方式',
+  },
+
+  productDetail: {
+    buyNow: '立即购买',
+    comboCollapseAria: '收起最佳组合',
+    comboExpandAria: '展开最佳组合',
+    comboTitle: '热门最佳组合',
+    comboCta: '直接加入购物车',
+  },
+
+  selfCheck: {
+    title: '每日自我检测',
+    directCheck: '手动勾选',
+    saveItems: '保存',
+  },
+  selfCheckItems: {
+    tight: '皮肤非常紧绷',
+    hot: '感觉发烫、有灼热感',
+    sting: '有刺痛感',
+    rough: '皮肤粗糙干燥',
+    none: '没有任何不适。',
+    other: '其他',
+  },
+
+  solutionLoading: {
+    deriving: '正在生成护理方案。\n请稍候',
+    aggregating: '正在汇总数据。',
+  },
+
+  errorBoundary: {
+    message: '渲染页面时出现问题',
+    retry: '重试',
   },
 
   mypage: {

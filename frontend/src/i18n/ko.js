@@ -20,6 +20,13 @@ export default {
     delete: '삭제',
     selectAll: '전체 선택',
     language: 'Language',
+    select: '선택',
+    viewDetail: '상세보기',
+    selectLanguage: '언어 선택',
+    cart: '장바구니',
+    back: '뒤로',
+    share: '공유',
+    selectedCount: (n) => `선택 ${n}개`,
   },
 
   // ─── 요일 ───
@@ -60,6 +67,8 @@ export default {
     yearMonth: (y, m) => `${y}년 ${m}월`,
     yearLabel: (y) => `${y}년`,
     monthLabel: (m) => `${m}월`,
+    selectYearMonth: '연·월 선택',
+    dayAria: (day) => `${day}일`,
   },
 
   // ─── 솔루션/루틴 ───
@@ -84,6 +93,7 @@ export default {
     completeBtnDisabledTip: '오늘 날짜에서만 수행 완료를 기록할 수 있어요',
     todayRecommend: '오늘의 추천',
     supplementWarning: '⚠ 공복 섭취 시 속 불편감이 생길 수 있어요.',
+    recommendTitle: '오늘의 솔루션과 어울리는 제품 추천',
   },
 
   // ─── 솔루션 미생성 ───
@@ -151,6 +161,7 @@ export default {
     subQuestion: '다시 한번 확인해 보세요!',
     done: '완료했습니다!',
     notYet: '아직이에요!',
+    ariaLabel: '귀가 후 세안 확인',
   },
 
   // ─── 솔루션 요약 ───
@@ -171,6 +182,10 @@ export default {
     selectDelete: '선택삭제',
     addWish: '찜하기',
     removeWish: '찜 해제',
+    wishlistAria: '찜 목록',
+    bannerIndicatorAria: (n) => `${n}번째 추천 상품`,
+    categoryOily: '수부지',
+    categoryElasticity: '피부탄력',
   },
 
   // ─── 필터 ───
@@ -190,6 +205,54 @@ export default {
     pigment: '기미/미백',
     elasticity: '탄력/주름',
     pore: '모공/피지',
+    closeAria: '필터 닫기',
+  },
+
+  // ─── 장바구니 ───
+  cart: {
+    title: 'MY 장바구니',
+    shippingMethodAria: '배송방법',
+    decreaseQtyAria: '수량 줄이기',
+    increaseQtyAria: '수량 늘리기',
+    emptyMessage: '장바구니가 비었어요. 마켓에서 상품을 담아보세요.',
+    purchase: '구매하기',
+    changeDeliveryBulkAria: '선택 상품 배송방법 일괄 변경',
+  },
+
+  // ─── 상품 상세 ───
+  productDetail: {
+    buyNow: '바로구매',
+    comboCollapseAria: '베스트 조합 접기',
+    comboExpandAria: '베스트 조합 펼치기',
+    comboTitle: '많이 구매하는 베스트 조합',
+    comboCta: '장바구니에 바로 담기',
+  },
+
+  // ─── 데일리 자가 진단 ───
+  selfCheck: {
+    title: '데일리 자가 진단',
+    directCheck: '직접 체크',
+    saveItems: '항목 저장',
+  },
+  selfCheckItems: {
+    tight: '피부가 심하게 당겨요',
+    hot: '화끈거리고 열감이 느껴져요',
+    sting: '따끔거려요',
+    rough: '피부가 푸석해요',
+    none: '아무 이상이 없어요.',
+    other: '그 외',
+  },
+
+  // ─── 솔루션 로딩 ───
+  solutionLoading: {
+    deriving: '솔루션을 도출 중입니다.\n잠시만 기다려주세요',
+    aggregating: '데이터를 취합 중입니다.',
+  },
+
+  // ─── 에러 경계 ───
+  errorBoundary: {
+    message: '화면을 그리는 중 문제가 생겼어요',
+    retry: '다시 시도',
   },
 
   // ─── 마이페이지 ───

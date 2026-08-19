@@ -9,10 +9,10 @@ import { useT } from '@/i18n';
  */
 
 const LANGUAGES = [
-  { code: 'ko', label: '한국어', flag: '🇰🇷' },
-  { code: 'zh', label: '中文', flag: '🇨🇳' },
-  { code: 'ja', label: '日本語', flag: '🇯🇵' },
-  { code: 'en', label: 'English', flag: '🇺🇸' },
+  { code: 'ko', flag: '🇰🇷' },
+  { code: 'zh', flag: '🇨🇳' },
+  { code: 'ja', flag: '🇯🇵' },
+  { code: 'en', flag: '🇺🇸' },
 ];
 
 export default function LanguageModal({ open, onClose, current = 'ko', onSelect }) {
@@ -22,11 +22,11 @@ export default function LanguageModal({ open, onClose, current = 'ko', onSelect 
   if (!mounted) return null;
 
   return (
-    <div className="absolute inset-0 z-50" role="dialog" aria-modal="true" aria-label="언어 선택">
+    <div className="absolute inset-0 z-50" role="dialog" aria-modal="true" aria-label={t.common.selectLanguage}>
       {/* 딤 */}
       <button
         type="button"
-        aria-label="닫기"
+        aria-label={t.common.close}
         onClick={onClose}
         className={`absolute inset-0 bg-overlay transition-opacity duration-200 ${entered ? 'opacity-100' : 'opacity-0'}`}
       />
@@ -38,7 +38,7 @@ export default function LanguageModal({ open, onClose, current = 'ko', onSelect 
         }`}
       >
         <p className="px-[16px] pb-[8px] pt-[4px] font-sans text-[14px] font-bold leading-[20px] text-text-strong">
-          Language
+          {t.common.language}
         </p>
         {LANGUAGES.map((lang) => {
           const active = lang.code === current;
@@ -53,7 +53,7 @@ export default function LanguageModal({ open, onClose, current = 'ko', onSelect 
               }`}
             >
               <span className="text-[20px]">{lang.flag}</span>
-              <span className="font-sans text-[15px] font-medium leading-[20px] text-text-strong">{lang.label}</span>
+              <span className="font-sans text-[15px] font-medium leading-[20px] text-text-strong">{t.lang[lang.code]}</span>
               {active ? (
                 <svg className="ml-auto" width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <path d="M3 8.5L6.5 12L13 4" stroke="#327145" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

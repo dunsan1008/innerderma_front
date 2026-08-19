@@ -28,11 +28,11 @@ import { useCareStore } from '@/store/careStore';
  */
 const ROUTE_BY_CATEGORY = { all: '/market', oily: '/market/oily', skin: '/market/elasticity' };
 
-/** 필터 행의 각 드롭다운이 여는 바텀시트 */
-const FILTER_ROUTE_BY_LABEL = {
-  성별: '/market/filter/gender',
-  나이대: '/market/filter/age',
-  '맞춤형 진단': '/market/filter/diagnosis',
+/** 필터 행의 각 드롭다운이 여는 바텀시트. 번역되는 라벨이 아니라 안정적인 key 로 찾는다. */
+const FILTER_ROUTE_BY_KEY = {
+  gender: '/market/filter/gender',
+  age: '/market/filter/age',
+  diagnosis: '/market/filter/diagnosis',
 };
 
 /** 상단 고정 헤더 높이 (Figma Container 870:5080) */
@@ -164,7 +164,7 @@ export default function MarketScreen({ variant = 'all' }) {
       <FilterRow
         top={config.filters.top + TOGGLE_BLOCK}
         items={config.filters.items}
-        onOpen={(item) => navigate(FILTER_ROUTE_BY_LABEL[item.label])}
+        onOpen={(item) => navigate(FILTER_ROUTE_BY_KEY[item.key])}
       />
 
       {/* 상품 카드 — 촬영 여부와 무관하게 항상 보여준다 */}

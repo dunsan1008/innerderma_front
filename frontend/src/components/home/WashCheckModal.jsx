@@ -15,14 +15,14 @@ export default function WashCheckModal({ onConfirm, onDismiss, entered = true })
       className="absolute inset-0 z-30 flex flex-col items-start px-[33px] pb-[318px] pt-[330px]"
       role="dialog"
       aria-modal="true"
-      aria-label="귀가 후 세안 확인"
+      aria-label={t.washCheck.ariaLabel}
       data-node-id="870:3565"
       data-name="촬영 버튼 클릭 시 항상 등장"
     >
       {/* 다이얼로그 밖을 누르면 닫힌다 */}
       <button
         type="button"
-        aria-label="닫기"
+        aria-label={t.common.close}
         onClick={onDismiss}
         data-testid="washcheck-backdrop"
         className={`absolute inset-0 bg-overlay transition-opacity duration-200 ease-out ${

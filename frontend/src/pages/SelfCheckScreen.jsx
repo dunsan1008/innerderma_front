@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useT } from '@/i18n';
 import Screen from '@/components/layout/Screen';
 import StatusBar from '@/components/layout/StatusBar';
 import chevron from '@/assets/figma/selfcheck-chevron.svg';
@@ -37,6 +38,7 @@ const ITEM_LEFT = [12, 12, 12, 12.333, 12.333];
 const OTHER_TOP = 278.333;
 
 export default function SelfCheckScreen() {
+  const t = useT();
   const navigate = useNavigate();
   /** 선택된 항목 id 목록 (다중 선택) */
   const [selected, setSelected] = useState([]);
@@ -76,7 +78,7 @@ export default function SelfCheckScreen() {
           className="relative shrink-0 whitespace-nowrap font-sans text-[16px] font-semibold leading-[24px] tracking-[-0.3125px] text-ink"
           data-node-id="970:1094"
         >
-          데일리 자가 진단
+          {t.selfCheck.title}
         </p>
       </div>
 
@@ -94,7 +96,7 @@ export default function SelfCheckScreen() {
             data-name="Button"
           >
             <p className="relative shrink-0 whitespace-nowrap text-center font-sans text-[14px] font-semibold leading-[20px] tracking-[-0.1504px] text-black">
-              직접 체크
+              {t.selfCheck.directCheck}
             </p>
           </div>
 
@@ -129,7 +131,7 @@ export default function SelfCheckScreen() {
                   <span
                     className="absolute left-[18.67px] top-[10.67px] whitespace-nowrap font-sans text-[14px] font-medium leading-[20px] tracking-[-0.1504px] text-check-label"
                   >
-                    {item.label}
+                    {t.selfCheckItems[item.id]}
                   </span>
                 </button>
               );
@@ -146,8 +148,8 @@ export default function SelfCheckScreen() {
                   type="text"
                   value={otherText}
                   onChange={(e) => setOtherText(e.target.value)}
-                  placeholder={SELF_CHECK_OTHER.label}
-                  aria-label={SELF_CHECK_OTHER.label}
+                  placeholder={t.selfCheckItems[SELF_CHECK_OTHER.id]}
+                  aria-label={t.selfCheckItems[SELF_CHECK_OTHER.id]}
                   className="w-full bg-transparent font-sans text-[14px] font-normal leading-[20px] text-text-strong outline-none placeholder:text-text-strong"
                   data-testid="selfcheck-other"
                 />
@@ -177,7 +179,7 @@ export default function SelfCheckScreen() {
               canSave ? 'text-white' : 'text-disabled-text'
             }`}
           >
-            항목 저장
+            {t.selfCheck.saveItems}
           </span>
         </button>
       </div>

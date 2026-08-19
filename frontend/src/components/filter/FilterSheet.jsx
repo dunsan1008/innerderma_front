@@ -28,9 +28,9 @@ export function SheetLine({ left = 0, top }) {
 }
 
 const TABS = [
-  { key: 'gender', label: '성별', left: 15, route: '/market/filter/gender' },
-  { key: 'age', label: '연령대', left: 59, route: '/market/filter/age' },
-  { key: 'diagnosis', label: '맞춤형 진단', left: 118, route: '/market/filter/diagnosis' },
+  { key: 'gender', left: 15, route: '/market/filter/gender' },
+  { key: 'age', left: 59, route: '/market/filter/age' },
+  { key: 'diagnosis', left: 118, route: '/market/filter/diagnosis' },
 ];
 
 export default function FilterSheet({ active, children, nodeId, name, hasChanges = false, onReset }) {
@@ -44,7 +44,7 @@ export default function FilterSheet({ active, children, nodeId, name, hasChanges
         {/* 딤 — 누르면 닫힌다 */}
         <button
           type="button"
-          aria-label="필터 닫기"
+          aria-label={t.filter.closeAria}
           onClick={close}
           className="absolute left-0 top-[-10px] h-[868px] w-[393px] bg-overlay"
         />
@@ -76,7 +76,7 @@ export default function FilterSheet({ active, children, nodeId, name, hasChanges
               }`}
               style={{ left: tab.left }}
             >
-              {tab.label}
+              {t.filter[tab.key]}
             </button>
           );
         })}
