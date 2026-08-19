@@ -1,0 +1,27 @@
+{
+  "$comment": "화면별 싱크로율 회귀 게이트 매니페스트. max = 허용 mismatch% 기준선.",
+  "frameW": 393,
+  "bandH": 852,
+  "screens": [
+    { "name": "01-splash",        "route": "/",                   "frameH": 852,  "max": 2.0 },
+    { "name": "02-signup",        "route": "/signup",             "frameH": 852,  "max": 2.0 },
+    { "name": "03-connecting",    "route": "/connecting",         "frameH": 852,  "max": 2.0 },
+    { "name": "04-connected",     "route": "/connected",          "frameH": 852,  "max": 2.0 },
+    { "name": "05-home",          "route": "/home/first-visit",   "frameH": 852,  "max": 2.0 },
+    { "name": "06-capture-check", "route": "/home/first-visit",   "frameH": 852,  "max": 2.0, "note": "세안 확인 모달 — shoot 에서 별도 트리거 필요" },
+    { "name": "07-camera-disable","route": "/camera",             "frameH": 852,  "max": 5.0, "note": "카메라는 fake 피드라 차이 큼" },
+    { "name": "08-camera-enable", "route": "/camera",             "frameH": 852,  "max": 5.0 },
+    { "name": "09-summary",       "route": "/solution-summary",   "frameH": 852,  "max": 2.0 },
+    { "name": "10-night",         "route": "/solution/night",     "frameH": 1735, "max": 2.0 },
+    { "name": "11-morning",       "route": "/solution/morning",   "frameH": 2004, "max": 2.0 },
+    { "name": "12-calendar",      "route": "/solution/night",     "frameH": 852,  "max": 2.0, "note": "캘린더 모달 오픈 상태" },
+    { "name": "13-mypage",        "route": "/mypage",             "frameH": 852,  "max": 2.0 },
+    { "name": "14-market-all",    "route": "/market",             "frameH": 1637, "max": 2.0 },
+    { "name": "15-wishlist",      "route": "/market/wishlist",    "frameH": 1210, "max": 2.0 },
+    { "name": "16-market-oily",   "route": "/market/oily",        "frameH": 1637, "max": 2.0 },
+    { "name": "17-market-skin",   "route": "/market/skin",        "frameH": 1637, "max": 2.0 },
+    { "name": "18-filter-gender", "route": "/market/filter/gender","frameH": 852, "max": 2.0 },
+    { "name": "19-filter-age",    "route": "/market/filter/age",   "frameH": 852, "max": 2.0 },
+    { "name": "20-filter-diagnosis","route":"/market/filter/diagnosis","frameH":852,"max": 2.0 }
+  ]
+}
