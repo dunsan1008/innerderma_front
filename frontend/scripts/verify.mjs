@@ -41,6 +41,11 @@ const WEEK_KEYS = (() => {
     return keyOf(d);
   });
 })();
+/**
+ * 접힌 주간 스트립에 보이는 날짜 — 오늘부터 7일.
+ * (월~일 고정이 아니다: 선택한 날이 늘 첫 칸에 오도록 바뀌었다)
+ */
+const FORWARD_DAYS = Array.from({ length: 7 }, (_, i) => String(shift(i).getDate()));
 /** 이번 주에서 초록이어야 하는 날 (오늘은 흰 칩이라 제외) */
 const EXPECTED_GREEN_DAYS = WEEK_KEYS.filter((k) => COMPLETED_KEYS.includes(k) && k !== TODAY_KEY).map((k) =>
   String(Number(k.slice(8, 10))),
@@ -349,16 +354,41 @@ const readStrip = () =>
     }));
   });
 
+/**
+ * 접힌 주간 스트립은 **선택한 날부터 7일**을 보여준다(오늘/선택일이 첫 칸).
+ * 그래서 지난 수행 기록을 확인하려면 그 날짜를 골라 스트립을 그 날로 옮겨야 한다.
+ * 더미 수행 기록(-7·-6·-5·-3·-1일)에서 이번 달 안에 있는 날 하나를 고른다.
+ */
+const COMPLETED_IN_MONTH = COMPLETED_OFFSETS.map((o) => shift(o)).filter(
+  (d) => d.getMonth() === TODAY.getMonth(),
+);
+const GREEN_PICK = COMPLETED_IN_MONTH[COMPLETED_IN_MONTH.length - 1] ?? shift(-1);
+await page.locator('[data-node-id="870:3800"] button').first().click();
+await page.waitForTimeout(400);
+await page.getByRole('button', { name: `${GREEN_PICK.getDate()}일` }).click();
+await page.waitForTimeout(500);
+
 const strip = await readStrip();
 const greens = strip.filter((c) => c.state === 'record').map((c) => c.day);
 check('B) 접힌 주간 스트립에 초록 표시 나옴',
   greens.length > 0 && strip.filter((c) => c.state === 'record').every((c) => c.cls.includes('bg-chip-green')),
-  `초록=${greens.join(',') || '없음'}`);
-check('B) 초록이 수행 완료한 날과 일치', greens.join(',') === EXPECTED_GREEN_DAYS.join(','),
-  `초록=${greens.join(',')} / 기대=${EXPECTED_GREEN_DAYS.join(',')}`);
-check(`B) 오늘(${TODAY.getDate()}일)은 흰 칩`,
-  strip.some((c) => c.day === String(TODAY.getDate()) && c.state === 'today' && /bg-white(?![-\w])/.test(c.cls)),
-  JSON.stringify(strip.find((c) => c.state === 'today')));
+  `선택=${GREEN_PICK.getDate()}일 / 초록=${greens.join(',') || '없음'}`);
+check('B) 초록이 수행 완료한 날과 일치', greens.includes(String(GREEN_PICK.getDate())),
+  `초록=${greens.join(',')} / 기대에 ${GREEN_PICK.getDate()} 포함`);
+check('B) 선택한 날이 스트립 첫 칸',
+  strip[0]?.day === String(GREEN_PICK.getDate()),
+  `첫 칸=${strip[0]?.day} / 선택=${GREEN_PICK.getDate()}`);
+// 오늘로 돌아오면 오늘이 첫 칸 · 흰 칩
+await page.locator('[data-node-id="870:3800"] button').first().click();
+await page.waitForTimeout(400);
+await page.getByRole('button', { name: `${TODAY.getDate()}일`, exact: true }).click();
+await page.waitForTimeout(500);
+const todayStrip = await readStrip();
+check(`B) 오늘(${TODAY.getDate()}일)은 흰 칩이고 첫 칸`,
+  todayStrip[0]?.day === String(TODAY.getDate()) &&
+    todayStrip[0]?.state === 'today' &&
+    /bg-white(?![-\w])/.test(todayStrip[0]?.cls ?? ''),
+  JSON.stringify(todayStrip[0]));
 check('B) 미수행 지난 날은 회색 칩',
   strip.filter((c) => c.state === 'empty').every((c) => c.cls.includes('bg-white-20')),
   `회색=${strip.filter((c) => c.state === 'empty').map((c) => c.day).join(',') || '없음'}`);
@@ -366,10 +396,13 @@ check('B) 아직 오지 않은 날은 칩 없음',
   strip.filter((c) => c.state === 'future').every((c) => c.cls.includes('bg-transparent')),
   `미래=${strip.filter((c) => c.state === 'future').map((c) => c.day).join(',') || '없음'}`);
 check('B) 기본 선택은 오늘 하나뿐이고 테두리로 표시',
-  strip.filter((c) => c.selected).length === 1 && strip.find((c) => c.selected)?.state === 'today',
-  `선택=${strip.filter((c) => c.selected).map((c) => c.day).join(',')}`);
+  todayStrip.filter((c) => c.selected).length === 1 && todayStrip.find((c) => c.selected)?.state === 'today',
+  `선택=${todayStrip.filter((c) => c.selected).map((c) => c.day).join(',')}`);
 
 // 수행 완료 버튼: 당일에만 활성화
+// (위에서 캘린더로 날짜를 고르면 나이트로 이동하므로 모닝으로 되돌린다)
+await page.goto(`${base}/solution/morning`, { waitUntil: 'load' });
+await page.waitForTimeout(400);
 const btn = page.locator('[data-testid="complete-button"]');
 await btn.scrollIntoViewIfNeeded();
 const todayBtn = await btn.evaluate((el) => ({ disabled: el.disabled, label: el.textContent.trim() }));
@@ -551,9 +584,11 @@ const stripNow = await readStrip();
 check('H) 오늘이 실제 날짜와 일치',
   stripNow.some((c) => c.state === 'today' && c.day === String(TODAY.getDate())),
   `오늘=${stripNow.find((c) => c.state === 'today')?.day} / 실제=${TODAY.getDate()}`);
-check('H) 주간 스트립이 이번 주 날짜',
-  stripNow.map((c) => c.day).join(',') === WEEK_KEYS.map((k) => String(Number(k.slice(8, 10)))).join(','),
-  `${stripNow.map((c) => c.day).join(',')} / 기대 ${WEEK_KEYS.map((k) => Number(k.slice(8, 10))).join(',')}`);
+// 스트립은 월~일 고정이 아니라 **선택한 날(기본 = 오늘)부터 7일**이다
+check('H) 주간 스트립이 오늘부터 7일',
+  stripNow.map((c) => c.day).join(',') === FORWARD_DAYS.join(','),
+  `${stripNow.map((c) => c.day).join(',')} / 기대 ${FORWARD_DAYS.join(',')}`);
+check('H) 스트립 첫 칸이 오늘', stripNow[0]?.day === String(TODAY.getDate()), `첫 칸=${stripNow[0]?.day}`);
 
 // I) 월·연도 이동
 const openCalendar = async () => {
@@ -771,34 +806,62 @@ await page.waitForTimeout(500);
 check('L) 장바구니 담기 → /market/cart 이동', new URL(page.url()).pathname === '/market/cart',
   `url=${new URL(page.url()).pathname}`);
 
-// 장바구니 기본 상태 (Figma: 3개 중 앞 2개 선택 / 90,000원)
+// ── 장바구니 ──
+// 최초 접속에는 **비어 있어야** 한다. 담은 적 없는 상품이 들어 있으면 안 된다.
+// (예전에는 Figma 시안대로 더미 3개가 담긴 상태로 시작했다)
+const cartCards = () => page.locator('[data-name="CartItemCard"]').count();
+
 await page.evaluate(() => localStorage.removeItem('innerderma.cart'));
 await page.goto(`${base}/market/cart`, { waitUntil: 'load' });
 await page.waitForTimeout(400);
-const cartCards = () => page.locator('[data-name="CartItemCard"]').count();
-check('L) 장바구니 카드 3개', (await cartCards()) === 3);
-check('L) 기본 선택 2개 · 합계 90,000원',
-  (await page.getByText('선택 2개').count()) > 0 && (await page.getByText('90,000원').count()) > 0);
+check('N) 최초 접속 장바구니가 비어 있음', (await cartCards()) === 0, `카드 ${await cartCards()}개`);
+check('N) 빈 장바구니 안내 문구', (await page.getByText('장바구니가 비었어요', { exact: false }).count()) > 0);
+check('N) 빈 장바구니는 선택 0개 · 0원',
+  (await page.getByText('선택 0개').count()) > 0 && (await page.getByText('0원').count()) > 0);
 
-// 수량 변경이 금액에 반영되는지
+// 상세에서 담으면 그 상품만 들어온다
+await page.goto(`${base}/market`, { waitUntil: 'load' });
+await page.waitForTimeout(400);
+await page.locator('button[aria-label$="상세보기"]').first().click();
+await page.waitForTimeout(400);
+const addedName = await page.locator('[data-testid="pd-name"]').textContent();
+const addedPrice = await page.evaluate(() => {
+  const el = [...document.querySelectorAll('p')].find((p) => /^\d[\d,]*원$/.test(p.textContent.trim()));
+  return el ? el.textContent.trim() : '';
+});
+await page.locator('[data-testid="pd-add-cart"]').click();
+await page.waitForTimeout(500);
+check('N) 담기 → 장바구니에 1개', (await cartCards()) === 1, `카드 ${await cartCards()}개 (${addedName?.trim()})`);
+check('N) 담은 상품이 선택 상태 · 합계가 그 상품 가격',
+  (await page.getByText('선택 1개').count()) > 0 && (await page.getByText(addedPrice).count()) > 0,
+  `가격 ${addedPrice}`);
+
+// 수량 변경이 금액에 반영되는지 (1개 → 2개면 합계도 2배)
+const totalNow = async () =>
+  page.evaluate(() => {
+    const el = [...document.querySelectorAll('p')].reverse().find((p) => /원$/.test(p.textContent.trim()));
+    return Number((el?.textContent ?? '').replace(/[^0-9]/g, ''));
+  });
+const beforeQty = await totalNow();
 await page.locator('[data-name="CartItemCard"]').first().getByRole('button', { name: '수량 늘리기' }).click();
-await page.waitForTimeout(250);
-check('L) 수량 늘리면 합계 반영 (90,000 → 128,000)', (await page.getByText('128,000원').count()) > 0);
+await page.waitForTimeout(300);
+const afterQty = await totalNow();
+check('N) 수량 늘리면 합계가 2배', afterQty === beforeQty * 2, `${beforeQty} → ${afterQty}`);
 
-// 전체 선택 3상태
+// 전체 선택 토글 (1개짜리라 mixed 는 나오지 않는다)
 const allBox = page.locator('[data-testid="cart-select-all"]');
-check('L) 전체 체크박스 부분선택은 mixed', (await allBox.getAttribute('aria-checked')) === 'mixed');
+check('N) 담은 상품 1개는 전체 선택 상태', (await allBox.getAttribute('aria-checked')) === 'true');
 await allBox.click();
 await page.waitForTimeout(200);
-check('L) 전체 선택 클릭 → 전부 해제', (await allBox.getAttribute('aria-checked')) === 'false');
+check('N) 전체 선택 클릭 → 전부 해제', (await allBox.getAttribute('aria-checked')) === 'false');
 await allBox.click();
 await page.waitForTimeout(200);
-check('L) 다시 클릭 → 전부 선택', (await allBox.getAttribute('aria-checked')) === 'true');
+check('N) 다시 클릭 → 전부 선택', (await allBox.getAttribute('aria-checked')) === 'true');
 
 // 선택삭제
 await page.locator('[data-testid="cart-delete-selected"]').click();
 await page.waitForTimeout(300);
-check('L) 선택삭제로 전부 비워짐', (await cartCards()) === 0);
+check('N) 선택삭제로 전부 비워짐', (await cartCards()) === 0);
 await page.screenshot({ path: `${OUT}/cart.png` });
 
 // 자가진단 → 로딩 → 솔루션 요약
@@ -829,26 +892,43 @@ await page.waitForTimeout(2200);
 check('L) 로딩 후 솔루션 요약으로 이동', new URL(page.url()).pathname === '/solution-summary',
   `url=${new URL(page.url()).pathname}`);
 
-// ══ M) 상품명 18자 제한 · 스토어 토글 · 찜 동기화 · 베스트 조합 접기 ═══════════
+// ══ M) 상품명 2줄 제한 · 스토어 토글 · 찜 동기화 · 베스트 조합 접기 ════════════
 await page.goto(`${base}/market`, { waitUntil: 'load' });
 await page.waitForTimeout(500);
 
-// 카드/배너 상품명이 모두 18자 + … 규칙을 지키는지
+/**
+ * 상품명은 **두 줄까지** 보여주고 그걸 넘어가는 시점부터 … 으로 잘린다.
+ * 글자 수가 아니라 실제 렌더 높이로 판정한다 (한글·영문·숫자 폭이 달라 글자 수로는 못 잰다).
+ * scrollHeight > clientHeight + 1 이면 넘친 내용이 있고, line-clamp 가 … 을 붙인 상태다.
+ */
 const nameCheck = await page.evaluate(() => {
-  const texts = [...document.querySelectorAll('[data-name="ProductName"], [data-name="BannerProductName"]')]
-    .map((el) => el.textContent.trim())
-    .filter(Boolean);
-  const tooLong = texts.filter((t) => (t.endsWith('…') ? t.length !== 19 : t.length > 18));
-  return { count: texts.length, tooLong, sample: texts.slice(0, 3) };
+  const els = [...document.querySelectorAll('[data-name="ProductName"], [data-name="BannerProductName"]')];
+  const rows = els.map((el) => {
+    const line = parseFloat(getComputedStyle(el).lineHeight) || 16.5;
+    return {
+      text: el.textContent.trim(),
+      lines: Math.round(el.clientHeight / line),
+      clamp: getComputedStyle(el).webkitLineClamp,
+      overflowing: el.scrollHeight > el.clientHeight + 1,
+    };
+  });
+  return {
+    count: rows.length,
+    overThreeLines: rows.filter((r) => r.lines > 2).map((r) => `${r.text}(${r.lines}줄)`),
+    wrongClamp: rows.filter((r) => r.clamp !== '2').map((r) => `${r.text}(clamp=${r.clamp})`),
+    clamped: rows.filter((r) => r.overflowing).map((r) => r.text),
+    sample: rows.slice(0, 3).map((r) => `${r.text}[${r.lines}줄]`),
+  };
 });
-check('M) 상품명이 공백 포함 18자 이내 (초과분은 …)',
-  nameCheck.count > 0 && nameCheck.tooLong.length === 0,
-  `${nameCheck.count}개 검사 / 위반 ${JSON.stringify(nameCheck.tooLong)}`);
-check('M) 잘린 이름은 … 로 끝난다',
-  (await page.evaluate(() =>
-    [...document.querySelectorAll('[data-name="ProductName"]')].some((el) => el.textContent.trim().endsWith('…')),
-  )),
-  nameCheck.sample.join(' | '));
+check('M) 상품명이 두 줄을 넘지 않는다',
+  nameCheck.count > 0 && nameCheck.overThreeLines.length === 0,
+  `${nameCheck.count}개 검사 / 위반 ${JSON.stringify(nameCheck.overThreeLines)}`);
+check('M) 상품명에 2줄 line-clamp 가 걸려 있다',
+  nameCheck.wrongClamp.length === 0,
+  `위반 ${JSON.stringify(nameCheck.wrongClamp)} / 예시 ${nameCheck.sample.join(' | ')}`);
+check('M) 두 줄을 넘는 이름은 실제로 잘린다',
+  nameCheck.clamped.length > 0,
+  `잘린 이름 ${nameCheck.clamped.length}개: ${nameCheck.clamped.slice(0, 2).join(' | ')}`);
 
 // 스토어 토글 — 피쓰 활성 / 같은 자리 / 윔으로 전환
 const togglePos = () =>
@@ -971,22 +1051,125 @@ check('M) 찜 화면 체크박스가 하트와 같은 가로열',
   rowAlign && rowAlign.dCenter < 1.5, rowAlign ? `중심 차이 ${rowAlign.dCenter.toFixed(2)}px` : 'n/a');
 await page.screenshot({ path: `${OUT}/wishlist-checkbox-row.png` });
 
-// 솔루션 전 회색 스태틱 — 두 스토어 모두
+/**
+ * ── O) 솔루션 전에도 정상 마켓 프레임 ──
+ * 회색 스태틱은 폐기했다. 오프라인 정밀진단·시술 데이터만으로도 추천·판매가 되므로
+ * 촬영 전에도 배너·상품 카드가 그대로 뜬다. 달라지는 건 **추천 상품**뿐이다.
+ */
+const freshCare = () => ({
+  state: { phase: 'night', selectedDate: '2026-01-01', hasCaptureToday: false, completedDates: [] },
+  version: 1,
+});
+
 for (const [label, path] of [['피쓰 서울', '/market'], ['윔 스토어', '/market/wim']]) {
+  // 촬영 전
   const fresh = await context.newPage();
-  await fresh.addInitScript(() => {
-    localStorage.setItem(
-      'innerderma.care',
-      JSON.stringify({ state: { phase: 'night', selectedDate: '2026-01-01', hasCaptureToday: false, completedDates: [] }, version: 1 }),
-    );
-  });
+  await fresh.addInitScript((payload) => {
+    localStorage.setItem('innerderma.care', JSON.stringify(payload));
+  }, freshCare());
   await fresh.goto(`${base}${path}`, { waitUntil: 'load' });
-  await fresh.waitForTimeout(500);
+  await fresh.waitForTimeout(600);
+
   const gray = await fresh.locator('[data-name="NoSolutionBanner"]').count();
   const cards = await fresh.locator('[data-name="PostCard"]').count();
-  check(`M) 솔루션 전 ${label} 탭은 회색 스태틱`, gray === 1 && cards === 0, `회색 ${gray} / 카드 ${cards}`);
+  const banner = await fresh.locator('[data-testid="featured-banner"]').count();
+  const preName = (await fresh.locator('[data-name="BannerProductName"]').textContent())?.trim();
   await fresh.close();
+
+  check(`O) 솔루션 전 ${label} 탭에 회색 스태틱이 없다`, gray === 0, `회색 ${gray}개`);
+  check(`O) 솔루션 전 ${label} 탭에 추천 배너가 뜬다`, banner === 1, `배너 ${banner}개`);
+  check(`O) 솔루션 전 ${label} 탭에 상품 카드 6개`, cards === 6, `카드 ${cards}개`);
+
+  // 촬영 후 — 같은 자리에 다른 상품이 온다
+  // localStorage 는 컨텍스트 안에서 공유되므로, 위 촬영 전 상태를 명시적으로 지워야 한다
+  const after = await context.newPage();
+  await after.addInitScript(() => {
+    localStorage.removeItem('innerderma.care');
+  });
+  await after.goto(`${base}${path}`, { waitUntil: 'load' });
+  await after.waitForTimeout(600);
+  const postName = (await after.locator('[data-name="BannerProductName"]').textContent())?.trim();
+  await after.close();
+
+  check(`O) ${label} 탭 추천 상품이 촬영 전후로 다르다`,
+    Boolean(preName) && Boolean(postName) && preName !== postName,
+    `촬영 전="${preName}" / 촬영 후="${postName}"`);
 }
+
+// ── P) 윔 스토어에서 수부지·피부탄력 탭은 스태틱 ──
+await page.goto(`${base}/market/wim`, { waitUntil: 'load' });
+await page.waitForTimeout(500);
+const wimTabs = await page.evaluate(() => {
+  const btns = [...document.querySelectorAll('[data-node-id="870:4935"] button')];
+  return btns.map((b) => ({
+    label: b.textContent.trim(),
+    disabled: b.disabled,
+    static: b.getAttribute('data-static'),
+  }));
+});
+check('P) 윔 스토어에서 수부지·피부탄력 탭이 스태틱',
+  wimTabs.filter((t) => t.label !== '전체').every((t) => t.disabled === true),
+  JSON.stringify(wimTabs));
+check('P) 윔 스토어에서 전체 탭은 살아 있다',
+  wimTabs.find((t) => t.label === '전체')?.disabled === false);
+
+// 눌러도 피쓰 서울로 넘어가지 않는다
+await page.locator('[data-node-id="870:4939"]').click({ force: true }).catch(() => {});
+await page.waitForTimeout(400);
+check('P) 스태틱 탭을 눌러도 윔 스토어에 머문다',
+  new URL(page.url()).pathname === '/market/wim', `url=${new URL(page.url()).pathname}`);
+
+// 피쓰 서울에서는 그대로 이동한다
+await page.goto(`${base}/market`, { waitUntil: 'load' });
+await page.waitForTimeout(400);
+await page.locator('[data-node-id="870:4939"]').click();
+await page.waitForTimeout(500);
+check('P) 피쓰 서울에서는 수부지 탭이 동작', new URL(page.url()).pathname === '/market/oily',
+  `url=${new URL(page.url()).pathname}`);
+
+// ── Q) 찜 목록에 윔 스토어 상품도 들어간다 ──
+await page.goto(`${base}/market`, { waitUntil: 'load' });
+await page.evaluate(() => localStorage.removeItem('innerderma.wishlist'));
+await page.goto(`${base}/market`, { waitUntil: 'load' });
+await page.waitForTimeout(500);
+await page.locator('button[aria-label="찜하기"]').first().click();
+await page.waitForTimeout(250);
+const pithWished = await page.evaluate(
+  () =>
+    document
+      .querySelector('button[aria-label="찜 해제"]')
+      ?.closest('[data-name="PostCard"]')
+      ?.querySelector('[data-name="ProductName"]')
+      ?.textContent.trim() ?? '',
+);
+
+await page.goto(`${base}/market/wim`, { waitUntil: 'load' });
+await page.waitForTimeout(500);
+await page.locator('button[aria-label="찜하기"]').first().click();
+await page.waitForTimeout(250);
+const wimWished = await page.evaluate(
+  () =>
+    document
+      .querySelector('button[aria-label="찜 해제"]')
+      ?.closest('[data-name="PostCard"]')
+      ?.querySelector('[data-name="ProductName"]')
+      ?.textContent.trim() ?? '',
+);
+
+await page.goto(`${base}/market/wishlist`, { waitUntil: 'load' });
+await page.waitForTimeout(600);
+const wishNames = await page.evaluate(() =>
+  [...document.querySelectorAll('[data-name="PostCard"] [data-name="ProductName"]')].map((el) =>
+    el.textContent.trim(),
+  ),
+);
+check('Q) 찜 목록에 피쓰 + 윔 상품이 모두 들어간다', wishNames.length === 2,
+  `${wishNames.length}개: ${wishNames.join(' | ')}`);
+check('Q) 윔 스토어에서 찜한 상품이 목록에 보인다', wishNames.includes(wimWished),
+  `윔에서 찜="${wimWished}" / 목록=${JSON.stringify(wishNames)}`);
+check('Q) 피쓰에서 찜한 상품도 함께 보인다', wishNames.includes(pithWished),
+  `피쓰에서 찜="${pithWished}"`);
+await page.screenshot({ path: `${OUT}/wishlist-cross-store.png` });
 
 check('L) 신규 화면에서 런타임 에러 없음', newScreenErrors.length === 0, newScreenErrors.join(' | ') || '-');
 

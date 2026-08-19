@@ -7,7 +7,7 @@ import { productKey, useWishlistStore } from '@/store/wishlistStore';
 import { PRODUCT_DETAIL } from '@/constants/productDetail';
 import { findProductByKey } from '@/constants/marketScreens';
 import { formatPrice } from '@/constants/cartItems';
-import { joinNameLines, truncateProductName } from '@/lib/productName';
+import { clampLines, joinNameLines } from '@/lib/productName';
 import backIcon from '@/assets/figma/pd-back.svg';
 import shareIcon from '@/assets/figma/pd-share.svg';
 import plusIcon from '@/assets/figma/pd-plus.svg';
@@ -270,10 +270,12 @@ export default function ProductDetailScreen() {
         data-node-id="1026:2591"
         data-name="Paragraph"
       >
-        <div className="relative h-[44px] w-[338px] shrink-0 font-sans text-[16px] font-semibold leading-[0] text-ink [word-break:break-word]">
+        {/* 폭은 부모(214) 를 따른다 — 넘기면 오른쪽 가격과 글자가 겹친다 */}
+        <div className="relative h-[44px] w-full shrink-0 font-sans text-[16px] font-semibold leading-[0] text-ink [word-break:break-word]">
           <p className="mb-0 leading-[16.5px]">&#8203;</p>
-          <p className="leading-[16.5px]" data-testid="pd-name">
-            {truncateProductName(view.name)}
+          {/* 두 줄까지 표시하고 넘치면 … (마켓 카드·배너와 같은 규칙) */}
+          <p className="leading-[16.5px]" style={clampLines()} data-testid="pd-name">
+            {view.name}
           </p>
         </div>
       </div>

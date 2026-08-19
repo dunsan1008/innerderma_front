@@ -28,14 +28,14 @@ const ROUTES = ['/solution/night', '/solution/morning', '/home/first-visit', '/m
 
 /** 각 언어에서 솔루션 화면에 반드시 보여야 하는 문구 */
 const LANGS = [
-  { label: 'English', code: 'en', expect: 'Tonight', routeExpect: { '/mypage': 'My Info', '/market': 'Personalized' } },
-  { label: '中文', code: 'zh', expect: '今晚', routeExpect: { '/mypage': '我的信息', '/market': '个性化' } },
-  { label: '日本語', code: 'ja', expect: '今夜', routeExpect: { '/mypage': '基本情報', '/market': 'パーソナル' } },
-  { label: '한국어', code: 'ko', expect: '오늘 밤', routeExpect: { '/mypage': '내 정보', '/market': '맞춤형' } },
+  { label: 'English', code: 'en', expect: 'Tonight', routeExpect: { '/mypage': 'My Info', '/market': 'Daily Analysis' } },
+  { label: '中文', code: 'zh', expect: '今晚', routeExpect: { '/mypage': '我的信息', '/market': '每日分析' } },
+  { label: '日本語', code: 'ja', expect: '今夜', routeExpect: { '/mypage': '基本情報', '/market': 'デイリー分析' } },
+  { label: '한국어', code: 'ko', expect: '오늘 밤', routeExpect: { '/mypage': '내 정보', '/market': '데일리 분석' } },
 ];
 
 /** 한국어 고유 문구 — 다른 언어에서 남아 있으면 미번역 */
-const KO_MARKERS = ['오늘 밤', '내일 아침', '오늘의 피부케어', '내 정보', '맞춤형 진단 상품 추천', '인식중', '인식됨'];
+const KO_MARKERS = ['오늘 밤', '내일 아침', '오늘의 피부케어', '내 정보', '데일리 분석 맞춤 상품 추천', '인식중', '인식됨'];
 
 const setLang = async (label) => {
   await p.goto(`${BASE}/solution/night`, { waitUntil: 'load' });

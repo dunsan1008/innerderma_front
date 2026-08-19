@@ -1,14 +1,18 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { MARKET_ALL_PRODUCTS } from '@/constants/marketProducts';
 
 /**
  * 찜(하트) 상태.
  * 상품 카드의 하트를 누르면 등록/삭제되고, 마켓-찜 화면은 이 목록만 보여준다.
  * 새로고침해도 유지되도록 localStorage 에 저장한다.
  *
+ * **초기값은 항상 비어 있다.** Figma 시안에는 하트가 채워진 카드가 있지만,
+ * 사용자가 직접 누르지 않은 상품이 찜 목록에 들어 있으면 담은 적 없는 항목이
+ * 있는 것처럼 보인다. 그래서 시안의 채워진 하트는 재현하지 않는다.
+ *
  * 상품 식별자는 Figma 노드 id 가 화면마다 달라 이름으로 잡는다.
  * (같은 제품이 마켓 1·2·3 에 각각 다른 노드로 존재하므로 이름이 더 안정적이다)
+ * 피쓰 서울·윔 스토어 상품이 같은 목록에 섞이므로 이름이 스토어를 가로질러 유일해야 한다.
  * 추후 백엔드 연동 시 productId 로 바꾸고 api/market.js 의 toggleWishlist 를 호출한다.
  */
 
@@ -17,14 +21,11 @@ export function productKey(product) {
   return product.nameLines ? product.nameLines.join('').trim() : product.name;
 }
 
-/** Figma 디자인에서 하트가 채워져 있던(=이미 찜한) 상품을 초기값으로 쓴다 */
-const INITIAL_KEYS = MARKET_ALL_PRODUCTS.filter((p) => p.wishedInDesign ?? false).map(productKey);
-
 export const useWishlistStore = create(
   persist(
     (set, get) => ({
-      /** 찜한 상품 키 목록 */
-      keys: INITIAL_KEYS,
+      /** 찜한 상품 키 목록 — 최초 접속 시 비어 있다 */
+      keys: [],
 
       has: (product) => get().keys.includes(productKey(product)),
 

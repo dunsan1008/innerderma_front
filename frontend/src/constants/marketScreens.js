@@ -1,8 +1,11 @@
 import banner53 from '@/assets/figma/products/banner-53.png';
 import banner58 from '@/assets/figma/products/banner-58.png';
 import banner59 from '@/assets/figma/products/banner-59.png';
+import img17 from '@/assets/figma/products/img-17.png';
+import img19 from '@/assets/figma/products/img-19.png';
+import { CARD_IMAGE_BLEED, CARD_SIZES } from '@/constants/cardLayout';
 import { MARKET_ALL_PRODUCTS, MARKET_OILY_PRODUCTS, MARKET_SKIN_PRODUCTS } from '@/constants/marketProducts';
-import { WIM_BANNER_SLIDE, WIM_PRODUCTS } from '@/constants/wimProducts';
+import { WIM_BANNER_SLIDE, WIM_PRE_SOLUTION_SLIDE, WIM_PRODUCTS } from '@/constants/wimProducts';
 
 /**
  * 추천 배너 슬라이드.
@@ -31,6 +34,31 @@ const SLIDE_CORE_CREAM = {
   price: '54,000원',
   tags: BANNER_TAGS,
 };
+
+/**
+ * 촬영·자가진단 **이전**에 보여주는 추천 배너 (피쓰 서울).
+ *
+ * 오프라인에서 받은 정밀진단·시술 데이터만으로도 제품을 추천·판매할 수 있으므로
+ * 촬영 전에도 마켓은 정상적으로 열린다. 다만 데일리 분석 결과가 아직 반영되지 않은
+ * 상태라, 촬영 후에 뜨는 배너와는 **다른 상품**을 내보내 추천 근거의 차이를 드러낸다.
+ * (촬영 후에는 SLIDE_TONER 등 데일리 분석 기반 추천으로 바뀐다)
+ */
+const PRE_SOLUTION_TAGS = ['시술케어', '피부과전용', '정밀진단'];
+
+export const PITH_PRE_SOLUTION_SLIDES = [
+  {
+    image: img19,
+    name: '클리바 르 클레어 크렘 50ml',
+    price: '48,000원',
+    tags: PRE_SOLUTION_TAGS,
+  },
+  {
+    image: img17,
+    name: 'NaDC 크림 (#120도크림)',
+    price: '43,000원',
+    tags: PRE_SOLUTION_TAGS,
+  },
+];
 
 /**
  * 마켓 화면 3종의 배치값. 모두 Figma 프레임 실측 절대 좌표다.
@@ -74,6 +102,7 @@ export const MARKET_SCREENS = {
     },
     products: MARKET_ALL_PRODUCTS,
     bannerSlides: [SLIDE_TONER, SLIDE_SUN_ESSENCE, SLIDE_CORE_CREAM],
+    preSolutionSlides: PITH_PRE_SOLUTION_SLIDES,
     tabBarTop: 1541,
   },
 
@@ -110,6 +139,7 @@ export const MARKET_SCREENS = {
     },
     products: MARKET_OILY_PRODUCTS,
     bannerSlides: [SLIDE_SUN_ESSENCE, SLIDE_CORE_CREAM, SLIDE_TONER],
+    preSolutionSlides: PITH_PRE_SOLUTION_SLIDES,
     tabBarTop: 1541,
   },
 
@@ -148,6 +178,7 @@ export const MARKET_SCREENS = {
     },
     products: MARKET_SKIN_PRODUCTS,
     bannerSlides: [SLIDE_CORE_CREAM, SLIDE_TONER, SLIDE_SUN_ESSENCE],
+    preSolutionSlides: PITH_PRE_SOLUTION_SLIDES,
     tabBarTop: 1541,
   },
 
@@ -190,6 +221,7 @@ export const MARKET_SCREENS = {
     },
     products: WIM_PRODUCTS,
     bannerSlides: [WIM_BANNER_SLIDE],
+    preSolutionSlides: [WIM_PRE_SOLUTION_SLIDE],
     tabBarTop: 1541,
   },
 };
@@ -206,15 +238,25 @@ const ALL_KNOWN_PRODUCTS = [
   ...WIM_PRODUCTS,
 ];
 
-/** 배너 상품도 상세로 들어올 수 있어 같은 목록에 넣어 둔다 */
-const BANNER_PRODUCTS = [SLIDE_TONER, SLIDE_SUN_ESSENCE, SLIDE_CORE_CREAM, WIM_BANNER_SLIDE].map(
-  (slide) => ({
-    name: slide.name,
-    price: slide.price,
-    tags: slide.tags,
-    layers: [{ box: [0, 0, 393, 362], srcs: [slide.image] }],
-  }),
-);
+/**
+ * 배너 상품도 상세·찜 목록으로 들어올 수 있어 같은 목록에 넣어 둔다.
+ * 레이어 박스는 상품 카드와 같은 CARD_IMAGE_BLEED 를 쓴다 — 배너 크기(393x362)로
+ * 두면 찜 화면에서 카드 슬롯을 넘겨 사진 왼쪽 위 조각만 보인다.
+ */
+const BANNER_PRODUCTS = [
+  SLIDE_TONER,
+  SLIDE_SUN_ESSENCE,
+  SLIDE_CORE_CREAM,
+  WIM_BANNER_SLIDE,
+  ...PITH_PRE_SOLUTION_SLIDES,
+  WIM_PRE_SOLUTION_SLIDE,
+].map((slide) => ({
+  name: slide.name,
+  price: slide.price,
+  tags: slide.tags,
+  layers: [{ box: CARD_IMAGE_BLEED, srcs: [slide.image] }],
+  sizes: CARD_SIZES,
+}));
 
 const keyOf = (p) => (p.nameLines ? p.nameLines.join('').trim() : (p.name ?? '').trim());
 

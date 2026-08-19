@@ -11,16 +11,18 @@ import { INITIAL_CART_ITEMS, INITIAL_CART_SELECTED } from '@/constants/cartItems
  * 추후 백엔드 연동 시 `/api/v1/cart` CRUD 로 교체한다.
  */
 
-/** 저장값이 깨져 있어도 화면이 죽지 않게 형태를 맞춘다 */
+/**
+ * 저장값이 깨져 있어도 화면이 죽지 않게 형태를 맞춘다.
+ * 저장값이 없거나 이상하면 **빈 장바구니**로 떨어진다 — 담은 적 없는 상품이
+ * 되살아나지 않도록 더미 목록을 폴백으로 쓰지 않는다.
+ */
 function normalize(saved) {
   const s = saved && typeof saved === 'object' ? saved : {};
-  const items = Array.isArray(s.items)
-    ? s.items.filter((it) => it && typeof it.id === 'string')
-    : INITIAL_CART_ITEMS;
+  const items = Array.isArray(s.items) ? s.items.filter((it) => it && typeof it.id === 'string') : [];
   const ids = items.map((it) => it.id);
   const selectedIds = Array.isArray(s.selectedIds)
     ? s.selectedIds.filter((id) => ids.includes(id))
-    : INITIAL_CART_SELECTED.filter((id) => ids.includes(id));
+    : ids;
   return { items, selectedIds };
 }
 
@@ -105,8 +107,13 @@ export const useCartStore = create(
     }),
     {
       name: 'innerderma.cart',
-      version: 1,
+      // v2: 더미 3개로 시작하던 옛 저장값을 버리고 빈 장바구니로 출발한다
+      version: 2,
       partialize: (state) => ({ items: state.items, selectedIds: state.selectedIds }),
+
+      /** v1→v2 마이그레이션: 사용자가 담지 않은 더미 상품을 비운다 */
+      migrate: () => ({ items: [], selectedIds: [] }),
+
       merge: (saved, current) => ({ ...current, ...normalize(saved) }),
     },
   ),

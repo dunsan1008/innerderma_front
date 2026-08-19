@@ -5,6 +5,7 @@ import wim3 from '@/assets/figma/products/wim-3.png';
 import wim4 from '@/assets/figma/products/wim-4.png';
 import wim5 from '@/assets/figma/products/wim-5.png';
 import wim6 from '@/assets/figma/products/wim-6.png';
+import { CARD_IMAGE_BLEED, CARD_SIZES, CARD_SLOTS } from '@/constants/cardLayout';
 
 /**
  * 윔 스토어 상품 (Figma 마켓 4 / 1117:1689).
@@ -12,36 +13,25 @@ import wim6 from '@/assets/figma/products/wim-6.png';
  * 상품 정보(이름·가격·태그·이미지)는 마켓 4 실측 그대로 쓰지만
  * **좌표와 카드 규격은 마켓 1 기준으로 통일**한다.
  * 마켓 4 는 카드가 173x256.5 / 2열 그리드로 따로 그려져 있어 그대로 옮기면
- * 피쓰 서울 탭과 카드 크기·간격이 달라 보인다. 그래서 마켓 1 의
- * PostCard 규격(167x272)과 배치 좌표를 그대로 재사용했다.
+ * 피쓰 서울 탭과 카드 크기·간격이 달라 보인다. 그래서 피쓰 서울과 같은
+ * CARD_SLOTS / CARD_IMAGE_BLEED / CARD_SIZES 를 공유한다.
  *
- * 이미지는 마켓 4 의 각 카드 이미지 프레임을 2배 해상도로 내보낸 것이다
- * (166x143 슬롯에 332x286 을 넣어 선명하게 보이게 했다).
+ * 이미지는 마켓 4 의 각 카드 이미지 프레임을 2배 해상도로 내보낸 것이다(332x286).
  *
  * 추후 백엔드 연동 시 `GET /api/v1/wim-store/products` 응답으로 교체한다.
  */
 
-/** 마켓 1 Group 54 와 같은 6칸 배치 */
-const SLOTS = [
-  { left: 20, top: 670 },
-  { left: 204, top: 670 },
-  { left: 18, top: 964 },
-  { left: 204, top: 964 },
-  { left: 20, top: 1258 },
-  { left: 205, top: 1258 },
-];
-
-/** 카드 본문 규격 — 이름을 18자로 자르므로 6칸 모두 같은 높이를 쓴다 */
-const CARD_SIZES = {
-  nameSize: 11,
-  nameHeight: 33,
-  priceSize: 13,
-  priceWidth: '100%',
-  tagBox: 46,
-};
-
-/** 이미지는 이미 카드 슬롯(166x143)에 맞게 잘라 내보냈다 */
-const layersOf = (src) => [{ box: [0, 0, 166, 143], srcs: [src] }];
+/**
+ * 이미지 레이어 — 피쓰 서울 카드와 같은 bleed 규격을 쓴다.
+ *
+ * 예전에는 `box: [0, 0, 166, 143]` 으로 카드 슬롯에 정확히 맞췄는데, 그러면
+ *  - 카드의 `pt-20` 때문에 사진 위에 흰 여백 20px 이 남고
+ *  - 폭이 166 이라 카드(167) 우측에 1px 이 비고
+ *  - 사진이 슬롯을 꽉 채워 제품이 프레임 가장자리에 닿아 "정사각형으로 잘린" 것처럼 보였다.
+ * 피쓰 카드는 박스를 카드보다 크게 잡고 음수 오프셋으로 얹어 상단·좌우를 채운다.
+ * 그 규격(CARD_IMAGE_BLEED)을 그대로 공유해 두 스토어의 사진이 같은 밀도로 보이게 한다.
+ */
+const layersOf = (src) => [{ box: CARD_IMAGE_BLEED, srcs: [src] }];
 
 const ITEMS = [
   {
@@ -90,8 +80,8 @@ const ITEMS = [
 
 export const WIM_PRODUCTS = ITEMS.map((item, i) => ({
   nodeId: item.nodeId,
-  left: SLOTS[i].left,
-  top: SLOTS[i].top,
+  left: CARD_SLOTS[i].left,
+  top: CARD_SLOTS[i].top,
   layers: layersOf(item.image),
   name: item.name,
   price: item.price,
@@ -105,4 +95,15 @@ export const WIM_BANNER_SLIDE = {
   name: '저당, 저탄수, 고단백 윔쉐이크 초코 대용량 800g',
   price: '56,000원',
   tags: ['피부재생', '수부지', '저자극 인증'],
+};
+
+/**
+ * 촬영·자가진단 **이전**에 보여주는 추천 배너 (윔 스토어).
+ * 오프라인 정밀진단·시술 데이터만으로 추천하는 단계라 촬영 후 배너와 다른 상품을 쓴다.
+ */
+export const WIM_PRE_SOLUTION_SLIDE = {
+  image: wim1,
+  name: '[내과전문의 설계] 마시는 식이섬유 비포밀 (30포/BOX)',
+  price: '34,000원',
+  tags: ['시술케어', '장내환경', '정밀진단'],
 };

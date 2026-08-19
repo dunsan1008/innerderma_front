@@ -162,7 +162,7 @@ export default {
   // ─── 마켓 ───
   market: {
     emptyWishlist: '찜한 상품이 없어요. 마켓에서 하트를 눌러 담아보세요.',
-    recommendation: '맞춤형 진단 상품 추천',
+    recommendation: '데일리 분석 맞춤 상품 추천',
     wishlist: 'MY 찜',
     // Figma(870:5202) 는 "전체       배송방법 변경" 한 줄이지만
     // 앞의 "전체" 는 체크박스 라벨(filter.all)이 따로 렌더한다. 여기엔 뒷부분만 둔다.

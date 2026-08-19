@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { truncateProductName } from '@/lib/productName';
+import { clampLines, joinNameLines } from '@/lib/productName';
 
 /**
  * 추천 상품 배너 (Figma `Frame 74` 870:5061 / `Frame 77` 870:5523 / `Frame 78` 870:5342).
@@ -38,7 +38,18 @@ export default function FeaturedBanner({ banner, slides, onOpen }) {
     return () => clearInterval(timer);
   }, [paused, items.length]);
 
-  const current = items[index];
+  /**
+   * 슬라이드 목록이 바뀌면 첫 장으로 되돌린다.
+   * 피쓰 서울(3장) ↔ 윔 스토어(1장) 는 같은 컴포넌트를 재사용하므로 index 가 그대로 남는데,
+   * 그러면 1장짜리 목록에서 index=2 를 읽어 `current` 가 undefined 가 되고 화면 전체가 죽는다.
+   */
+  const firstSlideName = items[0]?.name;
+  useEffect(() => {
+    setIndex(0);
+  }, [items.length, firstSlideName]);
+
+  /** 목록이 줄어드는 순간의 렌더까지 버티도록 범위를 한 번 더 조인다 */
+  const current = items[Math.min(index, items.length - 1)] ?? items[0];
 
   const onPointerDown = (e) => {
     dragStartX.current = e.clientX;
@@ -130,19 +141,28 @@ export default function FeaturedBanner({ banner, slides, onOpen }) {
       </div>
 
       {/*
-        상품명 — 공백 포함 18자 제한 + …
+        상품명 — 두 줄까지 보여주고 넘치면 … (줄 수 판정은 CSS line-clamp)
         Figma 는 첫 줄에 폭 확보용 제로폭 공백을 넣어 두 줄 박스를 만든다. 그 구조는 유지하고
-        내용만 잘린 이름으로 바꾼다. (이름 박스가 찜·공유 버튼 위로 넘쳐 클릭을 막지 않게 pointer-events 도 끈다)
+        내용만 바꾼다. (이름 박스가 찜·공유 버튼 위로 넘쳐 클릭을 막지 않게 pointer-events 도 끈다)
       */}
       <div
         className="pointer-events-none absolute flex flex-col items-start"
         style={{ left: banner.nameAt[0], top: banner.nameAt[1], width: 214, height: 46 }}
         data-name="Paragraph"
       >
-        <div className="relative h-[44px] w-[338px] shrink-0 font-sans text-[16px] font-semibold leading-[0] text-ink [word-break:break-word]">
+        {/*
+          폭은 부모(214) 를 따른다. 예전에는 w-[338px] 로 부모를 넘겨 놨는데,
+          이름을 18자로 잘라 쓰던 동안에는 문제가 없었지만 두 줄 clamp 로 바꾸면서
+          긴 이름이 오른쪽 가격 위까지 뻗어 글자가 겹쳤다.
+        */}
+        <div className="relative h-[44px] w-full shrink-0 font-sans text-[16px] font-semibold leading-[0] text-ink [word-break:break-word]">
           <p className="mb-0 leading-[16.5px]">&#8203;</p>
-          <p className="leading-[16.5px]" data-name="BannerProductName">
-            {truncateProductName(current.name)}
+          <p
+            className="leading-[16.5px]"
+            style={clampLines()}
+            data-name="BannerProductName"
+          >
+            {joinNameLines(current)}
           </p>
         </div>
       </div>
@@ -155,34 +175,36 @@ export default function FeaturedBanner({ banner, slides, onOpen }) {
         {current.price}
       </p>
 
-      {/* 태그 3개 — 좌표는 Figma 실측 그대로 두고 라벨만 바뀐다 */}
-      {banner.tags.map((slot, i) => {
-        const tag = current.tags[i];
-        if (!tag) return null;
-        return (
-          <div
-            key={slot.x}
-            className="absolute flex items-center pt-[6px]"
-            style={{ left: slot.x, top: slot.y, width: slot.width, height: 29 }}
-            data-name="Container"
-          >
+      {/*
+        태그 3개.
+        Figma 는 칩을 x=35 / 102 / 169 에 고정 폭(61/61/68)으로 놓았다. 그 폭은 시안의
+        태그 길이에 맞춰진 값이라 더 긴 라벨이 들어오면 글자가 칩을 넘쳐 두 줄로 잘렸고,
+        칩을 늘리면 다음 칩과 겹쳤다. 그래서 첫 칩 위치에서 시작하는 flex 행으로 바꿨다.
+        간격 6px 은 실측값(102 - (35 + 61) = 6)이라 짧은 태그는 시안과 같은 자리에 오고,
+        긴 태그는 칩이 늘어나면서 뒤 칩을 밀어낸다.
+      */}
+      <div
+        className="absolute flex items-center gap-[6px] pt-[6px]"
+        style={{ left: banner.tags[0].x, top: banner.tags[0].y, height: 29 }}
+        data-name="Container"
+      >
+        {banner.tags.map((slot, i) => {
+          const tag = current.tags[i];
+          if (!tag) return null;
+          return (
             <div
-              className="relative flex h-[23px] shrink-0 flex-col items-start rounded-full bg-ink px-[6px] py-[2px]"
-              style={{ width: slot.width }}
+              key={slot.x}
+              className="relative flex h-[23px] shrink-0 items-center justify-center rounded-full bg-ink px-[6px] py-[2px]"
+              style={{ minWidth: slot.width }}
               data-name="Text"
             >
-              <div className="relative flex shrink-0 items-center justify-center pt-[3px]">
-                <p
-                  className="relative shrink-0 text-right font-sans text-[11px] font-medium leading-[13.5px] text-white [word-break:break-word]"
-                  style={{ width: slot.textWidth }}
-                >
-                  {tag.label ?? tag}
-                </p>
-              </div>
+              <p className="relative shrink-0 whitespace-nowrap text-center font-sans text-[11px] font-medium leading-[13.5px] text-white">
+                {tag.label ?? tag}
+              </p>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </>
   );
 }

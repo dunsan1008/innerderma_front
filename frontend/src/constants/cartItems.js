@@ -3,12 +3,26 @@ import cream from '@/assets/figma/cart-cream.png';
 import cleanser from '@/assets/figma/cart-cleanser.png';
 
 /**
- * MY 장바구니 초기 담긴 상품 (Figma 1026:2397).
- * 추후 백엔드 연동 시 `GET /api/v1/cart` 응답으로 교체한다.
+ * MY 장바구니 초기 상태.
  *
- * Figma 는 3개 중 앞의 2개만 체크된 상태로 그려져 있다(선택 2개 / 90,000원).
+ * **비어 있다.** 사용자가 직접 담지 않은 상품이 장바구니에 들어 있으면
+ * 최초 접속 시 담은 적 없는 주문이 있는 것처럼 보인다.
+ * 그래서 Figma 의 "3개 담긴" 상태는 디자인 참고용으로만 남기고
+ * 실제 초기값은 빈 목록으로 둔다.
+ *
+ * 추후 백엔드 연동 시 `GET /api/v1/cart` 응답으로 교체한다.
  */
-export const INITIAL_CART_ITEMS = [
+export const INITIAL_CART_ITEMS = [];
+
+/** 장바구니 기본 선택 — 담긴 상품이 없으므로 비어 있다 */
+export const INITIAL_CART_SELECTED = [];
+
+/**
+ * Figma 1026:2397 에 그려져 있던 예시 상품.
+ * 초기값으로는 쓰지 않고, 상세 화면에서 "장바구니 담기" 시 참고할 옵션 문구·규격의
+ * 근거로만 남겨 둔다. (디자인 대조용)
+ */
+export const CART_DESIGN_SAMPLE = [
   {
     id: 'serum',
     name: 'InnerDerma 세럼',
@@ -40,9 +54,6 @@ export const INITIAL_CART_ITEMS = [
     nodeId: '1026:2496',
   },
 ];
-
-/** Figma 기본 상태: 앞 두 개가 선택돼 있다 */
-export const INITIAL_CART_SELECTED = ['serum', 'cream'];
 
 /** 배송방법 옵션 */
 export const DELIVERY_OPTIONS = ['기본', '새벽배송', '방문수령'];

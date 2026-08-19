@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useT } from '@/i18n';
 import Screen from '@/components/layout/Screen';
@@ -39,10 +40,28 @@ const MARKET_HEADER_HEIGHT = 129;
 /** 하단 고정 탭바 높이 */
 const TAB_BAR_HEIGHT = 96;
 
-/** 스토어 전환 토글이 놓이는 y (배너 아래 · 카테고리 탭 위) */
-const TOGGLE_TOP = 536;
-/** 토글이 차지하는 높이(56) + 위아래 여백 — 아래 요소를 이만큼 밀어낸다 */
+/**
+ * 스토어 전환 토글이 놓이는 y — 상단 고정 헤더(129) 바로 아래, 제목 위.
+ * 어느 스토어를 보고 있는지가 화면에서 가장 먼저 읽혀야 해서 맨 위로 올렸다.
+ */
+const TOGGLE_TOP = 145;
+/** 토글이 차지하는 높이(56) + 아래 여백 — 제목 이하 모든 요소를 이만큼 밀어낸다 */
 const TOGGLE_BLOCK = 68;
+
+/**
+ * 배너 설정의 y 좌표를 한꺼번에 내린다.
+ * 배너는 프레임·상품명·가격·태그가 각각 Figma 실측 절대 좌표라
+ * 토글이 위로 들어온 만큼 전부 같이 밀어야 어긋나지 않는다.
+ */
+function shiftBanner(banner, dy) {
+  return {
+    ...banner,
+    frame: [banner.frame[0], banner.frame[1] + dy, banner.frame[2], banner.frame[3]],
+    nameAt: [banner.nameAt[0], banner.nameAt[1] + dy],
+    priceAt: [banner.priceAt[0], banner.priceAt[1] + dy],
+    tags: banner.tags.map((slot) => ({ ...slot, y: slot.y + dy })),
+  };
+}
 
 export default function MarketScreen({ variant = 'all' }) {
   const navigate = useNavigate();
@@ -50,9 +69,27 @@ export default function MarketScreen({ variant = 'all' }) {
   const config = MARKET_SCREENS[variant];
   const hasCaptureToday = useCareStore((s) => s.hasCaptureToday);
 
-  /** 솔루션 미수신(최초 접속) — 추천 영역을 회색 스태틱으로 대체한다 */
-  const noSolution = !hasCaptureToday;
   const isWim = config.store === 'wim';
+
+  /**
+   * 촬영·자가진단 전이면 추천 배너에 다른 상품이 올라간다.
+   * 화면 구성 자체는 촬영 여부와 무관하게 같다 — 오프라인 정밀진단·시술 데이터만으로도
+   * 추천·판매가 되므로 마켓을 잠글 이유가 없다. 달라지는 건 추천 근거뿐이다.
+   */
+  const beforeSolution = !hasCaptureToday;
+  const bannerSlides = beforeSolution
+    ? (config.preSolutionSlides ?? config.bannerSlides)
+    : config.bannerSlides;
+
+  /** 토글이 위로 들어온 만큼 배너 좌표를 전부 내린다 */
+  const banner = useMemo(() => {
+    const shifted = shiftBanner(config.banner, TOGGLE_BLOCK);
+    const first = bannerSlides[0];
+    // 배너의 대표 이미지·이름·가격은 첫 슬라이드와 맞춰 둔다 (슬라이드가 교체됐을 수 있다)
+    return first
+      ? { ...shifted, image: first.image, imageInner: first.imageInner, name: first.name, price: first.price }
+      : shifted;
+  }, [config.banner, bannerSlides]);
 
   const openDetail = (product) =>
     navigate(`/market/product/${encodeURIComponent(productKey(product))}`);
@@ -75,39 +112,7 @@ export default function MarketScreen({ variant = 'all' }) {
       tabBar={<TabBar className="relative h-[96px] w-[393px]" />}
       contentBottom={config.tabBarTop + TOGGLE_BLOCK}
     >
-      {/* 제목 */}
-      <div
-        className="absolute flex items-center justify-between"
-        style={{ left: config.title.x, top: config.title.y, width: config.title.width, height: config.title.height }}
-      >
-        <div className="relative flex shrink-0 flex-col items-start">
-          <p className="relative shrink-0 whitespace-nowrap font-sans text-[20px] font-bold leading-[19.5px] text-text-strong [word-break:break-word]">
-            {t.market.recommendation}
-          </p>
-        </div>
-      </div>
-
-      {/* 맞춤 추천 배너 — 솔루션 전에는 회색 스태틱 */}
-      {noSolution ? (
-        <div
-          className="absolute flex flex-col items-center justify-center rounded-[15px] bg-gray-static"
-          style={{
-            left: config.banner.frame[0],
-            top: config.banner.frame[1],
-            width: config.banner.frame[2],
-            height: config.banner.frame[3],
-          }}
-          data-name="NoSolutionBanner"
-        >
-          <p className="text-center font-sans text-[14px] font-medium leading-[21px] text-body">
-            촬영 후 맞춤 진단 상품을 추천해 드려요
-          </p>
-        </div>
-      ) : (
-        <FeaturedBanner banner={config.banner} slides={config.bannerSlides} onOpen={openDetail} />
-      )}
-
-      {/* 스토어 전환 토글 — 피쓰 서울 / 윔 스토어 모두 같은 자리 */}
+      {/* 스토어 전환 토글 — 상단바 바로 아래, 제목 위 */}
       <div
         className="absolute flex w-[393px] items-center justify-center"
         style={{ left: 0, top: TOGGLE_TOP }}
@@ -119,12 +124,41 @@ export default function MarketScreen({ variant = 'all' }) {
         />
       </div>
 
-      {/* 카테고리 탭 — 윔 스토어는 카테고리 라우트가 없어 피쓰 서울로 넘긴다 */}
+      {/* 제목 */}
+      <div
+        className="absolute flex items-center justify-between"
+        style={{
+          left: config.title.x,
+          top: config.title.y + TOGGLE_BLOCK,
+          width: config.title.width,
+          height: config.title.height,
+        }}
+      >
+        <div className="relative flex shrink-0 flex-col items-start">
+          <p className="relative shrink-0 whitespace-nowrap font-sans text-[20px] font-bold leading-[19.5px] text-text-strong [word-break:break-word]">
+            {t.market.recommendation}
+          </p>
+        </div>
+      </div>
+
+      {/* 맞춤 추천 배너 */}
+      <FeaturedBanner banner={banner} slides={bannerSlides} onOpen={openDetail} />
+
+      {/*
+        카테고리 탭.
+        윔 스토어에는 수부지·피부탄력 카테고리 라우트가 없다. 예전에는 그 탭을 누르면
+        피쓰 서울 화면으로 튕겨 나가 스토어가 바뀌어 버렸다. 그래서 윔에서는 두 탭을
+        스태틱(누를 수 없음)으로 두고 '전체'만 남긴다.
+      */}
       <div
         className="absolute"
         style={{ left: config.tabs.x, top: config.tabs.y + TOGGLE_BLOCK, width: config.tabs.width }}
       >
-        <CategoryTabs value={config.category} onChange={(next) => navigate(ROUTE_BY_CATEGORY[next])} />
+        <CategoryTabs
+          value={config.category}
+          staticKeys={isWim ? ['oily', 'skin'] : undefined}
+          onChange={(next) => navigate(ROUTE_BY_CATEGORY[next])}
+        />
       </div>
 
       <FilterRow
@@ -133,24 +167,14 @@ export default function MarketScreen({ variant = 'all' }) {
         onOpen={(item) => navigate(FILTER_ROUTE_BY_LABEL[item.label])}
       />
 
-      {/* 상품 카드 — 솔루션 전에는 추천 근거가 없어 감춘다 */}
-      {noSolution ? (
-        <p
-          className="absolute left-0 w-[393px] text-center font-sans text-[13px] font-normal leading-[20px] text-body"
-          style={{ top: 700 + TOGGLE_BLOCK }}
-          data-name="NoSolutionProducts"
-        >
-          촬영을 마치면 진단 결과에 맞는 상품을 보여드려요
-        </p>
-      ) : (
-        config.products.map((product) => (
-          <PostCard
-            key={product.nodeId}
-            product={{ ...product, top: product.top + TOGGLE_BLOCK }}
-            onOpen={openDetail}
-          />
-        ))
-      )}
+      {/* 상품 카드 — 촬영 여부와 무관하게 항상 보여준다 */}
+      {config.products.map((product) => (
+        <PostCard
+          key={product.nodeId}
+          product={{ ...product, top: product.top + TOGGLE_BLOCK }}
+          onOpen={openDetail}
+        />
+      ))}
     </Screen>
   );
 }

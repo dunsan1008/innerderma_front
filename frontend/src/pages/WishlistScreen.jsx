@@ -5,7 +5,7 @@ import Screen from '@/components/layout/Screen';
 import TabBar from '@/components/layout/TabBar';
 import MarketHeader from '@/components/market/MarketHeader';
 import PostCard from '@/components/market/PostCard';
-import { MARKET_ALL_PRODUCTS } from '@/constants/marketProducts';
+import { findProductByKey } from '@/constants/marketScreens';
 import { productKey, useWishlistStore } from '@/store/wishlistStore';
 import chevronSmall from '@/assets/figma/chevron-small.svg';
 
@@ -13,6 +13,10 @@ import chevronSmall from '@/assets/figma/chevron-small.svg';
  * 마켓 - 찜 (Figma 870:5089).
  * 카드 규격은 마켓 1 과 같고, 찜한 상품만 2열 격자로 다시 배치한다.
  * 배너·카테고리 탭·필터는 없고 상단에 선택/배송방법 도구 행이 있다.
+ *
+ * 상품은 **피쓰 서울·윔 스토어 전체**에서 찾는다. 예전에는 마켓 1 목록만
+ * 훑어서 윔 스토어나 수부지·피부탄력 화면에서 찜한 상품이 저장은 되면서도
+ * 이 화면에 나타나지 않았다.
  */
 
 /** 상단 고정 헤더 높이 */
@@ -31,17 +35,22 @@ export default function WishlistScreen() {
   const [selectedKeys, setSelectedKeys] = useState([]);
 
   /**
-   * 찜한 상품만 골라 2열로 재배치한다.
+   * 찜한 상품을 스토어 구분 없이 찾아 2열로 재배치한다.
+   * 찜한 순서(keys 순서)를 그대로 유지해 방금 담은 상품이 뒤에 붙는다.
    * (Figma 는 6개 고정 좌표였지만, 실제로는 개수가 변하므로 격자로 계산한다)
    */
-  const products = useMemo(() => {
-    const wished = MARKET_ALL_PRODUCTS.filter((p) => keys.includes(productKey(p)));
-    return wished.map((product, i) => ({
-      ...product,
-      left: GRID.left[i % 2],
-      top: GRID.top + Math.floor(i / 2) * GRID.rowGap,
-    }));
-  }, [keys]);
+  const products = useMemo(
+    () =>
+      keys
+        .map((key) => findProductByKey(key))
+        .filter(Boolean)
+        .map((product, i) => ({
+          ...product,
+          left: GRID.left[i % 2],
+          top: GRID.top + Math.floor(i / 2) * GRID.rowGap,
+        })),
+    [keys],
+  );
 
   const rows = Math.ceil(products.length / 2);
   /** 마지막 카드 아래로 24px 여유를 둔 콘텐츠 끝 */

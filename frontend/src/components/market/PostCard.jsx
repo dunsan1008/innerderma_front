@@ -1,7 +1,7 @@
 import heartFilled from '@/assets/figma/heart-red.svg';
 import heartEmpty from '@/assets/figma/heart-empty.svg';
 import { productKey, useWishlistStore } from '@/store/wishlistStore';
-import { displayProductName } from '@/lib/productName';
+import { clampLines, displayProductName } from '@/lib/productName';
 
 /**
  * 하트 아이콘.
@@ -33,7 +33,7 @@ const HEART = { filled: heartFilled, empty: heartEmpty };
 export default function PostCard({ product, selectable = false, selected = false, onToggleSelect, onOpen }) {
   const { left, top, imageWidth, layers, name, nameLines, price, tags, sizes, nodeId } = product;
 
-  /** 공백 포함 18자 제한 + … */
+  /** 두 줄까지 표시하고 넘치면 … (줄 수 판정은 CSS line-clamp) */
   const displayName = displayProductName(product);
 
   const wished = useWishlistStore((s) => s.keys.includes(productKey(product)));
@@ -125,21 +125,23 @@ export default function PostCard({ product, selectable = false, selected = false
 
       <div className="relative flex h-[108px] w-full shrink-0 flex-col items-start px-[10px] pb-[10px] pt-[8px] bg-white">
         {/*
-          이름 — 공백 포함 18자로 자르고 초과분은 … 으로 대체한다.
-          Figma 는 제품마다 이름을 2~3줄로 손수 쪼개 뒀지만, 길이가 제각각이라
-          카드 높이와 태그 줄이 밀렸다. 잘린 이름 한 덩이를 넣고 줄바꿈은 브라우저에 맡긴다.
+          이름 — 두 줄까지 보여주고 그걸 넘어가는 시점부터 … 으로 잘린다.
+          Figma 는 제품마다 이름을 2~3줄로 손수 쪼개 뒀지만 길이가 제각각이라
+          카드 높이와 태그 줄이 밀렸다. 전체 이름을 한 덩이로 넣고 줄바꿈·생략은
+          브라우저(line-clamp)에 맡긴다. 두 줄 높이를 고정해 두면 이름이 한 줄이든
+          두 줄이든 가격·태그 줄이 같은 자리에 온다.
         */}
         <div
           className="relative flex shrink-0 flex-col items-start"
-          style={sizes?.nameBox ? { height: sizes.nameBox, width: '100%' } : { width: '100%' }}
+          style={{ height: sizes.nameHeight, width: '100%' }}
           data-name="Paragraph"
         >
           <p
-            className="relative w-[154px] shrink-0 font-sans font-semibold text-ink [word-break:break-word]"
+            className="relative w-full shrink-0 font-sans font-semibold text-ink [word-break:break-word]"
             style={{
               fontSize: sizes.nameSize,
-              height: sizes.nameHeight ?? sizes.nameBox,
               lineHeight: `${sizes.nameLeading || 16.5}px`,
+              ...clampLines(),
             }}
             data-name="ProductName"
           >
@@ -149,18 +151,22 @@ export default function PostCard({ product, selectable = false, selected = false
 
         {/* Figma 에 존재하는 빈 Paragraph 자리(카드마다 높이가 달라 간격이 맞는다) */}
         {sizes.spacer ? (
-          <div className="relative w-[57px] shrink-0" style={{ height: sizes.spacer }} data-name="Paragraph" />
+          <div className="relative w-full shrink-0" style={{ height: sizes.spacer }} data-name="Paragraph" />
         ) : null}
 
-        {/* 가격 */}
+        {/*
+          가격 — 카드 폭을 다 쓰고 줄바꿈하지 않는다.
+          예전에는 컨테이너가 w-[57px] 로 묶여 있어 "34,000원" 같은 값이
+          "34,000" / "원" 두 줄로 쪼개졌다.
+        */}
         <div
-          className="relative flex w-[57px] shrink-0 flex-col items-start"
+          className="relative flex w-full shrink-0 flex-col items-start"
           style={sizes.priceBox ? { height: sizes.priceBox } : undefined}
           data-name="Paragraph"
         >
           <p
-            className="relative shrink-0 font-sans font-semibold leading-[16.5px] text-ink [word-break:break-word]"
-            style={{ fontSize: sizes.priceSize, width: sizes.priceWidth }}
+            className="relative w-full shrink-0 whitespace-nowrap font-sans font-semibold leading-[16.5px] text-ink"
+            style={{ fontSize: sizes.priceSize }}
           >
             {price}
           </p>
@@ -168,7 +174,7 @@ export default function PostCard({ product, selectable = false, selected = false
 
         {/* 일부 카드는 가격 아래에 빈 Paragraph 가 하나 더 있다 (Figma 구조 그대로) */}
         {sizes.spacerAfterPrice ? (
-          <div className="relative w-[57px] shrink-0" style={{ height: sizes.spacerAfterPrice }} data-name="Paragraph" />
+          <div className="relative w-full shrink-0" style={{ height: sizes.spacerAfterPrice }} data-name="Paragraph" />
         ) : null}
 
         {/* 태그 */}
