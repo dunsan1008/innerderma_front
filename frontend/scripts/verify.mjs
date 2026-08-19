@@ -899,36 +899,74 @@ await page.waitForTimeout(500);
 /**
  * 상품명은 **두 줄까지** 보여주고 그걸 넘어가는 시점부터 … 으로 잘린다.
  * 글자 수가 아니라 실제 렌더 높이로 판정한다 (한글·영문·숫자 폭이 달라 글자 수로는 못 잰다).
- * scrollHeight > clientHeight + 1 이면 넘친 내용이 있고, line-clamp 가 … 을 붙인 상태다.
  */
-const nameCheck = await page.evaluate(() => {
-  const els = [...document.querySelectorAll('[data-name="ProductName"], [data-name="BannerProductName"]')];
-  const rows = els.map((el) => {
-    const line = parseFloat(getComputedStyle(el).lineHeight) || 16.5;
+const readNames = () =>
+  page.evaluate(() => {
+    const els = [...document.querySelectorAll('[data-name="ProductName"], [data-name="BannerProductName"]')];
+    const rows = els.map((el) => {
+      const cs = getComputedStyle(el);
+      const line = parseFloat(cs.lineHeight) || 16.5;
+      // 디센더가 잘리지 않게 padding-bottom 이 들어 있으므로 줄 수 계산에서 뺀다
+      const pad = parseFloat(cs.paddingBottom) || 0;
+
+      /**
+       * 실제로 잘렸는지 판정.
+       * scrollHeight 비교로는 안 된다 — -webkit-box 는 clamp 와 무관하게 전체 높이를
+       * 돌려주고, padding 도 양쪽에 함께 들어가 차이가 흐려진다.
+       * clamp 를 잠깐 풀어 전체 높이를 재고 되돌린다.
+       */
+      const prevClamp = el.style.webkitLineClamp;
+      const prevOverflow = el.style.overflow;
+      const clampedH = el.clientHeight;
+      el.style.webkitLineClamp = 'unset';
+      el.style.overflow = 'visible';
+      const fullH = el.scrollHeight;
+      el.style.webkitLineClamp = prevClamp;
+      el.style.overflow = prevOverflow;
+
+      return {
+        text: el.textContent.trim(),
+        lines: Math.round((el.clientHeight - pad) / line),
+        clamp: cs.webkitLineClamp,
+        pad,
+        overflowing: fullH > clampedH + 1,
+      };
+    });
     return {
-      text: el.textContent.trim(),
-      lines: Math.round(el.clientHeight / line),
-      clamp: getComputedStyle(el).webkitLineClamp,
-      overflowing: el.scrollHeight > el.clientHeight + 1,
+      count: rows.length,
+      overTwoLines: rows.filter((r) => r.lines > 2).map((r) => `${r.text}(${r.lines}줄)`),
+      wrongClamp: rows.filter((r) => r.clamp !== '2').map((r) => `${r.text}(clamp=${r.clamp})`),
+      noPad: rows.filter((r) => r.pad <= 0).map((r) => r.text),
+      clamped: rows.filter((r) => r.overflowing).map((r) => r.text),
+      sample: rows.slice(0, 3).map((r) => `${r.text}[${r.lines}줄]`),
     };
   });
-  return {
-    count: rows.length,
-    overThreeLines: rows.filter((r) => r.lines > 2).map((r) => `${r.text}(${r.lines}줄)`),
-    wrongClamp: rows.filter((r) => r.clamp !== '2').map((r) => `${r.text}(clamp=${r.clamp})`),
-    clamped: rows.filter((r) => r.overflowing).map((r) => r.text),
-    sample: rows.slice(0, 3).map((r) => `${r.text}[${r.lines}줄]`),
-  };
-});
-check('M) 상품명이 두 줄을 넘지 않는다',
-  nameCheck.count > 0 && nameCheck.overThreeLines.length === 0,
-  `${nameCheck.count}개 검사 / 위반 ${JSON.stringify(nameCheck.overThreeLines)}`);
-check('M) 상품명에 2줄 line-clamp 가 걸려 있다',
-  nameCheck.wrongClamp.length === 0,
-  `위반 ${JSON.stringify(nameCheck.wrongClamp)} / 예시 ${nameCheck.sample.join(' | ')}`);
+
+// 피쓰 서울 · 윔 스토어 양쪽을 본다 (긴 이름은 윔 쪽에 있다)
+const nameChecks = {};
+for (const [label, path] of [['피쓰 서울', '/market'], ['윔 스토어', '/market/wim']]) {
+  await page.goto(`${base}${path}`, { waitUntil: 'load' });
+  await page.waitForTimeout(600);
+  const r = await readNames();
+  nameChecks[label] = r;
+
+  check(`M) ${label} 상품명이 두 줄을 넘지 않는다`,
+    r.count > 0 && r.overTwoLines.length === 0,
+    `${r.count}개 검사 / 위반 ${JSON.stringify(r.overTwoLines)}`);
+  check(`M) ${label} 상품명에 2줄 line-clamp 가 걸려 있다`,
+    r.wrongClamp.length === 0,
+    `위반 ${JSON.stringify(r.wrongClamp)} / 예시 ${r.sample.join(' | ')}`);
+  // 디센더(g·y·p)가 잘리지 않도록 클립 박스에 여유가 있어야 한다
+  check(`M) ${label} 상품명에 디센더 여유(padding-bottom)가 있다`,
+    r.noPad.length === 0,
+    `여유 없는 이름 ${JSON.stringify(r.noPad.slice(0, 2))}`);
+}
 check('M) 두 줄을 넘는 이름은 실제로 잘린다',
-  nameCheck.clamped.length > 0,
-  `잘린 이름 ${nameCheck.clamped.length}개: ${nameCheck.clamped.slice(0, 2).join(' | ')}`);
+  nameChecks['윔 스토어'].clamped.length > 0,
+  `윔에서 잘린 이름 ${nameChecks['윔 스토어'].clamped.length}개: ${nameChecks['윔 스토어'].clamped.slice(0, 2).join(' | ')}`);
+
+await page.goto(`${base}/market`, { waitUntil: 'load' });
+await page.waitForTimeout(500);
 
 // 스토어 토글 — 피쓰 활성 / 같은 자리 / 윔으로 전환
 const togglePos = () =>

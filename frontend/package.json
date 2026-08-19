@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "sync": "node scripts/sync.mjs",
     "sync:update": "node scripts/sync.mjs --update-baseline",
-    "diff:band": "node scripts/diff-band.mjs"
+    "diff:band": "node scripts/diff-band.mjs",
+    "check:text": "node scripts/find-clipped-text.mjs"
   },
   "dependencies": {
     "axios": "1.7.9",
