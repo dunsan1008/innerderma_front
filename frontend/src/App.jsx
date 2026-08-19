@@ -1,6 +1,7 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import DeviceFrame from '@/components/layout/DeviceFrame';
 import AppModals from '@/components/layout/AppModals';
+import ErrorBoundary from '@/components/layout/ErrorBoundary';
 import SplashScreen from '@/pages/SplashScreen';
 import SignupScreen from '@/pages/SignupScreen';
 import ConnectingScreen from '@/pages/ConnectingScreen';
@@ -25,11 +26,17 @@ import ProductDetailScreen from '@/pages/ProductDetailScreen';
  *
  * 캘린더와 세안 확인은 화면 전환이 아니라 오버레이라서 라우트가 없다(AppModals + uiStore).
  */
-export default function App() {
+/**
+ * 라우트 + 오버레이 묶음.
+ * `ErrorBoundary` 안쪽에 두어 렌더 에러가 나도 프레임이 백지로 사라지지 않게 한다.
+ * 라우트가 바뀌면 경계가 자동으로 정상 상태로 돌아온다.
+ */
+function AppContent() {
+  const location = useLocation();
+
   return (
-    <BrowserRouter>
-      <DeviceFrame>
-        <Routes>
+    <ErrorBoundary resetKey={location.pathname}>
+      <Routes>
           <Route path="/" element={<SplashScreen />} />
           <Route path="/signup" element={<SignupScreen />} />
           <Route path="/connecting" element={<ConnectingScreen />} />
@@ -66,6 +73,15 @@ export default function App() {
         </Routes>
 
         <AppModals />
+    </ErrorBoundary>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <DeviceFrame>
+        <AppContent />
       </DeviceFrame>
     </BrowserRouter>
   );

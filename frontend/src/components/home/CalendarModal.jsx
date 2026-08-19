@@ -205,17 +205,60 @@ export default function CalendarModal({
   const isPaired = (dateKey) => dateKey === pairedDay1 || dateKey === pairedDay2;
 
   /** 주 행 안에서 이틀묶음 캡슐이 필요한지 확인하고 span 을 반환한다 */
+  /**
+   * 이틀 묶음 캡슐.
+   *
+   * 두 날이 같은 줄에 있으면 온전한 캡슐 하나를 그린다.
+   * 줄이 갈리는 경우(선택한 날이 일요일 = 마지막 칸)에는 이전처럼 표기를 지우지 않고
+   * **줄 끝에서 반, 다음 줄 앞에서 반**으로 잘라 그린다.
+   * 잘린 쪽은 테두리를 없애서 줄바꿈으로 이어진다는 게 보이게 한다.
+   */
   const pairCapsuleFor = (week) => {
     const i1 = week.findIndex((c) => c && c.dateKey === pairedDay1);
     const i2 = week.findIndex((c) => c && c.dateKey === pairedDay2);
-    if (i1 < 0 || i2 < 0) return null;
-    const left = COLUMN_X[Math.min(i1, i2)] - 6;
-    const right = COLUMN_X[Math.max(i1, i2)] + 32 + 6;
+    if (i1 < 0 && i2 < 0) return null;
+
+    /** 칩 좌우로 남기는 여백 */
+    const PAD = 6;
+    const BASE = 'pointer-events-none absolute top-[-4px] border-[1.5px] border-solid border-white-60';
+    const ROW_LEFT = COLUMN_X[0] - PAD;
+    const ROW_RIGHT = COLUMN_X[6] + 32 + PAD;
+
+    // 같은 줄 — 온전한 캡슐
+    if (i1 >= 0 && i2 >= 0) {
+      const left = COLUMN_X[Math.min(i1, i2)] - PAD;
+      const right = COLUMN_X[Math.max(i1, i2)] + 32 + PAD;
+      return (
+        <span
+          className={`${BASE} rounded-full`}
+          style={{ left, width: right - left, height: 40 }}
+          data-name="PairCapsule"
+          data-half="none"
+        />
+      );
+    }
+
+    // 첫째 날만 있는 줄 — 오른쪽이 열린 반쪽
+    if (i1 >= 0) {
+      const left = COLUMN_X[i1] - PAD;
+      return (
+        <span
+          className={`${BASE} rounded-l-full border-r-0`}
+          style={{ left, width: ROW_RIGHT - left, height: 40 }}
+          data-name="PairCapsule"
+          data-half="start"
+        />
+      );
+    }
+
+    // 둘째 날만 있는 줄 — 왼쪽이 열린 반쪽
+    const right = COLUMN_X[i2] + 32 + PAD;
     return (
       <span
-        className="pointer-events-none absolute top-[-4px] rounded-full border-[1.5px] border-solid border-white-60"
-        style={{ left, width: right - left, height: 40 }}
+        className={`${BASE} rounded-r-full border-l-0`}
+        style={{ left: ROW_LEFT, width: right - ROW_LEFT, height: 40 }}
         data-name="PairCapsule"
+        data-half="end"
       />
     );
   };

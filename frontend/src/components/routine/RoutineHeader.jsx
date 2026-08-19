@@ -71,11 +71,15 @@ export default function RoutineHeader({
         className="relative flex w-full shrink-0 items-start justify-between px-[20px] pb-[20px]"
         data-node-id="870:3800"
       >
-        {/* 이틀묶음 캡슐: 선택한 날과 다음 날을 감싸는 흰색 외곽선 캡슐 */}
+        {/*
+          이틀묶음 캡슐: 선택한 날과 다음 날을 감싸는 흰색 외곽선 캡슐.
+          스트립이 선택한 날부터 시작하므로 idx 는 사실상 항상 0 이지만,
+          기준일이 스트립에 없는 예외 상황에 대비해 그대로 찾아 쓴다.
+        */}
         {(() => {
           if (!selectedDate) return null;
           const idx = days.findIndex((d) => d.dateKey === selectedDate);
-          if (idx < 0 || idx >= 6) return null; // 마지막 칸이면 다음 날이 스트립 밖
+          if (idx < 0 || idx >= 6) return null; // 다음 날이 스트립 밖이면 그리지 않는다
           // 칩 7개가 353px(393-40) 안에서 등간격. 각 칩 32px.
           const gap = (353 - 7 * 32) / 6; // ≈21.5
           const left = idx * (32 + gap);
@@ -88,15 +92,19 @@ export default function RoutineHeader({
             />
           );
         })()}
-        {days.map((d, _di) => (
+        {days.map((d) => (
           <button
             type="button"
-            key={d.label}
+            key={d.dateKey}
             onClick={() => (onDaySelect ? onDaySelect(d) : onOpenCalendar?.())}
             className="relative flex shrink-0 flex-col items-center gap-[4px]"
           >
+            {/*
+              요일 라벨은 칸의 실제 날짜에서 온다.
+              스트립이 선택한 날부터 시작하므로 월요일 고정 인덱스를 쓸 수 없다.
+            */}
             <span className="relative shrink-0 whitespace-nowrap font-sans text-[11px] font-normal leading-[16.5px] text-white-50 [word-break:break-word]">
-              {weekdayLabels[_di]}
+              {weekdayLabels[(new Date(`${d.dateKey}T00:00:00`).getDay() + 6) % 7]}
             </span>
             <span
               className={`relative flex size-[32px] shrink-0 items-center justify-center rounded-[100px] transition-colors duration-200 ${

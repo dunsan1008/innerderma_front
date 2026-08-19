@@ -176,18 +176,23 @@ const WEEKDAY_LABELS = ['월', '화', '수', '목', '금', '토', '일'];
 export const WEEKDAY_HEADER = WEEKDAY_LABELS;
 
 /**
- * 기준 날짜가 속한 주(월~일) 7칸.
- * 홈·루틴 화면 헤더의 접힌 캘린더(주간 스트립)에 쓴다.
- * 달을 넘는 주(예: 8/31~9/6)도 이어서 만든다.
+ * 접힌 캘린더(주간 스트립) 7칸.
+ *
+ * **기준 날짜가 항상 맨 앞(첫 칸)** 이고 거기서 6일을 이어 붙인다.
+ * 월~일 고정이었을 때는 기준일이 일요일이면 다음 날이 스트립 밖으로 나가서
+ * 이틀 묶음 표기가 사라졌다. 기준일을 앞에 두면 묶을 이틀이 늘 첫 두 칸에 들어온다.
+ *
+ * 요일 라벨은 칸마다 실제 날짜에서 뽑는다(더 이상 월요일로 시작하지 않으므로).
+ * 달을 넘는 구간(예: 8/31~9/6)도 이어서 만든다.
  */
 export function buildWeekStrip(dateKey, completedKeys = [], today = todayKey()) {
   const base = toDate(dateKey);
-  const mondayOffset = (base.getDay() + 6) % 7;
-  const monday = new Date(base.getFullYear(), base.getMonth(), base.getDate() - mondayOffset);
-
-  return WEEKDAY_LABELS.map((label, i) => {
-    const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
-    return { label, ...cellOf(fromDate(d), completedKeys, today) };
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i);
+    return {
+      label: WEEKDAY_LABELS[(d.getDay() + 6) % 7],
+      ...cellOf(fromDate(d), completedKeys, today),
+    };
   });
 }
 

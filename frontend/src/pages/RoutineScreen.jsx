@@ -1,7 +1,12 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import { useMemo } from 'react';
 import { useT } from '@/i18n';
 import { useRoutineText } from '@/i18n/useRoutineText';
 import Screen from '@/components/layout/Screen';
+import PostCard from '@/components/market/PostCard';
+import { findProductByKey } from '@/constants/marketScreens';
+import { SOLUTION_RECOMMEND_NAMES } from '@/constants/marketProducts';
+import { productKey } from '@/store/wishlistStore';
 import CycleSegment from '@/components/home/CycleSegment';
 import RoutineHeader from '@/components/routine/RoutineHeader';
 import TabBar from '@/components/layout/TabBar';
@@ -43,10 +48,17 @@ const HEADER_HEIGHT = 157;
 /** 하단 고정 탭바 높이 (Figma Container 870:3984) */
 const TAB_BAR_HEIGHT = 96;
 
-/** Figma 프레임에서 읽은 블록 배치. [top, height] */
+/**
+ * Figma 프레임에서 읽은 블록 배치. [top, height]
+ *
+ * `recommendTitle` / `recommendCards` 는 Figma 833:3029(디벨롭된 모닝 프레임)에서
+ * 새로 붙은 "오늘의 솔루션과 어울리는 제품 추천" 섹션이다.
+ * 원본은 '왜 이 루틴인가요?' 박스 바로 아래(간격 4px)에 붙어 답답했기 때문에
+ * 요청대로 위쪽 여백을 33px 로 벌려 배치했다.
+ */
 const LAYOUT = {
   night: {
-    frameHeight: 1574.5,
+    frameHeight: 2205,
     header: 0,
     segment: 157,
     sectionHeader: 237,
@@ -55,10 +67,12 @@ const LAYOUT = {
     supplements: 855,
     avoid: 1103,
     why: [1273, 32],
-    tabBar: 1481,
+    recommendTitle: 1482,
+    recommendCards: 1517,
+    tabBar: 2109,
   },
   morning: {
-    frameHeight: 1843.5,
+    frameHeight: 2505,
     header: 0,
     segment: 157,
     sectionHeader: 237,
@@ -68,10 +82,16 @@ const LAYOUT = {
     supplements: 1083,
     avoid: 1331,
     why: [1501, 0],
-    completeButton: 1677,
-    tabBar: 1749,
+    recommendTitle: 1710,
+    recommendCards: 1745,
+    completeButton: 2337,
+    tabBar: 2409,
   },
 };
+
+/** 추천 카드 2x2 그리드 — 마켓 1 과 같은 열 좌표·행 간격을 쓴다 */
+const RECOMMEND_COLUMNS = [20, 204];
+const RECOMMEND_ROW_GAP = 294;
 
 /** 모닝 전용 — 저녁 세안 루틴 안내 카드 (Figma 870:4154) */
 function EveningWashCard() {
@@ -114,15 +134,21 @@ function EveningWashCard() {
         <div className="relative flex w-full shrink-0 flex-col items-start pt-[12px]" data-name="Container:margin">
           <div className="relative flex w-full shrink-0 flex-col items-start rounded-[10px] border border-solid border-note-line bg-note-bg px-[12px] py-[8px]">
             <div className="relative flex w-full shrink-0 flex-col items-start">
-              <p className="relative w-[293px] shrink-0 break-all font-sans text-[11px] font-normal leading-[16px] text-accent-green">
+              {/* 어절 단위로만 줄바꿈한다 (break-all 은 글자 중간에서 잘려 읽기 나쁘다) */}
+              <p className="relative w-[293px] shrink-0 font-sans text-[11px] font-normal leading-[16px] text-accent-green [word-break:keep-all]">
                 {ew.note}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="relative flex h-[23px] w-[319px] shrink-0 flex-col items-start pt-[8px]">
-          <p className="relative h-[15px] w-[135px] shrink-0 font-sans text-[10px] font-normal leading-[15px] text-body [word-break:break-word]">
+        {/*
+          "3~4 펌프 · 깨끗한 맨손으로 사용" 은 한 줄로 둔다.
+          Figma 실측 폭(135)을 그대로 박아 두면 브라우저 폰트가 더 넓어서 두 줄로 접히고,
+          컨테이너 높이(23)에 잘려 아랫줄이 반쯤 보였다.
+        */}
+        <div className="relative flex w-[319px] shrink-0 flex-col items-start pt-[8px]">
+          <p className="relative h-[15px] shrink-0 whitespace-nowrap font-sans text-[10px] font-normal leading-[15px] text-body">
             {ew.footnote}
           </p>
         </div>
@@ -198,6 +224,12 @@ export default function RoutineScreen({ cycle: cycleProp }) {
   const noSolution = future || (!isToday && !completedDates.includes(selectedDate));
   const night = cycle === 'night';
   const L = LAYOUT[cycle];
+
+  /** 하단 추천 카드 4개 — 마켓 목록의 상품을 이름으로 찾아 그대로 쓴다 */
+  const recommendProducts = useMemo(
+    () => SOLUTION_RECOMMEND_NAMES.map((name) => findProductByKey(name)).filter(Boolean),
+    [],
+  );
 
   const header = (
     <RoutineHeader
@@ -306,6 +338,32 @@ export default function RoutineScreen({ cycle: cycleProp }) {
         <WhyBox text={rt.whyText} tags={rt.whyTags} paddingBottom={L.why[1]} nodeId={night ? '870:3971' : '870:4221'} />,
         'why',
       )}
+
+      {/*
+        오늘의 솔루션과 어울리는 제품 추천 (Figma 833:3029 · 989:1220 + Group 85 / Frame 88).
+        마켓 목록의 상품을 그대로 참조하므로 여기서 누른 하트가 마켓·상세와 함께 움직인다.
+      */}
+      {block(
+        L.recommendTitle,
+        <div className="flex w-full flex-col items-start px-[20px]" data-node-id="989:1220">
+          <p className="relative shrink-0 whitespace-nowrap font-sans text-[18px] font-bold leading-[26px] text-text-strong">
+            오늘의 솔루션과 어울리는 제품 추천
+          </p>
+        </div>,
+        'recommendTitle',
+      )}
+
+      {recommendProducts.map((product, i) => (
+        <PostCard
+          key={`recommend-${product.nodeId}`}
+          product={{
+            ...product,
+            left: RECOMMEND_COLUMNS[i % 2],
+            top: L.recommendCards + Math.floor(i / 2) * RECOMMEND_ROW_GAP,
+          }}
+          onOpen={(p) => navigate(`/market/product/${encodeURIComponent(productKey(p))}`)}
+        />
+      ))}
 
       {night
         ? null

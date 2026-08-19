@@ -36,14 +36,19 @@ export default function WashCheckModal({ onConfirm, onDismiss, entered = true })
         }`}
         data-node-id="870:3566"
       >
+        {/*
+          질문 두 줄 — Figma 는 y37 / y65 로 붙여 두고(줄 간격 4) 버튼 앞에 19px 을 비운다.
+          이전에는 y30 / y80 이라 두 줄이 벌어지고 둘째 줄이 버튼에 붙어 보였다.
+          긴 문장은 어절 단위로만 끊기게 keep-all 을 쓴다(break-words 는 글자 중간에서 잘린다).
+        */}
         <p
-          className="absolute left-[163.5px] top-[30px] w-[280px] -translate-x-1/2 whitespace-pre-line break-words text-center font-sans text-[16px] font-medium leading-[24px] text-ink"
+          className="absolute left-[163.5px] top-[37px] w-[287px] -translate-x-1/2 whitespace-pre-line text-center font-sans text-[16px] font-medium leading-[24px] text-ink [word-break:keep-all]"
           data-node-id="870:3567"
         >
           {t.washCheck.question}
         </p>
         <p
-          className="absolute left-[163px] top-[80px] w-[280px] -translate-x-1/2 break-words text-center font-sans text-[16px] font-medium leading-[24px] text-ink"
+          className="absolute left-[163.5px] top-[65px] w-[287px] -translate-x-1/2 text-center font-sans text-[16px] font-medium leading-[24px] text-ink [word-break:keep-all]"
           data-node-id="870:3568"
         >
           {t.washCheck.subQuestion}
