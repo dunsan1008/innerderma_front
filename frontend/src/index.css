@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* 웹 셸(앱 프레임 바깥) 배경 */
+  --c-shell-bg: #e9ecef;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+/* 앱 프레임이 뷰포트에 맞춰 축소되므로 페이지 자체는 절대 스크롤되지 않는다. */
+html,
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  margin: 0;
+  background: var(--c-shell-bg);
+  font-family: 'Noto Sans KR', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Figma 좌표를 그대로 옮기므로 브라우저 기본 여백/스타일을 제거한다. */
+p,
+h1,
+h2,
+h3 {
+  margin: 0;
+}
+
+button {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* 앱 프레임 내부 스크롤바 숨김 (모바일 앱 느낌 유지) */
+.app-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.app-scroll::-webkit-scrollbar {
+  display: none;
+}

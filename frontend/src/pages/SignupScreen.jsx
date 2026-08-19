@@ -1,0 +1,74 @@
+import { useT } from '@/i18n';
+import { useNavigate } from 'react-router-dom';
+import Screen from '@/components/layout/Screen';
+import StatusBar from '@/components/layout/StatusBar';
+import HomeIndicator from '@/components/layout/HomeIndicator';
+import Button from '@/components/ui/Button';
+import { useOnboardingStore } from '@/store/onboardingStore';
+
+/**
+ * 가입화면 (Figma 870:3426).
+ * WHS 에서 받은 서비스 종류를 선택한다. 선택값에 따라 사용자 유형이 갈린다.
+ *  - 피부 진단과 시술을 받았어요! → 진단·시술 사용자
+ *  - 피부 진단만 받았어요!      → 진단 사용자
+ */
+export default function SignupScreen() {
+  const t = useT();
+  const navigate = useNavigate();
+  const setUserType = useOnboardingStore((s) => s.setUserType);
+
+  const select = (userType) => {
+    setUserType(userType);
+    navigate('/connecting');
+  };
+
+  return (
+    <Screen className="bg-white" nodeId="870:3426" name="가입화면">
+      <StatusBar />
+
+      <p
+        className="absolute left-[24px] top-[82px] h-[12px] w-[143px] font-logo text-[20px] font-bold not-italic leading-[16.5px] text-ink [word-break:break-word]"
+        data-node-id="870:3428"
+      >
+        InnerDerma
+      </p>
+
+      <div
+        className="absolute left-[82px] top-[299px] h-[55px] w-[226px] font-sans text-[20px] font-semibold leading-[0] text-ink [word-break:break-word] whitespace-pre-wrap"
+        data-node-id="870:3431"
+      >
+        <p className="mb-0 leading-[27px]">{`Q. 웰니스하우스 서울에서 `}</p>
+        <p className="leading-[27px]">{`어떤 서비스를 받으셨나요? `}</p>
+      </div>
+
+      <Button
+        variant="enabled"
+        nodeId="870:3432"
+        className="absolute left-[23px] top-[418px] h-[52px] w-[343px]"
+        onClick={() => select('DIAGNOSIS_AND_TREATMENT')}
+      >
+        {t.onboarding.serviceBoth}
+      </Button>
+
+      <Button
+        variant="enabled2"
+        nodeId="870:3433"
+        className="absolute left-[23px] top-[492px] h-[52px] w-[343px]"
+        onClick={() => select('DIAGNOSIS_ONLY')}
+      >
+        {t.onboarding.serviceDiagOnly}
+      </Button>
+
+      <p
+        className="absolute left-[196px] top-[559px] h-[20px] w-[286px] -translate-x-1/2 text-center font-sans text-[9px] font-medium leading-[14px] text-muted [word-break:break-word] whitespace-pre-wrap"
+        data-node-id="870:3434"
+      >
+        {`방문 시 이용한 서비스를 선택해 주세요. 맞춤 관리 루틴을 준비해 드릴게요. `}
+        <br aria-hidden />
+        <br aria-hidden />
+      </p>
+
+      <HomeIndicator />
+    </Screen>
+  );
+}

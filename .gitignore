@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+.DS_Store?
+._*
+
+# Node / Vite
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.shots/
+*.log
+
+# env
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+*.swp
+*.swo
