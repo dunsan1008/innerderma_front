@@ -1,6 +1,6 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useT } from '@/i18n';
+import { useT, useWrapClass } from '@/i18n';
 import { useRoutineText } from '@/i18n/useRoutineText';
 import Screen from '@/components/layout/Screen';
 import PostCard from '@/components/market/PostCard';
@@ -93,6 +93,7 @@ const CONTENT_TAIL_GAP = 26;
 
 /** 모닝 전용 — 저녁 세안 루틴 안내 카드 (Figma 870:4154) */
 function EveningWashCard({ data: ew }) {
+  const wrap = useWrapClass();
   return (
     <div className="flex w-full flex-col items-start px-[20px] pt-[16px]" data-node-id="870:4154" data-name="MorningContent">
       {/*
@@ -132,7 +133,7 @@ function EveningWashCard({ data: ew }) {
           "메이크업과 외|출하신" 처럼 단어 중간이 잘려 읽기 나빴다.
         */}
         <div className="relative flex w-full shrink-0 flex-col items-start pt-[8px]">
-          <p className="relative w-full shrink-0 font-sans text-[12px] font-normal leading-[18px] text-text-strong [word-break:keep-all]">
+          <p className={`relative w-full shrink-0 font-sans text-[12px] font-normal leading-[18px] text-text-strong ${wrap}`}>
             {ew.description}
           </p>
         </div>
@@ -141,7 +142,7 @@ function EveningWashCard({ data: ew }) {
           <div className="relative flex w-full shrink-0 flex-col items-start rounded-[10px] border border-solid border-note-line bg-note-bg px-[12px] py-[8px]">
             <div className="relative flex w-full shrink-0 flex-col items-start">
               {/* 어절 단위로만 줄바꿈한다 (break-all 은 글자 중간에서 잘려 읽기 나쁘다) */}
-              <p className="relative w-full shrink-0 font-sans text-[11px] font-normal leading-[16px] text-accent-green [word-break:keep-all]">
+              <p className={`relative w-full shrink-0 font-sans text-[11px] font-normal leading-[16px] text-accent-green ${wrap}`}>
                 {ew.note}
               </p>
             </div>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useT } from '@/i18n';
+import { useT, useWrapClass } from '@/i18n';
 import Screen from '@/components/layout/Screen';
 import StatusBar from '@/components/layout/StatusBar';
 import { useCartStore } from '@/store/cartStore';
@@ -9,6 +9,7 @@ import { PRODUCT_DETAIL } from '@/constants/productDetail';
 import { findProductByKey } from '@/constants/marketScreens';
 import { formatPrice } from '@/constants/cartItems';
 import { joinNameLines } from '@/lib/productName';
+import { translateTag } from '@/lib/marketTags';
 import backIcon from '@/assets/figma/pd-back.svg';
 import shareIcon from '@/assets/figma/pd-share.svg';
 import plusIcon from '@/assets/figma/pd-plus.svg';
@@ -84,11 +85,19 @@ function isSupplementProduct(name, source) {
   return SUPPLEMENT_KEYWORDS.some((kw) => name.includes(kw));
 }
 
-/** 태그 pill 좌표 (Figma Container 1026:2594 / 2598 / 2602) */
-const TAG_LEFT = [15.83, 82.83, 149.83];
-/** 태그 pill 폭 — 글자 수에 따라 Figma 가 61 / 68 두 가지를 쓴다 */
-const tagWidth = (label) => (label.length > 4 ? 68 : 61);
-const tagTextWidth = (label) => (label.length > 4 ? 54 : label.length > 3 ? 45 : 40);
+/**
+ * 태그 pill 시작 x (Figma Container 1026:2594).
+ * Figma 는 칩 3개를 각각 고정 x/폭(15.83·82.83·149.83, 폭 61/68)으로 박아 뒀는데,
+ * 그 폭은 한국어 태그 글자 수에 맞춘 값이라 번역된 라벨(특히 영어)이 길어지면
+ * 칩 밖으로 글자가 넘치거나 다음 칩과 겹쳤다. FeaturedBanner 와 같은 방식으로
+ * 첫 칩 위치에서 시작하는 flex 행으로 바꿔, 라벨 길이에 맞춰 칩이 늘어나고
+ * 다음 칩을 밀어내게 한다.
+ */
+const TAG_LEFT = 15.83;
+/** 태그 줄 오른쪽에 절대배치된 가격(x302)과 겹치지 않도록 잡은 최대 폭 */
+const TAG_MAX_WIDTH = 279;
+/** 태그가 한 줄일 때의 기준 높이 — 이보다 커지면(줄바꿈) 그 차이만큼 아래 요소를 내린다 */
+const TAG_ROW_HEIGHT = 29;
 
 /** 베스트 조합 (Group 92) */
 const COMBO_TITLE_TOP = 1266;
@@ -99,6 +108,7 @@ const COMBO_CLOSED_H = 121;
 
 export default function ProductDetailScreen() {
   const t = useT();
+  const wrap = useWrapClass();
   const navigate = useNavigate();
   const { id } = useParams();
   const add = useCartStore((s) => s.add);
@@ -170,6 +180,31 @@ export default function ProductDetailScreen() {
   const nameLines = Math.max(1, Math.round(nameHeight / NAME_LINE_HEIGHT));
   const extra = (nameLines - 1) * NAME_LINE_HEIGHT;
 
+  /**
+   * 태그 줄이 (번역으로 길어져) 두 줄 이상으로 줄바꿈된 만큼(tagExtra)을 재서
+   * 그 아래(상세 설명 블록·베스트 조합 등) 요소를 함께 내린다. 가격은 태그 첫 줄과
+   * 한 가로열로 붙어 있는 요소라 tagExtra 의 영향을 받지 않는다.
+   */
+  const tagsRef = useRef(null);
+  const [tagsHeight, setTagsHeight] = useState(TAG_ROW_HEIGHT);
+
+  useEffect(() => {
+    const el = tagsRef.current;
+    if (!el) return undefined;
+
+    const measure = () => setTagsHeight(el.scrollHeight || TAG_ROW_HEIGHT);
+    measure();
+
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    document.fonts?.ready?.then(measure).catch(() => {});
+    return () => ro.disconnect();
+  }, [view.tags]);
+
+  const tagExtra = Math.max(0, tagsHeight - TAG_ROW_HEIGHT);
+  /** 이름 줄바꿈 + 태그 줄바꿈으로 늘어난 총 높이 — 태그 블록보다 아래에 있는 요소에 쓴다 */
+  const totalExtra = extra + tagExtra;
+
   /** 상세 설명 3블록 콘텐츠 — 이너뷰티/스킨케어 카테고리별로 문구가 갈린다 */
   const isSupplement = isSupplementProduct(view.name, selected?.source);
   const usageSteps = isSupplement ? t.productDetail.supplementUsageSteps : t.productDetail.skincareUsageSteps;
@@ -210,7 +245,7 @@ export default function ProductDetailScreen() {
   return (
     <Screen
       className="bg-white"
-      height={FRAME_HEIGHT + extra}
+      height={FRAME_HEIGHT + totalExtra}
       nodeId="1026:2575"
       name="ProductDetail"
       headerHeight={HEADER_HEIGHT}
@@ -324,7 +359,7 @@ export default function ProductDetailScreen() {
       {/* 정보 블록 배경 — 이름이 길어지면 그만큼 높아진다 */}
       <div
         className="absolute left-0 w-[393px] bg-white"
-        style={{ top: INFO_TOP + 9, height: 100 + extra }}
+        style={{ top: INFO_TOP + 9, height: 100 + totalExtra }}
         data-node-id="1026:2588"
       />
 
@@ -378,34 +413,32 @@ export default function ProductDetailScreen() {
         {view.priceText}
       </p>
 
-      {/* 태그 3개 */}
-      {view.tags.slice(0, 3).map((label, i) => (
-        <div
-          key={label}
-          className="absolute flex h-[29px] items-center pt-[6px]"
-          style={{ left: TAG_LEFT[i], top: INFO_TOP + 57 + extra }}
-          data-name="Container"
-        >
+      {/*
+        태그 3개 — 라벨이 길어져도 가격(x302)을 침범하지 않도록 폭을 제한하고,
+        그 안에 안 들어가면 flex-wrap 으로 다음 줄로 내린다(tagExtra 가 그만큼 아래를 밀어준다).
+      */}
+      <div
+        ref={tagsRef}
+        className="absolute flex flex-wrap items-center gap-[6px] pt-[6px]"
+        style={{ left: TAG_LEFT, top: INFO_TOP + 57 + extra, maxWidth: TAG_MAX_WIDTH }}
+        data-name="Container"
+      >
+        {view.tags.slice(0, 3).map((label) => (
           <div
-            className="relative flex h-[23px] shrink-0 flex-col items-start rounded-full bg-ink px-[6px] py-[2px]"
-            style={{ width: tagWidth(label) }}
+            key={label}
+            className="relative flex h-[23px] shrink-0 items-center justify-center rounded-full bg-ink px-[8px] py-[2px]"
           >
-            <div className="relative flex shrink-0 items-center justify-center pt-[3px]">
-              <p
-                className="relative shrink-0 text-right font-sans text-[11px] font-medium leading-[13.5px] text-white [word-break:break-word]"
-                style={{ width: tagTextWidth(label) }}
-              >
-                {label}
-              </p>
-            </div>
+            <p className="relative shrink-0 whitespace-nowrap text-center font-sans text-[11px] font-medium leading-[13.5px] text-white">
+              {translateTag(label, t)}
+            </p>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
       {/* 상세 설명 1 — 제품 특징: 실제 태그 + 카테고리별 소개 문구 */}
       <div
         className="absolute left-[4px] flex w-[384px] flex-col items-start gap-[10px] rounded-[16px] border border-solid border-line bg-white px-[16px] py-[16px]"
-        style={{ top: DETAIL_BLOCKS[0].top + extra, height: DETAIL_BLOCKS[0].height }}
+        style={{ top: DETAIL_BLOCKS[0].top + totalExtra, height: DETAIL_BLOCKS[0].height }}
         data-node-id={DETAIL_BLOCKS[0].nodeId}
         data-name="DetailFeatures"
       >
@@ -417,12 +450,12 @@ export default function ProductDetailScreen() {
             {view.tags.slice(0, 3).map((tag) => (
               <div key={tag} className="flex items-center gap-[6px]">
                 <span className="size-[4px] shrink-0 rounded-full bg-accent-teal" />
-                <p className="font-sans text-[12px] font-normal leading-[18px] text-body">{tag}</p>
+                <p className="font-sans text-[12px] font-normal leading-[18px] text-body">{translateTag(tag, t)}</p>
               </div>
             ))}
           </div>
         ) : null}
-        <p className="font-sans text-[12px] font-normal leading-[18px] text-label-sub [word-break:keep-all]">
+        <p className={`font-sans text-[12px] font-normal leading-[18px] text-label-sub ${wrap}`}>
           {featuresIntro}
         </p>
       </div>
@@ -430,7 +463,7 @@ export default function ProductDetailScreen() {
       {/* 상세 설명 2 — 사용 방법: 카테고리별 3단계 */}
       <div
         className="absolute left-[4px] flex w-[384px] flex-col items-start gap-[8px] rounded-[16px] border border-solid border-line bg-white px-[16px] py-[16px]"
-        style={{ top: DETAIL_BLOCKS[1].top + extra, height: DETAIL_BLOCKS[1].height }}
+        style={{ top: DETAIL_BLOCKS[1].top + totalExtra, height: DETAIL_BLOCKS[1].height }}
         data-node-id={DETAIL_BLOCKS[1].nodeId}
         data-name="DetailUsage"
       >
@@ -443,7 +476,7 @@ export default function ProductDetailScreen() {
               <span className="flex size-[18px] shrink-0 items-center justify-center rounded-full bg-text-strong">
                 <span className="font-sans text-[9px] font-bold leading-[9px] text-white">{i + 1}</span>
               </span>
-              <p className="font-sans text-[12px] font-normal leading-[18px] text-text-strong [word-break:keep-all]">
+              <p className={`font-sans text-[12px] font-normal leading-[18px] text-text-strong ${wrap}`}>
                 {step}
               </p>
             </div>
@@ -454,14 +487,14 @@ export default function ProductDetailScreen() {
       {/* 상세 설명 3 — 보관 및 주의사항: AvoidBox 와 같은 경고색 톤 재사용 */}
       <div
         className="absolute left-[4px] flex w-[384px] flex-col items-start gap-[6px] rounded-[16px] border border-solid border-warn-line bg-warn-bg px-[16px] py-[16px]"
-        style={{ top: DETAIL_BLOCKS[2].top + extra, height: DETAIL_BLOCKS[2].height }}
+        style={{ top: DETAIL_BLOCKS[2].top + totalExtra, height: DETAIL_BLOCKS[2].height }}
         data-node-id={DETAIL_BLOCKS[2].nodeId}
         data-name="DetailCare"
       >
         <p className="font-sans text-[13px] font-semibold leading-[19.5px] text-accent-brown">
           {t.productDetail.detailCareTitle}
         </p>
-        <p className="font-sans text-[12px] font-normal leading-[18px] text-accent-brown [word-break:keep-all]">
+        <p className={`font-sans text-[12px] font-normal leading-[18px] text-accent-brown ${wrap}`}>
           {careText}
         </p>
       </div>
@@ -469,7 +502,7 @@ export default function ProductDetailScreen() {
       {/* 많이 구매하는 베스트 조합 */}
       <p
         className="absolute left-[19px] whitespace-nowrap font-sans text-[16px] font-bold leading-[24px] text-text-strong"
-        style={{ top: COMBO_TITLE_TOP + extra }}
+        style={{ top: COMBO_TITLE_TOP + totalExtra }}
         data-node-id="1026:2612"
       >
         {t.productDetail.comboTitle}
@@ -481,7 +514,7 @@ export default function ProductDetailScreen() {
       */}
       <div
         className="absolute left-[12px] w-[372px] overflow-hidden rounded-[10px] border border-solid border-stepper-line transition-[height] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
-        style={{ top: COMBO_CARD_TOP + extra, height: comboOpen ? COMBO_OPEN_H : COMBO_CLOSED_H }}
+        style={{ top: COMBO_CARD_TOP + totalExtra, height: comboOpen ? COMBO_OPEN_H : COMBO_CLOSED_H }}
         data-node-id="1026:2625"
         data-name="ComboCard"
         data-open={comboOpen}

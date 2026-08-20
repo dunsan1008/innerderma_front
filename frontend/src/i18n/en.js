@@ -184,6 +184,25 @@ export default {
     categoryElasticity: 'Elasticity',
   },
 
+  marketTagLabels: {
+    건성: 'Dry Skin',
+    미백개선: 'Brightening',
+    수부지: 'Oily & Dehydrated',
+    시술케어: 'Post-Procedure Care',
+    장내환경: 'Gut Health',
+    '저자극 인증': 'Hypoallergenic',
+    저탄수: 'Low-Carb',
+    정밀진단: 'Precision Diagnosis',
+    주름개선: 'Anti-Wrinkle',
+    지방재생: 'Fat Regeneration',
+    지방파괴: 'Fat Burning',
+    피부과전용: 'Dermatology Exclusive',
+    피부보습: 'Hydration',
+    피부보호: 'Skin Protection',
+    피부재생: 'Skin Regeneration',
+    피부탄력: 'Elasticity',
+  },
+
   filter: {
     gender: 'Gender',
     age: 'Age',

@@ -3,6 +3,7 @@ import heartFilled from '@/assets/figma/heart-red.svg';
 import heartEmpty from '@/assets/figma/heart-empty.svg';
 import { productKey, useWishlistStore } from '@/store/wishlistStore';
 import { clampLines, displayProductName } from '@/lib/productName';
+import { translateTag } from '@/lib/marketTags';
 
 /**
  * 하트 아이콘.
@@ -200,7 +201,7 @@ export default function PostCard({ product, selectable = false, selected = false
               data-name="Text"
             >
               <p className="relative shrink-0 whitespace-nowrap font-sans text-[9px] font-medium leading-[13.5px] text-white [word-break:break-word]">
-                {tag}
+                {translateTag(tag, t)}
               </p>
             </div>
           ))}

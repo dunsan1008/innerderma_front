@@ -1,4 +1,4 @@
-import { useT } from '@/i18n';
+import { useT, useWrapClass } from '@/i18n';
 /**
  * 루틴(솔루션) 화면의 반복 섹션들.
  * 나이트(870:3771) / 모닝(870:4002) 프레임에서 공통으로 쓰이는 블록을 그대로 옮긴 것.
@@ -7,6 +7,7 @@ import { useT } from '@/i18n';
 
 /** DERMA CARE 섹션 헤더 (Figma 870:3848) */
 export function SectionHeader({ label, sub, title, labelClass = 'text-accent-teal', nodeId }) {
+  const wrap = useWrapClass();
   return (
     <div
       className="relative flex w-full shrink-0 flex-col items-start px-[20px] pb-[4px] pt-[20px]"
@@ -26,7 +27,7 @@ export function SectionHeader({ label, sub, title, labelClass = 'text-accent-tea
         </p>
       </div>
       <div className="relative flex w-[353px] shrink-0 flex-col items-start pt-[4px]">
-        <p className="relative shrink-0 font-sans text-[18px] font-bold leading-[26px] text-text-strong [word-break:keep-all]">
+        <p className={`relative shrink-0 font-sans text-[18px] font-bold leading-[26px] text-text-strong ${wrap}`}>
           {title}
         </p>
       </div>
@@ -37,6 +38,7 @@ export function SectionHeader({ label, sub, title, labelClass = 'text-accent-tea
 /** INNER CARE 섹션 헤더 (Figma 870:3923) — 제목이 두 줄이고 상단 패딩이 24 */
 export function InnerCareHeader({ nodeId }) {
   const t = useT();
+  const wrap = useWrapClass();
   return (
     <div
       className="relative flex w-full shrink-0 flex-col items-start px-[20px] pb-[4px] pt-[24px]"
@@ -55,12 +57,12 @@ export function InnerCareHeader({ nodeId }) {
       </div>
       <div className="relative flex w-[353px] shrink-0 flex-col items-start pt-[4px]">
         <div className="relative flex w-full shrink-0 flex-col items-start">
-          <p className="relative shrink-0 font-sans text-[18px] font-bold leading-[26px] text-text-strong [word-break:keep-all]">
+          <p className={`relative shrink-0 font-sans text-[18px] font-bold leading-[26px] text-text-strong ${wrap}`}>
             {t.solution.intakeSolution1}
           </p>
         </div>
         <div className="relative flex w-full shrink-0 flex-col items-start">
-          <p className="relative shrink-0 font-sans text-[18px] font-bold leading-[26px] text-text-strong [word-break:keep-all]">
+          <p className={`relative shrink-0 font-sans text-[18px] font-bold leading-[26px] text-text-strong ${wrap}`}>
             {t.solution.intakeSolution2}
           </p>
         </div>
@@ -75,6 +77,7 @@ export function InnerCareHeader({ nodeId }) {
  */
 export function SupplementCards({ cards, nodeId }) {
   const t = useT();
+  const wrap = useWrapClass();
   return (
     <div
       className="relative flex w-full shrink-0 flex-col items-start gap-[8px] px-[20px] pt-[12px]"
@@ -93,7 +96,7 @@ export function SupplementCards({ cards, nodeId }) {
             </p>
           </div>
           <div className="relative flex w-[319px] shrink-0 flex-col items-start pt-[4px]">
-            <p className="relative shrink-0 font-sans text-[14px] font-bold leading-[21px] text-text-strong [word-break:keep-all]">
+            <p className={`relative shrink-0 font-sans text-[14px] font-bold leading-[21px] text-text-strong ${wrap}`}>
               {card.name}
             </p>
           </div>
@@ -102,7 +105,7 @@ export function SupplementCards({ cards, nodeId }) {
               card.note ? 'pt-[6px]' : 'pb-[8px] pt-[6px]'
             }`}
           >
-            <p className="relative shrink-0 font-sans text-[12px] font-normal leading-[18px] text-text-strong [word-break:keep-all]">
+            <p className={`relative shrink-0 font-sans text-[12px] font-normal leading-[18px] text-text-strong ${wrap}`}>
               {card.howTo}
             </p>
           </div>
@@ -110,7 +113,7 @@ export function SupplementCards({ cards, nodeId }) {
             <div className="relative flex w-full shrink-0 flex-col items-start pt-[8px]" data-name="Container:margin">
               <div className="relative flex w-full shrink-0 flex-col items-start rounded-[10px] border border-solid border-note-line bg-note-bg px-[12px] py-[8px]">
                 <div className="relative flex w-full shrink-0 flex-col items-start">
-                  <p className="relative shrink-0 font-sans text-[11px] font-normal leading-[16px] text-accent-green [word-break:keep-all]">
+                  <p className={`relative shrink-0 font-sans text-[11px] font-normal leading-[16px] text-accent-green ${wrap}`}>
                     {card.note}
                   </p>
                 </div>
@@ -126,6 +129,7 @@ export function SupplementCards({ cards, nodeId }) {
 /** ETC · 오늘은 피해주세요 (Figma 870:3952) */
 export function AvoidBox({ items, nodeId }) {
   const t = useT();
+  const wrap = useWrapClass();
   return (
     <div
       className="relative flex w-full shrink-0 flex-col items-start px-[20px] pt-[20px]"
@@ -140,7 +144,7 @@ export function AvoidBox({ items, nodeId }) {
       <div className="relative flex w-full shrink-0 flex-col items-start pt-[8px]" data-name="Container:margin">
         <div className="relative flex w-full shrink-0 flex-col items-start rounded-[16px] border border-solid border-warn-line bg-warn-bg p-[16px]">
           <div className="relative flex w-full shrink-0 flex-col items-start">
-            <p className="relative shrink-0 font-sans text-[13px] font-semibold leading-[19.5px] text-accent-brown [word-break:keep-all]">
+            <p className={`relative shrink-0 font-sans text-[13px] font-semibold leading-[19.5px] text-accent-brown ${wrap}`}>
               {t.solution.avoidToday}
             </p>
           </div>
@@ -153,7 +157,7 @@ export function AvoidBox({ items, nodeId }) {
             >
               <div className="relative size-[6px] shrink-0 rounded-full bg-accent-brown" />
               <div className="relative flex shrink-0 flex-col items-start">
-                <p className="relative shrink-0 font-sans text-[12px] font-normal leading-[18px] text-accent-brown [word-break:keep-all]">
+                <p className={`relative shrink-0 font-sans text-[12px] font-normal leading-[18px] text-accent-brown ${wrap}`}>
                   {item}
                 </p>
               </div>
@@ -171,6 +175,7 @@ export function AvoidBox({ items, nodeId }) {
  */
 export function WhyBox({ text, tags, paddingBottom = 32, nodeId }) {
   const t = useT();
+  const wrap = useWrapClass();
   return (
     <div
       className="relative flex w-full shrink-0 flex-col items-start px-[20px] pt-[16px]"
@@ -188,11 +193,11 @@ export function WhyBox({ text, tags, paddingBottom = 32, nodeId }) {
           </p>
         </div>
         <div className="relative flex w-full shrink-0 flex-col items-start pt-[8px]">
-          <p className="relative w-[313px] shrink-0 font-sans text-[13px] font-normal leading-[20px] text-ink-90 [word-break:keep-all]">
+          <p className={`relative w-[313px] shrink-0 font-sans text-[13px] font-normal leading-[20px] text-ink-90 ${wrap}`}>
             {text}
           </p>
         </div>
-        <div className="relative flex w-[313px] shrink-0 items-start gap-[8px] pt-[12px]">
+        <div className="relative flex w-[313px] shrink-0 flex-wrap items-start gap-[8px] pt-[12px]">
           {tags.map((tag) => (
             <div
               key={tag}

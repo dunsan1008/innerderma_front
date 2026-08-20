@@ -1,4 +1,4 @@
-import { useT } from '@/i18n';
+import { useT, useWrapClass } from '@/i18n';
 /**
  * 촬영 확인 모달 (Figma 870:3565 "촬영 버튼 클릭 시 항상 등장").
  * 프레임 전체가 딤 배경(rgba(0,0,0,0.7)) + 흰 다이얼로그 327 폭으로 구성된다.
@@ -19,6 +19,7 @@ import { useT } from '@/i18n';
  */
 export default function WashCheckModal({ onConfirm, onDismiss, entered = true }) {
   const t = useT();
+  const wrap = useWrapClass();
   return (
     <div
       /*
@@ -55,13 +56,13 @@ export default function WashCheckModal({ onConfirm, onDismiss, entered = true })
           긴 문장은 어절 단위로만 끊기게 keep-all 을 쓴다(break-words 는 글자 중간에서 잘린다).
         */}
         <p
-          className="w-[287px] whitespace-pre-line text-center font-sans text-[16px] font-medium leading-[24px] text-ink [word-break:keep-all]"
+          className={`w-[287px] whitespace-pre-line text-center font-sans text-[16px] font-medium leading-[24px] text-ink ${wrap}`}
           data-node-id="870:3567"
         >
           {t.washCheck.question}
         </p>
         <p
-          className="mt-[4px] w-[287px] whitespace-pre-line text-center font-sans text-[16px] font-medium leading-[24px] text-ink [word-break:keep-all]"
+          className={`mt-[4px] w-[287px] whitespace-pre-line text-center font-sans text-[16px] font-medium leading-[24px] text-ink ${wrap}`}
           data-node-id="870:3568"
         >
           {t.washCheck.subQuestion}
@@ -79,7 +80,7 @@ export default function WashCheckModal({ onConfirm, onDismiss, entered = true })
           data-name="Button"
         >
           <span
-            className="block text-center font-sans text-[14px] font-semibold leading-[24px] text-white [word-break:keep-all]"
+            className={`block text-center font-sans text-[14px] font-semibold leading-[24px] text-white ${wrap}`}
             data-node-id="870:3570"
           >
             {t.washCheck.done}
@@ -93,7 +94,7 @@ export default function WashCheckModal({ onConfirm, onDismiss, entered = true })
         <button
           type="button"
           onClick={onDismiss}
-          className="mt-[6px] flex h-[20px] w-fit max-w-[287px] shrink-0 flex-col justify-end font-sans text-[11px] font-normal leading-[0] text-body [word-break:keep-all]"
+          className={`mt-[6px] flex h-[20px] w-fit max-w-[287px] shrink-0 flex-col justify-end font-sans text-[11px] font-normal leading-[0] text-body ${wrap}`}
           data-node-id="870:3571"
         >
           <span className="text-center leading-[25px] underline decoration-solid [text-underline-position:from-font]">

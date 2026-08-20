@@ -201,6 +201,30 @@ export default {
     categoryElasticity: '피부탄력',
   },
 
+  /**
+   * 더미 상품 카탈로그(marketProducts.js/wimProducts.js/productDetail.js/marketScreens.js)의
+   * 태그는 한국어 문자열이 그대로 데이터 값이라, 이 키(원문 그대로)로 찾아 표시 언어로 바꾼다.
+   * 실제 백엔드 상품의 skinStateTags 는 hooks/useMarketProducts.js 의 별도 맵을 쓴다.
+   */
+  marketTagLabels: {
+    건성: '건성',
+    미백개선: '미백개선',
+    수부지: '수부지',
+    시술케어: '시술케어',
+    장내환경: '장내환경',
+    '저자극 인증': '저자극 인증',
+    저탄수: '저탄수',
+    정밀진단: '정밀진단',
+    주름개선: '주름개선',
+    지방재생: '지방재생',
+    지방파괴: '지방파괴',
+    피부과전용: '피부과전용',
+    피부보습: '피부보습',
+    피부보호: '피부보호',
+    피부재생: '피부재생',
+    피부탄력: '피부탄력',
+  },
+
   // ─── 필터 ───
   filter: {
     gender: '성별',
