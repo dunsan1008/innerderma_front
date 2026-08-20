@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useT } from '@/i18n';
 import { useRoutineText } from '@/i18n/useRoutineText';
 import Screen from '@/components/layout/Screen';
@@ -31,8 +31,11 @@ import { useCareSolution } from '@/hooks/useCareSolution';
  *  - solution & home - night   (870:3771, 높이 1574.5)
  *  - solution & home - morning (870:4002, 높이 1843.5)
  *
- * 블록 y 좌표는 Figma 프레임 실측치를 그대로 쓴다.
- * (프레임 높이가 내용 합계보다 큰 블록이 있어 flow 로 쌓으면 누적 오차가 생긴다)
+ * 본문 블록들은 실제 데이터 길이(스텝 수, 보충제 카드 수 등)에 따라 세로 길이가
+ * 달라지므로 Figma 절대좌표 대신 일반 문서 흐름(flow)으로 쌓고, 렌더된 실제 높이를
+ * ResizeObserver 로 재서 Screen 의 height/contentBottom 에 반영한다.
+ * (더미 데이터 기준일 때만 아래 프레임 실측치와 같은 모습이 나온다 — 실제 데이터가
+ * 더 짧거나 길면 그만큼 화면 높이도 따라 늘어나거나 줄어든다)
  */
 
 /** 상단 고정 헤더 높이 (Figma Container 870:3773) */
@@ -40,50 +43,42 @@ const HEADER_HEIGHT = 157;
 /** 하단 고정 탭바 높이 (Figma Container 870:3984) */
 const TAB_BAR_HEIGHT = 96;
 
-/**
- * Figma 프레임에서 읽은 블록 배치. [top, height]
- *
- * `recommendTitle` / `recommendCards` 는 Figma 833:3029(디벨롭된 모닝 프레임)에서
- * 새로 붙은 "오늘의 솔루션과 어울리는 제품 추천" 섹션이다.
- * 원본은 '왜 이 루틴인가요?' 박스 바로 아래(간격 4px)에 붙어 답답했기 때문에
- * 요청대로 위쪽 여백을 33px 로 벌려 배치했다.
- */
-const LAYOUT = {
-  night: {
-    frameHeight: 2205,
-    header: 0,
-    segment: 157,
-    sectionHeader: 237,
-    stepList: [328, 406],
-    innerCare: 734,
-    supplements: 855,
-    avoid: 1103,
-    why: [1273, 32],
-    recommendTitle: 1482,
-    recommendCards: 1517,
-    tabBar: 2109,
-  },
-  morning: {
-    frameHeight: 2505,
-    header: 0,
-    segment: 157,
-    sectionHeader: 237,
-    stepList: [328, 435],
-    eveningWash: 763,
-    innerCare: 962,
-    supplements: 1083,
-    avoid: 1331,
-    why: [1501, 0],
-    recommendTitle: 1710,
-    recommendCards: 1745,
-    completeButton: 2337,
-    tabBar: 2409,
-  },
+/** 첫 측정 전 사용할 본문 높이 기본값 (Figma 프레임 실측치 기준, 깜빡임 방지용) */
+const CONTENT_HEIGHT_FALLBACK = {
+  night: 2205 - HEADER_HEIGHT - TAB_BAR_HEIGHT,
+  morning: 2505 - HEADER_HEIGHT - TAB_BAR_HEIGHT,
 };
 
 /** 추천 카드 2x2 그리드 — 마켓 1 과 같은 열 좌표·행 간격을 쓴다 */
 const RECOMMEND_COLUMNS = [20, 204];
 const RECOMMEND_ROW_GAP = 294;
+const POST_CARD_HEIGHT = 272;
+
+/**
+ * 추천 상품 그리드. PostCard 는 항상 절대좌표(left/top)로 배치되는 컴포넌트라
+ * 문서 흐름에 바로 섞을 수 없다 — 카드 개수로 계산한 고정 높이를 가진 로컬
+ * relative 컨테이너로 감싼다. 추천 상품 개수는 항상 고정(SOLUTION_RECOMMEND_NAMES)
+ * 이라 이 섹션의 높이는 실제 데이터 연동 여부와 무관하게 일정하다.
+ */
+function RecommendGrid({ products, onOpen }) {
+  const rows = Math.ceil(products.length / 2);
+  const height = rows > 0 ? (rows - 1) * RECOMMEND_ROW_GAP + POST_CARD_HEIGHT : 0;
+  return (
+    <div className="relative w-full" style={{ height }}>
+      {products.map((product, i) => (
+        <PostCard
+          key={`recommend-${product.nodeId}`}
+          product={{
+            ...product,
+            left: RECOMMEND_COLUMNS[i % 2],
+            top: Math.floor(i / 2) * RECOMMEND_ROW_GAP,
+          }}
+          onOpen={onOpen}
+        />
+      ))}
+    </div>
+  );
+}
 
 /** 모닝 전용 — 저녁 세안 루틴 안내 카드 (Figma 870:4154) */
 function EveningWashCard({ data: ew }) {
@@ -214,7 +209,26 @@ export default function RoutineScreen({ cycle: cycleProp }) {
   const future = isFutureDate(selectedDate, today);
   const noSolution = future || (!isToday && !completedDates.includes(selectedDate));
   const night = cycle === 'night';
-  const L = LAYOUT[cycle];
+
+  /**
+   * 본문 실제 렌더 높이 측정. 스텝 개수·보충제 카드 개수 등이 실제 데이터에 따라
+   * 달라지므로, 고정 픽셀값 대신 ResizeObserver 로 잰 값을 Screen 에 그대로 먹인다.
+   */
+  const contentRef = useRef(null);
+  const [contentHeight, setContentHeight] = useState(CONTENT_HEIGHT_FALLBACK[cycle]);
+
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el) return undefined;
+
+    const measure = () => setContentHeight(el.scrollHeight || CONTENT_HEIGHT_FALLBACK[cycle]);
+    measure();
+
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    document.fonts?.ready?.then(measure).catch(() => {});
+    return () => ro.disconnect();
+  }, [cycle]);
 
   /** 하단 추천 카드 4개 — 마켓 목록의 상품을 이름으로 찾아 그대로 쓴다 */
   const recommendProducts = useMemo(
@@ -293,98 +307,62 @@ export default function RoutineScreen({ cycle: cycleProp }) {
     );
   }
 
-  /** 블록을 Figma 좌표에 절대 배치하는 헬퍼 */
-  const block = (top, children, key) => (
-    <div key={key} className="absolute left-0 w-[393px]" style={{ top }}>
-      {children}
-    </div>
-  );
-
   return (
     <Screen
       className="bg-white"
-      height={L.frameHeight}
+      height={HEADER_HEIGHT + contentHeight + TAB_BAR_HEIGHT}
       nodeId={night ? '870:3771' : '870:4002'}
       name={night ? 'solution & home - night' : 'solution & home - morning'}
       headerHeight={HEADER_HEIGHT}
       header={header}
       tabBarHeight={TAB_BAR_HEIGHT}
       tabBar={<TabBar className="relative h-[96px] w-[393px]" />}
-      contentBottom={L.tabBar}
+      contentBottom={HEADER_HEIGHT + contentHeight}
     >
-      {/* 세그먼트는 페이드 대상에서 빼야 선택 표시가 끊기지 않고 미끄러진다 */}
-      {block(L.segment, segment, 'segment')}
+      <div ref={contentRef} className="absolute left-0 top-[157px] w-[393px]">
+        {/* 세그먼트는 페이드 대상에서 빼야 선택 표시가 끊기지 않고 미끄러진다 */}
+        {segment}
 
-      {/*
-        본문은 사이클이 바뀔 때마다 새로 마운트되며 페이드 인 한다.
-        (key 를 cycle 로 줘서 CSS 애니메이션이 다시 재생되게 한다)
-      */}
-      <div key={cycle} className="animate-fade-in" data-name="CycleBody">
-      {block(
-        L.sectionHeader,
-        <SectionHeader
-          label={rt.sectionLabel}
-          sub={rt.sectionSub}
-          title={rt.sectionTitle(night)}
-          nodeId={night ? '870:3848' : '870:4079'}
-        />,
-        'sectionHeader',
-      )}
+        {/*
+          본문은 사이클이 바뀔 때마다 새로 마운트되며 페이드 인 한다.
+          (key 를 cycle 로 줘서 CSS 애니메이션이 다시 재생되게 한다)
+        */}
+        <div key={cycle} className="animate-fade-in" data-name="CycleBody">
+          <SectionHeader
+            label={rt.sectionLabel}
+            sub={rt.sectionSub}
+            title={rt.sectionTitle(night)}
+            nodeId={night ? '870:3848' : '870:4079'}
+          />
 
-      {block(
-        L.stepList[0],
-        <StepList steps={steps} height={L.stepList[1]} nodeId={night ? '870:3855' : '870:4086'} />,
-        'stepList',
-      )}
+          <StepList steps={steps} nodeId={night ? '870:3855' : '870:4086'} />
 
-      {night ? null : block(L.eveningWash, <EveningWashCard data={eveningWash} />, 'eveningWash')}
+          {night ? null : <EveningWashCard data={eveningWash} />}
 
-      {block(L.innerCare, <InnerCareHeader nodeId={night ? '870:3923' : '870:4173'} />, 'innerCare')}
+          <InnerCareHeader nodeId={night ? '870:3923' : '870:4173'} />
 
-      {block(
-        L.supplements,
-        <SupplementCards cards={supplementCards} nodeId={night ? '870:3933' : '870:4183'} />,
-        'supplements',
-      )}
+          <SupplementCards cards={supplementCards} nodeId={night ? '870:3933' : '870:4183'} />
 
-      {block(L.avoid, <AvoidBox items={avoidItems} nodeId={night ? '870:3952' : '870:4202'} />, 'avoid')}
+          <AvoidBox items={avoidItems} nodeId={night ? '870:3952' : '870:4202'} />
 
-      {block(
-        L.why[0],
-        <WhyBox text={whyText} tags={whyTags} paddingBottom={L.why[1]} nodeId={night ? '870:3971' : '870:4221'} />,
-        'why',
-      )}
+          <WhyBox text={whyText} tags={whyTags} paddingBottom={0} nodeId={night ? '870:3971' : '870:4221'} />
 
-      {/*
-        오늘의 솔루션과 어울리는 제품 추천 (Figma 833:3029 · 989:1220 + Group 85 / Frame 88).
-        마켓 목록의 상품을 그대로 참조하므로 여기서 누른 하트가 마켓·상세와 함께 움직인다.
-      */}
-      {block(
-        L.recommendTitle,
-        <div className="flex w-full flex-col items-start px-[20px]" data-node-id="989:1220">
-          <p className="relative shrink-0 whitespace-nowrap font-sans text-[18px] font-bold leading-[26px] text-text-strong">
-            {t.solution.recommendTitle}
-          </p>
-        </div>,
-        'recommendTitle',
-      )}
+          {/*
+            오늘의 솔루션과 어울리는 제품 추천 (Figma 833:3029 · 989:1220 + Group 85 / Frame 88).
+            마켓 목록의 상품을 그대로 참조하므로 여기서 누른 하트가 마켓·상세와 함께 움직인다.
+          */}
+          <div className="flex w-full flex-col items-start px-[20px] pt-[33px]" data-node-id="989:1220">
+            <p className="relative shrink-0 whitespace-nowrap font-sans text-[18px] font-bold leading-[26px] text-text-strong">
+              {t.solution.recommendTitle}
+            </p>
+          </div>
 
-      {recommendProducts.map((product, i) => (
-        <PostCard
-          key={`recommend-${product.nodeId}`}
-          product={{
-            ...product,
-            left: RECOMMEND_COLUMNS[i % 2],
-            top: L.recommendCards + Math.floor(i / 2) * RECOMMEND_ROW_GAP,
-          }}
-          onOpen={(p) => navigate(`/market/product/${encodeURIComponent(productKey(p))}`)}
-        />
-      ))}
+          <RecommendGrid
+            products={recommendProducts}
+            onOpen={(p) => navigate(`/market/product/${encodeURIComponent(productKey(p))}`)}
+          />
 
-      {night
-        ? null
-        : block(
-            L.completeButton,
+          {night ? null : (
             <CompleteButton
               enabled={isToday}
               completed={doneToday}
@@ -396,9 +374,9 @@ export default function RoutineScreen({ cycle: cycleProp }) {
                 markCompleted(selectedDate);
                 navigate('/home');
               }}
-            />,
-            'complete',
+            />
           )}
+        </div>
       </div>
     </Screen>
   );
