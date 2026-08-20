@@ -14,6 +14,8 @@ export default {
     reset: '重置',
     confirm: '确认',
     cancel: '取消',
+    yes: '是',
+    no: '否',
     save: '保存',
     delete: '删除',
     selectAll: '全选',
@@ -226,6 +228,8 @@ export default {
     emptyMessage: '购物车是空的。快去商城挑选商品吧。',
     purchase: '去购买',
     changeDeliveryBulkAria: '批量修改所选商品的配送方式',
+    confirmPurchaseQuestion: '要购买吗？',
+    purchaseDoneMessage: '购买完成！',
   },
 
   productDetail: {

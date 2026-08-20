@@ -55,11 +55,27 @@ export const useUiStore = create(
       openSkinAnalysis: () => set({ skinAnalysisOpen: true }),
       closeSkinAnalysis: () => set({ skinAnalysisOpen: false }),
 
+      /**
+       * 장바구니 구매 확인/완료 모달. Figma에 없는 화면이라 새로 디자인했다.
+       * 'confirm'(구매하시겠습니까) → 'done'(구매했습니다) 두 단계를 값 하나로 표현한다.
+       */
+      purchaseStep: null,
+      openPurchaseConfirm: () => set({ purchaseStep: 'confirm' }),
+      setPurchaseDone: () => set({ purchaseStep: 'done' }),
+      closePurchaseModal: () => set({ purchaseStep: null }),
+
       /** 표시 언어 — 저장된 값이 없으면 브라우저 언어에서 추론 */
       lang: detectLang(),
       setLang: (code) => set({ lang: SUPPORTED_LANGS.includes(code) ? code : DEFAULT_LANG }),
 
-      closeAll: () => set({ calendarOpen: false, washCheckOpen: false, langOpen: false, skinAnalysisOpen: false }),
+      closeAll: () =>
+        set({
+          calendarOpen: false,
+          washCheckOpen: false,
+          langOpen: false,
+          skinAnalysisOpen: false,
+          purchaseStep: null,
+        }),
     }),
     {
       name: 'innerderma.ui',
