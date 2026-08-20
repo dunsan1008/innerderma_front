@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useT } from '@/i18n';
 import Screen from '@/components/layout/Screen';
@@ -28,6 +28,16 @@ import { useMarketProducts } from '@/hooks/useMarketProducts';
  * 그 전에는 보여줄 근거가 없다.
  */
 const ROUTE_BY_CATEGORY = { all: '/market', oily: '/market/oily', skin: '/market/elasticity' };
+
+/**
+ * 상품 목록 무한 스크롤 — 백엔드 `/products` 가 page/size 파라미터를 지원하지 않아
+ * (전체 목록을 한 번에 내려준다) 이미 다 받아온 배열을 화면에서 나눠 보여준다.
+ * 처음엔 PAGE_SIZE 개만 렌더하고, 목록 끝 근처(IntersectionObserver 센티널)에
+ * 스크롤이 닿으면 다음 PAGE_SIZE 개를 더 보여준다.
+ */
+const PAGE_SIZE = 10;
+/** 카드 높이(272) + 다음 섹션까지 하단 여백(107) — buildSlots/marketScreens.js와 동일 공식 */
+const CARD_ROW_HEIGHT = 272 + 107;
 
 /** 필터 행의 각 드롭다운이 여는 바텀시트. 번역되는 라벨이 아니라 안정적인 key 로 찾는다. */
 const FILTER_ROUTE_BY_KEY = {
@@ -82,8 +92,36 @@ export default function MarketScreen({ variant = 'all' }) {
     config.category,
   );
   const products = realProducts ?? config.products;
-  const frameHeight = frameContentHeight ?? config.frameHeight;
-  const tabBarTop = frameContentHeight ? frameContentHeight - 96 : config.tabBarTop;
+
+  /** 스토어/카테고리(=variant)가 바뀌면 처음 페이지부터 다시 보여준다 */
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [variant]);
+
+  const visibleProducts = products.slice(0, visibleCount);
+  const hasMore = visibleCount < products.length;
+
+  /** 카드는 격자 순서대로 나열되므로, 마지막으로 보이는 카드의 top 만으로 높이를 구한다 */
+  const lastVisible = visibleProducts[visibleProducts.length - 1];
+  const frameHeight = lastVisible ? lastVisible.top + CARD_ROW_HEIGHT : frameContentHeight ?? config.frameHeight;
+  const tabBarTop = frameHeight - 96;
+
+  /** 더 보여줄 카드가 남아있으면 목록 끝 근처에서 다음 페이지를 이어 보여준다 */
+  const sentinelRef = useRef(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !hasMore) return undefined;
+    const scrollRoot = el.closest('.app-scroll');
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) setVisibleCount((c) => Math.min(c + PAGE_SIZE, products.length));
+      },
+      { root: scrollRoot, rootMargin: '400px 0px' },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasMore, products.length]);
 
   /**
    * 촬영·자가진단 전이면 추천 배너에 다른 상품이 올라간다.
@@ -186,14 +224,25 @@ export default function MarketScreen({ variant = 'all' }) {
         onOpen={(item) => navigate(FILTER_ROUTE_BY_KEY[item.key])}
       />
 
-      {/* 상품 카드 — 촬영 여부와 무관하게 항상 보여준다 */}
-      {products.map((product) => (
+      {/* 상품 카드 — 촬영 여부와 무관하게 항상 보여준다. 무한 스크롤로 일부만 렌더한다 */}
+      {visibleProducts.map((product) => (
         <PostCard
           key={product.nodeId}
           product={{ ...product, top: product.top + TOGGLE_BLOCK }}
           onOpen={openDetail}
         />
       ))}
+
+      {/* 다음 페이지를 이어 보여줄 트리거 — 화면에 보이지 않는 감지용 엘리먼트 */}
+      {hasMore ? (
+        <div
+          ref={sentinelRef}
+          aria-hidden
+          className="absolute left-0 h-px w-[393px]"
+          style={{ top: frameHeight - CARD_ROW_HEIGHT + TOGGLE_BLOCK }}
+          data-testid="market-load-more-sentinel"
+        />
+      ) : null}
     </Screen>
   );
 }
