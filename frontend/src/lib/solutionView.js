@@ -63,38 +63,89 @@ const FULL_NODE_IDS = {
 /**
  * 촬영 후 솔루션의 표시 모델을 만든다.
  *
+ * 필드별 폴백 순서는 `aiCare`(신규 LLM 파이프라인) → `solution`(기존 `/care-solutions`) →
+ * 더미(`rt`) 다. aiCare 는 훅(`useAiCare`)으로만 얻을 수 있으므로 이 순수 함수가 직접 부르지 않고
+ * 화면이 취득해 인자로 넘긴다.
+ *
  * @param {object|null} solution `useCareSolution()` 이 준 실데이터. 없으면 전부 `rt` 폴백.
  * @param {object} rt `useRoutineText()` 결과 (번역된 더미 폴백 + 섹션 라벨)
  * @param {'night'|'morning'} cycle
+ * @param {object|null} [aiCare] `useAiCare()` 가 준 `/ai-care` 응답. 없으면 기존 체인만 쓴다.
  * @returns {object} `depth: 'full'` 인 SolutionView
  */
-export function toFullView(solution, rt, cycle) {
+export function toFullView(solution, rt, cycle, aiCare = null) {
   const night = cycle === 'night';
+
+  /**
+   * 신규 AI Care 파이프라인(`/ai-care`, LLM 기반) 결과. 백엔드가 안정화 중이라
+   * 필드가 빈 배열로 오는 경우가 있어, 각 필드가 비어 있으면 아래에서 기존 solution → 더미
+   * 순으로 자연스럽게 폴백한다. aiCare 는 밤/아침 사이클을 `care.night` / `care.morning` 으로 나눠 준다.
+   */
+  const aiCareContent = aiCare?.care ?? null;
+  const aiCycleCare = aiCareContent ? (night ? aiCareContent.night : aiCareContent.morning) : null;
 
   /** 하단 추천 카드 4개 — 마켓 목록의 상품을 이름으로 찾아 그대로 쓴다 */
   const recommendProducts = SOLUTION_RECOMMEND_NAMES.map((name) => findProductByKey(name)).filter(Boolean);
 
-  const realSteps = solution ? (night ? solution.eveningSteps : solution.morningSteps) : null;
+  /**
+   * 스텝 목록: aiCare(신규) → solution(기존) → 더미 순으로 폴백한다.
+   * aiCare 의 Step 은 `/care-solutions`와 스키마가 다르다 — 지시문(title/description)이
+   * 아니라 "이 제품을(productName) 이렇게(usage) 쓰세요, 왜냐하면(reason)" 구조라
+   * 카드의 title/description 두 줄로 재구성한다. 카테고리 태그(tagKey/tag)에 대응하는
+   * 값이 없어서 태그 칩은 만들지 않는다(StepList 가 tag 없으면 칩을 안 그리도록 처리됨).
+   */
+  const aiSteps = aiCycleCare?.steps?.length
+    ? aiCycleCare.steps.map((s) => ({
+        title: s.productName,
+        description: s.reason ? `${s.usage} ${s.reason}` : s.usage,
+      }))
+    : null;
+  const solutionSteps = solution ? (night ? solution.eveningSteps : solution.morningSteps) : null;
+  const realSteps = aiSteps ?? solutionSteps;
   const steps = realSteps?.length
     ? realSteps.map((s, i) => ({ ...s, no: String(i + 1).padStart(2, '0'), nodeId: `step-${i}` }))
     : night
       ? rt.nightSteps
       : rt.morningSteps;
-  const avoidItems = solution
-    ? night
-      ? solution.eveningAvoid
-      : solution.morningAvoid
-    : night
-      ? rt.nightAvoid
-      : rt.morningAvoid;
-  const supplementCards = solution?.supplements?.length
-    ? solution.supplements.map((s) => ({ name: s.title, howTo: s.usage, note: null }))
-    : rt.supplementCards;
+  /**
+   * 피해야 할 것: aiCare 는 밤/아침 구분 없이 `innerCare.avoid` 하나뿐이라
+   * 두 사이클 화면에 동일하게 쓴다(기존 solution 은 eveningAvoid/morningAvoid로 나뉘어 있었다).
+   */
+  const aiAvoid = aiCareContent?.innerCare?.avoid?.length ? aiCareContent.innerCare.avoid : null;
+  const avoidItems =
+    aiAvoid ??
+    (solution
+      ? night
+        ? solution.eveningAvoid
+        : solution.morningAvoid
+      : night
+        ? rt.nightAvoid
+        : rt.morningAvoid);
+  /** 섭취 추천: aiCare의 innerCare.recommended(productName/usage/reason) → solution.supplements → 더미 */
+  const aiRecommended = aiCareContent?.innerCare?.recommended?.length
+    ? aiCareContent.innerCare.recommended.map((r) => ({ name: r.productName, howTo: r.usage, note: r.reason || null }))
+    : null;
+  const supplementCards =
+    aiRecommended ??
+    (solution?.supplements?.length
+      ? solution.supplements.map((s) => ({ name: s.title, howTo: s.usage, note: null }))
+      : rt.supplementCards);
+  /** 저녁 세안 카드는 aiCare에 대응 필드가 없어 기존 solution/더미 그대로 쓴다 */
   const eveningWash = solution?.eveningWash
     ? { badge: 'N', ...solution.eveningWash }
     : rt.eveningWash;
-  /** "왜 이 루틴인가요" 본문은 WHS 진단 요약을 우선하고, 없으면 안전 안내 메시지를 쓴다 */
-  const whyText = solution?.whsDiagnosisSummary || solution?.safetyMessage || rt.whyText;
+  /**
+   * "왜 이 루틴인가요" 본문:
+   *  - aiCare 가 있으면 상태 요약 + 오늘의 목표를 우선 쓰고, 주의사항(caution)이 있으면
+   *    맨 앞에 붙인다.
+   *  - 없으면 기존 solution(WHS 진단 요약 → 안전 안내)으로, 그것도 없으면 더미로 폴백한다.
+   * aiCare의 primaryConcern은 "STABLE"처럼 다듬어지지 않은 내부 값이라 태그로 쓰기엔
+   * 부적절해서, whyTags는 aiCare와 무관하게 기존 solution.concernTags → 더미를 그대로 쓴다.
+   */
+  const aiWhyText = aiCareContent
+    ? [aiCareContent.caution, aiCareContent.skinStateSummary, aiCareContent.todayGoal].filter(Boolean).join(' ')
+    : '';
+  const whyText = aiWhyText || solution?.whsDiagnosisSummary || solution?.safetyMessage || rt.whyText;
   const whyTags = solution?.concernTags?.length ? solution.concernTags : rt.whyTags;
 
   return {

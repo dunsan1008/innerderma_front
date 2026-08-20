@@ -14,6 +14,8 @@ export default {
     reset: 'リセット',
     confirm: '確認',
     cancel: 'キャンセル',
+    yes: 'はい',
+    no: 'いいえ',
     save: '保存',
     delete: '削除',
     selectAll: '全選択',
@@ -226,6 +228,8 @@ export default {
     emptyMessage: 'カートが空です。ショップで商品を追加してください。',
     purchase: '購入する',
     changeDeliveryBulkAria: '選択した商品の配送方法を一括変更',
+    confirmPurchaseQuestion: '購入しますか？',
+    purchaseDoneMessage: '購入が完了しました！',
   },
 
   productDetail: {

@@ -14,6 +14,8 @@ export default {
     reset: 'Reset',
     confirm: 'OK',
     cancel: 'Cancel',
+    yes: 'Yes',
+    no: 'No',
     save: 'Save',
     delete: 'Delete',
     selectAll: 'Select All',
@@ -230,6 +232,8 @@ export default {
     emptyMessage: 'Your cart is empty. Add items from the shop.',
     purchase: 'Checkout',
     changeDeliveryBulkAria: 'Bulk-change shipping method for selected items',
+    confirmPurchaseQuestion: 'Would you like to purchase?',
+    purchaseDoneMessage: 'Purchase complete!',
   },
 
   productDetail: {

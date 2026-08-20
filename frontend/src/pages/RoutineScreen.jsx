@@ -13,6 +13,9 @@ import { useUiStore } from '@/store/uiStore';
 import NoSolutionNotice from '@/components/routine/NoSolutionNotice';
 import { buildWeekStrip, formatDateLabel, isFutureDate, todayKey } from '@/lib/calendar';
 import { useCareSolution } from '@/hooks/useCareSolution';
+import { useAiCare } from '@/hooks/useAiCare';
+import { saveCareCompletion } from '@/api/care';
+import { useAuthStore } from '@/store/authStore';
 // constants/routines.js 의 더미 상수는 이제 useRoutineText() 를 거쳐 폴백으로만 쓰인다
 // (실제 데이터가 있으면 useCareSolution() 의 응답으로 덮어쓴다 — 아래 참고)
 
@@ -144,6 +147,18 @@ export default function RoutineScreen({ cycle: cycleProp }) {
   const { solution, loading: solutionLoading } = useCareSolution(selectedDate);
 
   /**
+   * 신규 AI Care 파이프라인(`/ai-care`, LLM 기반) 결과 — 백엔드가 안정화 중이라고
+   * 밝힌 새 시스템으로, 안정화가 끝나면 `/care-solutions`(위 solution)를 대체할
+   * 예정이다. 미리 배선해 두되, 날짜별 조회가 안 되므로(오늘만 생성/조회 가능)
+   * 오늘 날짜를 보고 있을 때만 부르고, 각 필드가 비어 있으면 기존 solution → 더미
+   * 순으로 자연스럽게 폴백한다.
+   *
+   * 훅이라 순수 함수인 `toFullView` 안에서 부를 수 없다 — 화면이 취득해서 인자로 넘기고,
+   * 필드별 폴백 조립(aiCare → solution → 더미)은 `toFullView` 가 맡는다.
+   */
+  const { aiCare } = useAiCare(isToday);
+
+  /**
    * 솔루션이 없는 날 판별:
    *  - 미래: 아직 촬영이 안 됨 → 조회할 것도 없이 확정한다.
    *  - 그 외 날짜는 실제 백엔드 솔루션 존재 여부를 우선한다. 예전에는 로컬
@@ -159,11 +174,11 @@ export default function RoutineScreen({ cycle: cycleProp }) {
     future || (!solutionLoading && !solution && !isToday && !completedDates.includes(selectedDate));
 
   /**
-   * 표시 모델. 필드별 폴백 순서는 `toFullView` 안에 그대로 옮겨져 있다.
+   * 표시 모델. 필드별 폴백 순서(aiCare → solution → 더미)는 `toFullView` 안에 그대로 옮겨져 있다.
    * `rt` 가 렌더마다 새 객체이므로 view 도 매 렌더 새로 만들어진다 — 예전에 `rt` 를
    * 그대로 쓰던 것과 성질이 같아 memo 없이 두어도 안전하다.
    */
-  const view = toFullView(solution, rt, cycle);
+  const view = toFullView(solution, rt, cycle, aiCare);
 
   /**
    * 본문 높이를 재서 프레임·스크롤 높이를 함께 늘린다.
@@ -301,12 +316,23 @@ export default function RoutineScreen({ cycle: cycleProp }) {
                 enabled={isToday}
                 completed={doneToday}
                 onClick={() => {
-                  if (doneToday) {
-                    unmarkCompleted(selectedDate);
-                    return;
+                  const next = !doneToday;
+                  /*
+                   * 로컬(캘린더 초록 표시)은 즉시 반영하고, 서버 기록은 백그라운드로 보낸다
+                   * — 실패해도 화면 흐름을 막지 않는다(카메라 업로드·자가진단과 같은 방식).
+                   * "완료" 버튼은 아침 화면에만 있으므로 phase는 항상 MORNING으로 보낸다.
+                   */
+                  if (next) markCompleted(selectedDate);
+                  else unmarkCompleted(selectedDate);
+
+                  const userCode = useAuthStore.getState().userCode;
+                  if (userCode) {
+                    saveCareCompletion(userCode, { servedDate: selectedDate, phase: 'MORNING', completed: next }).catch(
+                      (err) => console.error('[RoutineScreen] saveCareCompletion failed', err),
+                    );
                   }
-                  markCompleted(selectedDate);
-                  navigate('/home');
+
+                  if (next) navigate('/home');
                 }}
               />
             )

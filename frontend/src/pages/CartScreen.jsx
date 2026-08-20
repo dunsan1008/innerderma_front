@@ -1,10 +1,10 @@
-import { useNavigate } from 'react-router-dom';
 import { useT } from '@/i18n';
 import { FRAME } from '@/theme';
 import Screen from '@/components/layout/Screen';
 import TabBar from '@/components/layout/TabBar';
 import StatusBar from '@/components/layout/StatusBar';
 import { useCartStore } from '@/store/cartStore';
+import { useUiStore } from '@/store/uiStore';
 import { DELIVERY_OPTIONS, formatPrice } from '@/constants/cartItems';
 import check from '@/assets/figma/cart-check.svg';
 import checkSmall from '@/assets/figma/cart-check-sm.svg';
@@ -199,7 +199,6 @@ function CartItemCard({ item, selected, onToggle, onRemove, onQuantity, onDelive
 
 export default function CartScreen() {
   const t = useT();
-  const navigate = useNavigate();
   const items = useCartStore((s) => s.items);
   const selectedIds = useCartStore((s) => s.selectedIds);
   const toggleSelect = useCartStore((s) => s.toggleSelect);
@@ -209,6 +208,7 @@ export default function CartScreen() {
   const setDeliveryForSelected = useCartStore((s) => s.setDeliveryForSelected);
   const remove = useCartStore((s) => s.remove);
   const removeSelected = useCartStore((s) => s.removeSelected);
+  const openPurchaseConfirm = useUiStore((s) => s.openPurchaseConfirm);
 
   const allChecked = items.length > 0 && selectedIds.length === items.length;
   const someChecked = selectedIds.length > 0 && !allChecked;
@@ -437,7 +437,7 @@ export default function CartScreen() {
         <div className="relative flex w-full shrink-0 flex-col items-center pt-[12px]" data-node-id="1026:2534">
           <button
             type="button"
-            onClick={() => navigate('/market')}
+            onClick={openPurchaseConfirm}
             disabled={selectedIds.length === 0}
             className={`relative flex w-[361px] shrink-0 items-center justify-center rounded-[15px] py-[14px] transition-colors ${
               selectedIds.length > 0 ? 'bg-header-dark' : 'bg-disabled-bg'

@@ -1,9 +1,12 @@
 import { getCart } from '@/api/cart';
 import { getWishlist } from '@/api/wishlist';
 import { getProduct } from '@/api/market';
+import { getCareCompletionHistory } from '@/api/care';
 import { useCartStore } from '@/store/cartStore';
 import { productKey, useWishlistStore } from '@/store/wishlistStore';
+import { useCareStore } from '@/store/careStore';
 import { toCardProduct } from '@/hooks/useMarketProducts';
+import { addDays, todayKey } from '@/lib/calendar';
 
 /**
  * 재방문(SplashScreen에서 저장된 userCode로 토큰 재발급 성공) 시 서버 장바구니·찜을
@@ -67,5 +70,28 @@ export async function syncBackendCollections(userCode) {
     }
   } catch (err) {
     console.error('[syncBackendCollections] failed', err);
+  }
+}
+
+/** 완료 기록을 조회할 과거 기간 — 캘린더 한 달 보기를 넉넉히 덮는다 */
+const COMPLETION_HISTORY_DAYS = 60;
+
+/**
+ * 재방문 시 서버 루틴 완료 기록을 가져와 로컬 캘린더에 병합한다.
+ * 다른 기기에서 완료 버튼을 눌렀어도 이 기기의 캘린더에 초록 표시가 뜨도록 한다.
+ * cart/wishlist와 마찬가지로 화면을 막지 않고, 실패해도 조용히 콘솔에만 남긴다.
+ */
+export async function syncCareCompletions(userCode) {
+  try {
+    const today = todayKey();
+    const from = addDays(today, -COMPLETION_HISTORY_DAYS);
+    const history = await getCareCompletionHistory(userCode, { from, to: today });
+    const days = history?.days ?? [];
+    const completedDates = days
+      .filter((d) => d.morningCompleted || d.eveningCompleted)
+      .map((d) => d.date);
+    if (completedDates.length) useCareStore.getState().mergeFromServer(completedDates);
+  } catch (err) {
+    console.error('[syncCareCompletions] failed', err);
   }
 }

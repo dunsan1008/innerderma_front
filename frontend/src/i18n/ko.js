@@ -16,6 +16,8 @@ export default {
     reset: '초기화',
     confirm: '확인',
     cancel: '취소',
+    yes: '예',
+    no: '아니오',
     save: '저장',
     delete: '삭제',
     selectAll: '전체 선택',
@@ -254,6 +256,8 @@ export default {
     emptyMessage: '장바구니가 비었어요. 마켓에서 상품을 담아보세요.',
     purchase: '구매하기',
     changeDeliveryBulkAria: '선택 상품 배송방법 일괄 변경',
+    confirmPurchaseQuestion: '구매하시겠습니까?',
+    purchaseDoneMessage: '구매했습니다!',
   },
 
   // ─── 상품 상세 ───
