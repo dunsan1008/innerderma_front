@@ -4,12 +4,13 @@
 # hooks
 
 ## Purpose
-Home for generic, non-i18n custom React hooks. Currently holds only the webcam capture hook used by the skin-photo capture flow. (The routine-text translation hook, `useRoutineText`, lives in `src/i18n/` instead, since it's i18n-specific.)
+Home for generic, non-i18n custom React hooks: the webcam capture hook and the care-solution data-fetching hook. (The routine-text translation hook, `useRoutineText`, lives in `src/i18n/` instead, since it's i18n-specific.)
 
 ## Key Files
 | File | Description |
 |------|-------------|
 | `useCamera.js` | `useCamera({enabled})` — opens the front-facing camera via `getUserMedia`, attaches the stream to a `<video>` ref, and exposes a `capture()` function that grabs a mirrored, square-cropped JPEG data URL from the current frame. Tracks `status` (`idle`/`starting`/`ready`/`denied`/`unsupported`/`error`) and a localized `errorMessage` (via `@/i18n`) so the caller can render camera-permission guidance. |
+| `useCareSolution.js` | `useCareSolution(date)` — fetches `GET /users/{userCode}/care-solutions/daily` for the given date via `api/care.js`. Returns `{ solution, loading }`; `solution` stays `null` on any failure (no session, 404 for that date, network error) rather than throwing — callers (`RoutineScreen`) are expected to fall back to `useRoutineText()`'s dummy/i18n data when `solution` is null, never to show an error state. |
 
 ## For AI Agents
 

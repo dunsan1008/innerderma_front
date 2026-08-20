@@ -22,17 +22,9 @@ import { useCareStore } from '@/store/careStore';
 import { useUiStore } from '@/store/uiStore';
 import NoSolutionNotice from '@/components/routine/NoSolutionNotice';
 import { buildWeekStrip, formatDateLabel, isFutureDate, todayKey } from '@/lib/calendar';
-import {
-  EVENING_WASH,
-  MORNING_AVOID,
-  MORNING_STEPS,
-  NIGHT_AVOID,
-  NIGHT_STEPS,
-  SUPPLEMENT_CARDS,
-  WHY_TAGS,
-  WHY_TEXT,
-} from '@/constants/routines';
-// 이제 위 상수를 직접 렌더하지 않고 useRoutineText() 훅의 번역된 값을 쓴다
+import { useCareSolution } from '@/hooks/useCareSolution';
+// constants/routines.js 의 더미 상수는 이제 useRoutineText() 를 거쳐 폴백으로만 쓰인다
+// (실제 데이터가 있으면 useCareSolution() 의 응답으로 덮어쓴다 — 아래 참고)
 
 /**
  * 루틴(솔루션) 화면. Figma 프레임 두 개를 한 컴포넌트의 두 사이클로 구현한다.
@@ -94,8 +86,7 @@ const RECOMMEND_COLUMNS = [20, 204];
 const RECOMMEND_ROW_GAP = 294;
 
 /** 모닝 전용 — 저녁 세안 루틴 안내 카드 (Figma 870:4154) */
-function EveningWashCard() {
-  const { eveningWash: ew } = useRoutineText();
+function EveningWashCard({ data: ew }) {
   return (
     <div className="flex w-full flex-col items-start px-[20px] pt-[16px]" data-node-id="870:4154" data-name="MorningContent">
       <div className="relative flex w-full shrink-0 flex-col items-start rounded-[16px] border border-solid border-line bg-white px-[16px] pb-[16px] pt-[12px]">
@@ -231,6 +222,35 @@ export default function RoutineScreen({ cycle: cycleProp }) {
     [],
   );
 
+  /**
+   * 실제 케어 솔루션 조회. 아직 그 날짜에 솔루션이 없거나(신규 유저, 미연동 환경)
+   * 요청이 실패하면 solution 은 null 로 남고, 아래에서 기존 더미(rt.*)로 자연스럽게
+   * 폴백한다 — 이 화면은 백엔드 연동 여부와 무관하게 항상 뭔가는 보여줘야 한다.
+   */
+  const { solution } = useCareSolution(selectedDate);
+  const realSteps = solution ? (night ? solution.eveningSteps : solution.morningSteps) : null;
+  const steps = realSteps?.length
+    ? realSteps.map((s, i) => ({ ...s, no: String(i + 1).padStart(2, '0'), nodeId: `step-${i}` }))
+    : night
+      ? rt.nightSteps
+      : rt.morningSteps;
+  const avoidItems = solution
+    ? night
+      ? solution.eveningAvoid
+      : solution.morningAvoid
+    : night
+      ? rt.nightAvoid
+      : rt.morningAvoid;
+  const supplementCards = solution?.supplements?.length
+    ? solution.supplements.map((s) => ({ name: s.title, howTo: s.usage, note: null }))
+    : rt.supplementCards;
+  const eveningWash = solution?.eveningWash
+    ? { badge: 'N', ...solution.eveningWash }
+    : rt.eveningWash;
+  /** "왜 이 루틴인가요" 본문은 WHS 진단 요약을 우선하고, 없으면 안전 안내 메시지를 쓴다 */
+  const whyText = solution?.whsDiagnosisSummary || solution?.safetyMessage || rt.whyText;
+  const whyTags = solution?.concernTags?.length ? solution.concernTags : rt.whyTags;
+
   const header = (
     <RoutineHeader
       days={days}
@@ -313,29 +333,25 @@ export default function RoutineScreen({ cycle: cycleProp }) {
 
       {block(
         L.stepList[0],
-        <StepList
-          steps={night ? rt.nightSteps : rt.morningSteps}
-          height={L.stepList[1]}
-          nodeId={night ? '870:3855' : '870:4086'}
-        />,
+        <StepList steps={steps} height={L.stepList[1]} nodeId={night ? '870:3855' : '870:4086'} />,
         'stepList',
       )}
 
-      {night ? null : block(L.eveningWash, <EveningWashCard />, 'eveningWash')}
+      {night ? null : block(L.eveningWash, <EveningWashCard data={eveningWash} />, 'eveningWash')}
 
       {block(L.innerCare, <InnerCareHeader nodeId={night ? '870:3923' : '870:4173'} />, 'innerCare')}
 
       {block(
         L.supplements,
-        <SupplementCards cards={rt.supplementCards} nodeId={night ? '870:3933' : '870:4183'} />,
+        <SupplementCards cards={supplementCards} nodeId={night ? '870:3933' : '870:4183'} />,
         'supplements',
       )}
 
-      {block(L.avoid, <AvoidBox items={night ? rt.nightAvoid : rt.morningAvoid} nodeId={night ? '870:3952' : '870:4202'} />, 'avoid')}
+      {block(L.avoid, <AvoidBox items={avoidItems} nodeId={night ? '870:3952' : '870:4202'} />, 'avoid')}
 
       {block(
         L.why[0],
-        <WhyBox text={rt.whyText} tags={rt.whyTags} paddingBottom={L.why[1]} nodeId={night ? '870:3971' : '870:4221'} />,
+        <WhyBox text={whyText} tags={whyTags} paddingBottom={L.why[1]} nodeId={night ? '870:3971' : '870:4221'} />,
         'why',
       )}
 

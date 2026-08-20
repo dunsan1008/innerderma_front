@@ -33,7 +33,10 @@ function StepCard({ step, nodeId }) {
     >
       <div className="relative flex w-full shrink-0 flex-col items-start gap-[8px] px-[12px] py-[14px]">
         <div className="relative flex w-full shrink-0 items-start gap-[8px]">
-          <div className="relative flex min-w-px items-center gap-[8px]" style={{ flex: `${step.titleFlex} 0 0` }}>
+          <div
+            className="relative flex min-w-px items-center gap-[8px]"
+            style={{ flex: step.titleFlex ? `${step.titleFlex} 0 0` : '1 1 0%' }}
+          >
             <div className="relative flex size-[24px] shrink-0 items-center justify-center rounded-full bg-text-strong">
               <div className="relative flex shrink-0 flex-col items-start">
                 <p className="relative shrink-0 whitespace-nowrap font-sans text-[10px] font-bold leading-[10px] text-white [word-break:break-word]">
