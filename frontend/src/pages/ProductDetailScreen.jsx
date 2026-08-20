@@ -168,6 +168,9 @@ export default function ProductDetailScreen() {
       price: view.priceValue,
       image: view.image,
       quantity: Math.max(1, qty),
+      // 실제 백엔드 상품이면(더미가 아니면) 서버 장바구니 동기화에 쓴다 — cartStore 참고
+      productCode: selected?.productCode,
+      source: selected?.source,
     });
     navigate('/market/cart');
   };
