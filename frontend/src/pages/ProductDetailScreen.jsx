@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useT } from '@/i18n';
 import Screen from '@/components/layout/Screen';
@@ -8,7 +8,7 @@ import { productKey, useWishlistStore } from '@/store/wishlistStore';
 import { PRODUCT_DETAIL } from '@/constants/productDetail';
 import { findProductByKey } from '@/constants/marketScreens';
 import { formatPrice } from '@/constants/cartItems';
-import { clampSingleLine, joinNameLines } from '@/lib/productName';
+import { joinNameLines } from '@/lib/productName';
 import backIcon from '@/assets/figma/pd-back.svg';
 import shareIcon from '@/assets/figma/pd-share.svg';
 import plusIcon from '@/assets/figma/pd-plus.svg';
@@ -42,6 +42,22 @@ const BAR_HEIGHT = 119;
 
 /** Group 86 기준 y (Container 1026:2586) */
 const INFO_TOP = 491;
+
+/**
+ * 상품명 배치.
+ *
+ * 찜(1026:2590, y+30 h17.97)과 공유(1026:2630, y+29 h20) 아이콘의 세로 중심은 y+39 다.
+ * 상품명 **첫 줄의 세로 중심**을 그 값에 맞춰 아이콘과 한 가로열로 읽히게 한다.
+ * (예전에는 이름 중심이 y+42.8 로 3.8px 아래에 있어 열이 어긋나 보였다)
+ *
+ * 이름은 자르지 않고 전부 보여주므로 길면 여러 줄이 된다. 늘어난 높이만큼
+ * 아래 요소(태그·가격·상세 블록·베스트 조합)를 함께 내려 배치가 겹치지 않게 한다.
+ */
+const NAME_LINE_HEIGHT = 16.5;
+const ICON_CENTER_Y = 39;
+const NAME_TOP = ICON_CENTER_Y - NAME_LINE_HEIGHT / 2;
+/** 찜 아이콘(x310) 앞에서 끝나도록 잡은 폭 */
+const NAME_WIDTH = 270;
 
 /** 상세 설명 자리표시 블록 (Figma Frame 60/61/62) */
 const DETAIL_BLOCKS = [
@@ -106,6 +122,36 @@ export default function ProductDetailScreen() {
   const toggleWish = useWishlistStore((s) => s.toggle);
   const wished = wishKeys.includes(view.key);
 
+  /**
+   * 상품명이 한 줄을 넘어간 만큼(extra)을 재서 아래 요소를 내린다.
+   *
+   * 이름을 자르지 않으니 길이에 따라 1~3줄이 되는데, 아래 요소가 모두 절대 좌표라
+   * 가만히 두면 두 줄째부터 태그·가격 위로 글자가 겹친다. 실제 렌더 높이를 재서
+   * 늘어난 만큼만 밀어 준다. 폰트 로딩·언어 전환으로 높이가 바뀌어도 따라오도록
+   * ResizeObserver 를 쓴다.
+   */
+  const nameRef = useRef(null);
+  const [nameHeight, setNameHeight] = useState(NAME_LINE_HEIGHT);
+
+  useEffect(() => {
+    const el = nameRef.current;
+    if (!el) return undefined;
+
+    // scrollHeight 는 레이아웃 값이라 DeviceFrame 의 transform: scale 에 영향받지 않는다
+    const measure = () => setNameHeight(el.scrollHeight || NAME_LINE_HEIGHT);
+    measure();
+
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    // 웹폰트가 늦게 붙으면 줄 수가 달라진다
+    document.fonts?.ready?.then(measure).catch(() => {});
+    return () => ro.disconnect();
+  }, [view.name]);
+
+  /** 한 줄일 때 0, 두 줄이면 16.5, 세 줄이면 33 */
+  const nameLines = Math.max(1, Math.round(nameHeight / NAME_LINE_HEIGHT));
+  const extra = (nameLines - 1) * NAME_LINE_HEIGHT;
+
   /** 하단 바의 선택 개수 — Figma 기본값은 0개 */
   const [quantity, setQuantity] = useState(0);
   /** 베스트 조합 펼침 여부 */
@@ -137,7 +183,7 @@ export default function ProductDetailScreen() {
   return (
     <Screen
       className="bg-white"
-      height={FRAME_HEIGHT}
+      height={FRAME_HEIGHT + extra}
       nodeId="1026:2575"
       name="ProductDetail"
       headerHeight={HEADER_HEIGHT}
@@ -241,8 +287,12 @@ export default function ProductDetailScreen() {
         />
       </div>
 
-      {/* 정보 블록 배경 */}
-      <div className="absolute left-0 h-[100px] w-[393px] bg-white" style={{ top: INFO_TOP + 9 }} data-node-id="1026:2588" />
+      {/* 정보 블록 배경 — 이름이 길어지면 그만큼 높아진다 */}
+      <div
+        className="absolute left-0 w-[393px] bg-white"
+        style={{ top: INFO_TOP + 9, height: 100 + extra }}
+        data-node-id="1026:2588"
+      />
 
       {/* 찜 — 목록과 동기화 */}
       <button
@@ -270,33 +320,25 @@ export default function ProductDetailScreen() {
       </button>
 
       {/*
-        상품명 — 두 줄까지 보여주고 그걸 넘어가는 시점부터 … (마켓 카드·배너와 같은 규칙).
-        클릭이 막히지 않게 pointer-events 를 끈다(찜·공유 버튼 위를 덮는다).
+        상품명 — 상세 페이지에서는 **자르지 않고 전부** 보여준다(마켓 카드·배너는 … 로 줄인다).
+        첫 줄의 세로 중심을 찜·공유 아이콘 중심(y+39)에 맞춰 한 가로열로 읽히게 하고,
+        길어서 줄이 늘면 아래 요소를 extra 만큼 밀어 겹치지 않게 한다.
+        폭은 찜 아이콘(x310) 앞에서 끝나므로 아이콘을 덮지 않는다.
       */}
-      <div
-        className="pointer-events-none absolute left-[15.83px] flex h-[46px] w-[214px] flex-col items-start"
-        style={{ top: INFO_TOP + 16 }}
+      <p
+        ref={nameRef}
+        className="absolute left-[15.83px] font-sans text-[16px] font-semibold leading-[16.5px] text-ink [word-break:break-word]"
+        style={{ top: INFO_TOP + NAME_TOP, width: NAME_WIDTH }}
         data-node-id="1026:2591"
-        data-name="Paragraph"
+        data-testid="pd-name"
       >
-        {/*
-          두 줄 높이(33)를 잡고 아래 정렬한다 — Figma 의 "빈 첫 줄 + 이름" 구조에서
-          이름이 놓이던 둘째 줄 자리에 그대로 온다.
-
-          이름은 **무조건 한 줄**이고 넘치면 … 으로 자른다. 두 줄이 되면 바로 아래
-          가격과 겹쳤다. 폭은 부모(214)를 따른다 — 넘기면 오른쪽 가격과 글자가 겹친다.
-        */}
-        <div className="relative flex h-[33px] w-full shrink-0 flex-col justify-end font-sans text-[16px] font-semibold text-ink">
-          <p className="leading-[16.5px]" style={clampSingleLine()} data-testid="pd-name">
-            {view.name}
-          </p>
-        </div>
-      </div>
+        {view.name}
+      </p>
 
       {/* 가격 */}
       <p
         className="absolute left-[302px] w-[77px] font-display text-[16px] font-bold leading-[13.5px] text-ink [word-break:break-word]"
-        style={{ top: INFO_TOP + 68 }}
+        style={{ top: INFO_TOP + 68 + extra }}
         data-node-id="1026:2593"
       >
         {view.priceText}
@@ -307,7 +349,7 @@ export default function ProductDetailScreen() {
         <div
           key={label}
           className="absolute flex h-[29px] items-center pt-[6px]"
-          style={{ left: TAG_LEFT[i], top: INFO_TOP + 57 }}
+          style={{ left: TAG_LEFT[i], top: INFO_TOP + 57 + extra }}
           data-name="Container"
         >
           <div
@@ -331,7 +373,7 @@ export default function ProductDetailScreen() {
         <div
           key={block.nodeId}
           className="absolute left-[4px] w-[384px] rounded-[16px] border-2 border-solid border-placeholder-line bg-detail-placeholder"
-          style={{ top: block.top, height: block.height }}
+          style={{ top: block.top + extra, height: block.height }}
           data-node-id={block.nodeId}
           data-name="DetailPlaceholder"
         />
@@ -340,7 +382,7 @@ export default function ProductDetailScreen() {
       {/* 많이 구매하는 베스트 조합 */}
       <p
         className="absolute left-[19px] whitespace-nowrap font-sans text-[16px] font-bold leading-[24px] text-text-strong"
-        style={{ top: COMBO_TITLE_TOP }}
+        style={{ top: COMBO_TITLE_TOP + extra }}
         data-node-id="1026:2612"
       >
         {t.productDetail.comboTitle}
@@ -352,7 +394,7 @@ export default function ProductDetailScreen() {
       */}
       <div
         className="absolute left-[12px] w-[372px] overflow-hidden rounded-[10px] border border-solid border-stepper-line transition-[height] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
-        style={{ top: COMBO_CARD_TOP, height: comboOpen ? COMBO_OPEN_H : COMBO_CLOSED_H }}
+        style={{ top: COMBO_CARD_TOP + extra, height: comboOpen ? COMBO_OPEN_H : COMBO_CLOSED_H }}
         data-node-id="1026:2625"
         data-name="ComboCard"
         data-open={comboOpen}

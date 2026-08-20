@@ -986,14 +986,89 @@ check('M) 배너 상품명이 넘치면 … 로 잘린다',
 check('M) 배너 상품명에 디센더 여유가 있다 (한 줄이라 안전)', (bannerName?.pad ?? 0) > 0,
   `pad=${bannerName?.pad}`);
 
-await page.goto(`${base}/market/product/${encodeURIComponent('저당, 저탄수, 고단백 윔쉐이크 초코 대용량 800g')}`, { waitUntil: 'load' });
-await page.waitForTimeout(600);
-const pdName = await readSingleLineName('[data-testid="pd-name"]');
-check('M) 상세 상품명은 한 줄 고정', pdName?.lines === 1 && pdName?.whiteSpace === 'nowrap',
-  JSON.stringify(pdName));
-check('M) 상세 상품명이 넘치면 … 로 잘린다',
-  pdName?.textOverflow === 'ellipsis' && pdName?.truncated === true,
-  `textOverflow=${pdName?.textOverflow} / 잘림=${pdName?.truncated}`);
+/**
+ * ── 상품 상세의 상품명 ──
+ * 상세에서는 이름을 **자르지 않고 전부** 보여준다(카드·배너와 달리 … 를 쓰지 않는다).
+ * 대신 첫 줄의 세로 중심을 찜·공유 아이콘 중심에 맞추고, 줄이 늘면 아래 요소
+ * (태그·가격·상세 블록)를 그만큼 내려 겹치지 않게 한다.
+ */
+const readDetailName = () =>
+  page.evaluate(() => {
+    const frame = document.querySelector('[data-frame]').getBoundingClientRect();
+    const scale = 393 / frame.width;
+    const rel = (v) => Math.round((v - frame.top) * scale * 10) / 10;
+    const relX = (v) => Math.round((v - frame.left) * scale * 10) / 10;
+    const box = (sel) => {
+      const el = document.querySelector(sel);
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return { top: rel(r.top), bottom: rel(r.bottom), left: relX(r.left), right: relX(r.right) };
+    };
+
+    const el = document.querySelector('[data-testid="pd-name"]');
+    const cs = getComputedStyle(el);
+    const lh = parseFloat(cs.lineHeight);
+    const nb = box('[data-testid="pd-name"]');
+    const share = box('[data-node-id="1026:2630"]');
+    const wish = box('[data-testid="pd-wish"]');
+    const price = box('[data-node-id="1026:2593"]');
+    const infoBg = box('[data-node-id="1026:2588"]');
+    const detailBlock = box('[data-name="DetailPlaceholder"]');
+
+    const tags = [...document.querySelectorAll('[data-name="Container"]')]
+      .map((t) => t.getBoundingClientRect())
+      .map((r) => ({ top: rel(r.top), bottom: rel(r.bottom), left: relX(r.left) }))
+      .filter((t) => t.left < 250 && t.top > nb.top && t.top < nb.top + 120);
+
+    return {
+      text: el.textContent.trim(),
+      lines: Math.round(el.scrollHeight / lh),
+      // 잘림 흔적 — 가로로 넘치거나 … 로 끝나면 안 된다
+      clipped: el.scrollWidth > el.clientWidth + 1 || el.textContent.trim().endsWith('…'),
+      whiteSpace: cs.whiteSpace,
+      firstLineCenter: Math.round((nb.top + lh / 2) * 10) / 10,
+      iconCenter: Math.round(((share.top + share.bottom) / 2) * 10) / 10,
+      coversIcons: nb.right > wish.left,
+      nameBottom: nb.bottom,
+      tagTop: tags.length ? Math.min(...tags.map((t) => t.top)) : null,
+      tagBottom: tags.length ? Math.max(...tags.map((t) => t.bottom)) : null,
+      priceTop: price.top,
+      priceLeft: price.left,
+      infoBgBottom: infoBg.bottom,
+      detailBlockTop: detailBlock?.top ?? null,
+    };
+  });
+
+for (const [label, key, expectLines] of [
+  ['한 줄 이름', '피쓰 코어 리빌드 크림 50ml', 1],
+  ['두 줄 이름', '[내과전문의 설계] 마시는 식이섬유 비포밀 스위치 (30포/BOX)', 2],
+]) {
+  await page.goto(`${base}/market/product/${encodeURIComponent(key)}`, { waitUntil: 'load' });
+  await page.waitForSelector('[data-testid="pd-name"]');
+  await page.waitForTimeout(700);
+  const d = await readDetailName();
+
+  check(`M) 상세 ${label} — 이름 전체가 잘리지 않고 나온다`,
+    d.clipped === false && d.text === key,
+    `잘림=${d.clipped} / "${d.text}"`);
+  check(`M) 상세 ${label} — ${expectLines}줄로 렌더`, d.lines === expectLines, `${d.lines}줄`);
+  check(`M) 상세 ${label} — 첫 줄이 찜·공유 아이콘과 같은 가로열`,
+    Math.abs(d.firstLineCenter - d.iconCenter) <= 1,
+    `이름 첫줄 중심 ${d.firstLineCenter} / 아이콘 중심 ${d.iconCenter}`);
+  check(`M) 상세 ${label} — 이름이 아이콘을 덮지 않는다`, d.coversIcons === false);
+  check(`M) 상세 ${label} — 이름과 태그가 겹치지 않는다`,
+    d.tagTop !== null && d.tagTop - d.nameBottom >= 4,
+    `간격 ${d.tagTop === null ? '?' : Math.round((d.tagTop - d.nameBottom) * 10) / 10}px`);
+  check(`M) 상세 ${label} — 이름과 가격이 겹치지 않는다`,
+    !(d.priceTop < d.nameBottom - 0.5 && d.priceLeft < 290),
+    `가격 top ${d.priceTop} / 이름 bottom ${d.nameBottom}`);
+  check(`M) 상세 ${label} — 태그가 흰 배경 안에 있다`,
+    d.tagBottom !== null && d.tagBottom <= d.infoBgBottom + 0.5,
+    `태그 bottom ${d.tagBottom} / 배경 bottom ${d.infoBgBottom}`);
+  check(`M) 상세 ${label} — 태그가 상세 블록에 가리지 않는다`,
+    d.detailBlockTop === null || d.tagBottom <= d.detailBlockTop + 0.5,
+    `태그 bottom ${d.tagBottom} / 블록 top ${d.detailBlockTop}`);
+}
 
 await page.goto(`${base}/market`, { waitUntil: 'load' });
 await page.waitForTimeout(500);
