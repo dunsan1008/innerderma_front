@@ -112,6 +112,9 @@ export default function FeaturedBanner({ banner, slides, onOpen }) {
                   alt=""
                   src={slide.image}
                   className="pointer-events-none absolute inset-0 size-full max-w-none rounded-tl-[15px] rounded-tr-[15px] object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
                 />
               )}
             </div>

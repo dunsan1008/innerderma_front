@@ -12,6 +12,7 @@ import StoreToggle from '@/components/market/StoreToggle';
 import { MARKET_SCREENS } from '@/constants/marketScreens';
 import { productKey } from '@/store/wishlistStore';
 import { useCareStore } from '@/store/careStore';
+import { useMarketProducts } from '@/hooks/useMarketProducts';
 
 /**
  * 마켓 화면.
@@ -72,14 +73,32 @@ export default function MarketScreen({ variant = 'all' }) {
   const isWim = config.store === 'wim';
 
   /**
+   * 실제 상품(피쓰 서울/윔 스토어) — 있으면 이걸 쓰고, 없으면(세션 없음·요청 실패·
+   * 그 카테고리에 실상품이 하나도 없음) 기존 더미 카탈로그로 자연스럽게 폴백한다
+   * (RoutineScreen의 useCareSolution과 같은 패턴).
+   */
+  const { products: realProducts, frameContentHeight } = useMarketProducts(
+    isWim ? 'wim' : 'pith',
+    config.category,
+  );
+  const products = realProducts ?? config.products;
+  const frameHeight = frameContentHeight ?? config.frameHeight;
+  const tabBarTop = frameContentHeight ? frameContentHeight - 96 : config.tabBarTop;
+
+  /**
    * 촬영·자가진단 전이면 추천 배너에 다른 상품이 올라간다.
    * 화면 구성 자체는 촬영 여부와 무관하게 같다 — 오프라인 정밀진단·시술 데이터만으로도
    * 추천·판매가 되므로 마켓을 잠글 이유가 없다. 달라지는 건 추천 근거뿐이다.
+   *
+   * 실상품이 있으면 그중 최대 3개를 배너로 쓴다 — 촬영 전/후 구분은 더미에만
+   * 있는 개념이라(실제 데이터는 "카탈로그" 하나뿐) 실상품이 있을 때는 이 구분을 하지 않는다.
    */
   const beforeSolution = !hasCaptureToday;
-  const bannerSlides = beforeSolution
-    ? (config.preSolutionSlides ?? config.bannerSlides)
-    : config.bannerSlides;
+  const realBannerSlides = realProducts?.length
+    ? realProducts.slice(0, 3).map((p) => ({ image: p.layers[0]?.srcs[0], name: p.name, price: p.price, tags: p.tags }))
+    : null;
+  const bannerSlides =
+    realBannerSlides ?? (beforeSolution ? (config.preSolutionSlides ?? config.bannerSlides) : config.bannerSlides);
 
   /** 토글이 위로 들어온 만큼 배너 좌표를 전부 내린다 */
   const banner = useMemo(() => {
@@ -97,7 +116,7 @@ export default function MarketScreen({ variant = 'all' }) {
   return (
     <Screen
       className="bg-white"
-      height={config.frameHeight + TOGGLE_BLOCK}
+      height={frameHeight + TOGGLE_BLOCK}
       nodeId={config.nodeId}
       name={config.name}
       headerHeight={MARKET_HEADER_HEIGHT}
@@ -110,7 +129,7 @@ export default function MarketScreen({ variant = 'all' }) {
       }
       tabBarHeight={TAB_BAR_HEIGHT}
       tabBar={<TabBar className="relative h-[96px] w-[393px]" />}
-      contentBottom={config.tabBarTop + TOGGLE_BLOCK}
+      contentBottom={tabBarTop + TOGGLE_BLOCK}
     >
       {/* 스토어 전환 토글 — 상단바 바로 아래, 제목 위 */}
       <div
@@ -168,7 +187,7 @@ export default function MarketScreen({ variant = 'all' }) {
       />
 
       {/* 상품 카드 — 촬영 여부와 무관하게 항상 보여준다 */}
-      {config.products.map((product) => (
+      {products.map((product) => (
         <PostCard
           key={product.nodeId}
           product={{ ...product, top: product.top + TOGGLE_BLOCK }}
