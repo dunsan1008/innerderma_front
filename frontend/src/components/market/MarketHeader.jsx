@@ -18,17 +18,19 @@ import cartIcon from '@/assets/figma/market-cart-icon.svg';
  * 바꾸는 건 위치와 정렬뿐이다.
  */
 /**
- * @param {number} height 헤더 높이. 기본 116.
+ * @param {number} height 헤더 높이. 기본 84.
  *
- * 홈 헤더(157)는 로고 줄 아래에 요일 스트립이 받쳐 주지만 마켓에는 그게 없다.
- * 157 을 그대로 쓰면 로고 아래로 73px 이 빈 검은 배경으로 남아 어색했다.
- * 그래서 캘린더가 없는 만큼 높이를 줄이고(157 → 116), 남는 여백은 로고 줄
- * 위아래로 나눠 로고가 가운데 놓이게 했다.
+ * 홈 헤더(157)는 상태바 44 + 로고 줄 40 + 요일 스트립 73 이다. 마켓에는 요일
+ * 스트립이 없어 157 을 그대로 쓰면 로고 아래로 73px 이 빈 검은 배경으로 남았다.
+ * 그래서 그 스트립 몫만 잘라내 84(= 44 + 40) 로 뒀다.
  *
- * 로고·아이콘의 **x 좌표와 상태바 규격은 홈 헤더와 그대로 같다** — 화면을 옮길 때
- * 좌우로 튀지 않아야 하므로 세로 여백만 조정한다.
+ * **로고와 아이콘의 위치·크기는 홈 헤더와 완전히 같다.** 로고 줄은 홈과 같은
+ * `pt-[4px] pb-[16px] px-[20px]`, 아이콘 그룹은 같은 52x19 정렬 상자를 쓴다.
+ * 잘라낸 건 로고 줄 **아래**뿐이라 로고·아이콘의 y 가 홈과 동일하게 유지된다.
+ * (한때 남는 여백을 위아래로 나눠 로고를 세로 중앙에 뒀는데, 그러면 로고가
+ *  홈보다 22px 내려가 화면을 옮길 때 튀었다. 높이만 줄이는 쪽이 맞다.)
  */
-export default function MarketHeader({ showHeart = false, onWish, onCart, height = 116 }) {
+export default function MarketHeader({ showHeart = false, onWish, onCart, height = 84 }) {
   const t = useT();
   return (
     <div
@@ -42,9 +44,9 @@ export default function MarketHeader({ showHeart = false, onWish, onCart, height
         <StatusBar tone="white" className="absolute left-0 top-0 h-[44px] w-[393px]" />
       </div>
 
-      {/* 로고 줄 — 남은 높이를 다 차지하고 그 안에서 세로 가운데 정렬 */}
+      {/* 로고 줄 — 홈 헤더(870:3791)와 같은 패딩. 여기 값을 바꾸면 로고 y 가 홈과 어긋난다 */}
       <div
-        className="relative flex w-full min-h-0 flex-1 items-center justify-between px-[20px]"
+        className="relative flex w-full shrink-0 items-center justify-between px-[20px] pb-[16px] pt-[4px]"
         data-node-id="870:5083"
       >
         <div className="relative flex shrink-0 flex-col items-start">

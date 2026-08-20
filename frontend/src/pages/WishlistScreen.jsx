@@ -21,9 +21,9 @@ import chevronSmall from '@/assets/figma/chevron-small.svg';
 
 /**
  * 상단 고정 헤더 높이 — 마켓 헤더와 같은 값을 쓴다.
- * (홈 헤더 157 은 요일 스트립을 포함한 높이라, 그게 없는 마켓 계열은 116 이다)
+ * (홈 헤더 157 은 요일 스트립 73 을 포함한 높이라, 그게 없는 마켓 계열은 84 다)
  */
-const HEADER_HEIGHT = 116;
+const HEADER_HEIGHT = 84;
 /** Figma 원본(129) 대비 줄어든 만큼 — 아래 블록 좌표에서 뺀다 */
 const HEADER_GROWTH = HEADER_HEIGHT - 129;
 const TAB_BAR_HEIGHT = 96;
