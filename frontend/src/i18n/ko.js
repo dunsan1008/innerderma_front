@@ -271,6 +271,8 @@ export default {
   solutionLoading: {
     deriving: '솔루션을 도출 중입니다.\n잠시만 기다려주세요',
     aggregating: '데이터를 취합 중입니다.',
+    analysisFailedTitle: '얼굴 분석에 실패했어요',
+    analysisFailedSub: '자가진단 정보로 루틴을 준비할게요.',
   },
 
   // ─── 에러 경계 ───

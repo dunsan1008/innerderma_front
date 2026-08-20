@@ -243,6 +243,8 @@ export default {
   solutionLoading: {
     deriving: '正在生成护理方案。\n请稍候',
     aggregating: '正在汇总数据。',
+    analysisFailedTitle: '面部分析失败',
+    analysisFailedSub: '将根据自我检测信息为您准备护理流程。',
   },
 
   errorBoundary: {

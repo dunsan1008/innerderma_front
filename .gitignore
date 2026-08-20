@@ -3,6 +3,10 @@
 .DS_Store?
 ._*
 
+# 로컬 테스트용으로 임시로 두는 개인 사진 (카톡으로 전달받은 얼굴 분석 테스트 사진 등)
+KakaoTalk_Photo_*.jpeg
+KakaoTalk_Photo_*.jpg
+
 # Node / Vite
 node_modules/
 frontend/node_modules/

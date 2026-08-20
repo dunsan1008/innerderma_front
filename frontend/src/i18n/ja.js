@@ -245,6 +245,8 @@ export default {
   solutionLoading: {
     deriving: 'ソリューションを作成中です。\n少々お待ちください',
     aggregating: 'データを集計しています。',
+    analysisFailedTitle: '顔分析に失敗しました',
+    analysisFailedSub: 'セルフチェック情報でルーティンを準備します。',
   },
 
   errorBoundary: {

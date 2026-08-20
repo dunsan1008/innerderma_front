@@ -249,6 +249,8 @@ export default {
   solutionLoading: {
     deriving: 'Generating your solution.\nPlease wait a moment',
     aggregating: 'Aggregating your data.',
+    analysisFailedTitle: 'Facial analysis failed',
+    analysisFailedSub: "We'll build your routine from your self-check instead.",
   },
 
   errorBoundary: {
