@@ -98,6 +98,25 @@ export const WIM_BANNER_SLIDE = {
 };
 
 /**
+ * 윔 스토어 추천 배너 슬라이드 3장.
+ *
+ * Figma 마켓 4 에는 배너가 한 장뿐이라 자동 전환이 멈춰 화면이 정적이었다.
+ * 피쓰 서울(3장 자동 전환)과 같은 리듬을 주려고 아래 진열 상품에서 두 개를
+ * 가져와 붙였다. 상품 정보는 ITEMS 를 그대로 참조하므로 배너를 눌러 들어간
+ * 상세와 카드의 찜 상태가 어긋나지 않는다.
+ */
+const slideOf = (nodeId) => {
+  const item = ITEMS.find((it) => it.nodeId === nodeId);
+  return { image: item.image, name: item.name, price: item.price, tags: item.tags };
+};
+
+export const WIM_BANNER_SLIDES = [
+  WIM_BANNER_SLIDE,
+  slideOf('1104:1508'), // 윔쉐이크 검은콩 대용량 800g
+  slideOf('1104:1533'), // 윔쉐이크 말차 420g
+];
+
+/**
  * 촬영·자가진단 **이전**에 보여주는 추천 배너 (윔 스토어).
  * 오프라인 정밀진단·시술 데이터만으로 추천하는 단계라 촬영 후 배너와 다른 상품을 쓴다.
  */

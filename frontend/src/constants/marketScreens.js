@@ -5,7 +5,12 @@ import img17 from '@/assets/figma/products/img-17.jpg';
 import img19 from '@/assets/figma/products/img-19.jpg';
 import { CARD_IMAGE_BLEED, CARD_SIZES } from '@/constants/cardLayout';
 import { MARKET_ALL_COMBINED, MARKET_ALL_PRODUCTS, MARKET_OILY_PRODUCTS, MARKET_SKIN_PRODUCTS } from '@/constants/marketProducts';
-import { WIM_BANNER_SLIDE, WIM_PRE_SOLUTION_SLIDE, WIM_PRODUCTS } from '@/constants/wimProducts';
+import {
+  WIM_BANNER_SLIDE,
+  WIM_BANNER_SLIDES,
+  WIM_PRE_SOLUTION_SLIDE,
+  WIM_PRODUCTS,
+} from '@/constants/wimProducts';
 
 /**
  * 추천 배너 슬라이드.
@@ -216,7 +221,7 @@ export const MARKET_SCREENS = {
       items: FILTER_ITEMS,
     },
     products: WIM_PRODUCTS,
-    bannerSlides: [WIM_BANNER_SLIDE],
+    bannerSlides: WIM_BANNER_SLIDES,
     preSolutionSlides: [WIM_PRE_SOLUTION_SLIDE],
     tabBarTop: 1541,
   },
