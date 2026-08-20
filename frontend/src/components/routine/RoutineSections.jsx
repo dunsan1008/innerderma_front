@@ -15,18 +15,18 @@ export function SectionHeader({ label, sub, title, labelClass = 'text-accent-tea
     >
       <div className="relative flex w-full shrink-0 flex-col items-start">
         <p
-          className={`relative shrink-0 whitespace-nowrap font-sans text-[12px] font-bold leading-[18px] tracking-[0.25px] [word-break:break-word] ${labelClass}`}
+          className={`relative shrink-0 font-sans text-[12px] font-bold leading-[18px] tracking-[0.25px] [word-break:break-word] ${labelClass}`}
         >
           {label}
         </p>
       </div>
-      <div className="relative flex h-[19px] w-[353px] shrink-0 flex-col items-start pt-[2px]">
-        <p className="relative shrink-0 whitespace-nowrap font-sans text-[11px] font-normal leading-[16.5px] text-label-sub [word-break:break-word]">
+      <div className="relative flex w-[353px] shrink-0 flex-col items-start pt-[2px]">
+        <p className="relative shrink-0 font-sans text-[11px] font-normal leading-[16.5px] text-label-sub [word-break:break-word]">
           {sub}
         </p>
       </div>
-      <div className="relative flex h-[30px] w-[353px] shrink-0 flex-col items-start pt-[4px]">
-        <p className="relative shrink-0 whitespace-nowrap font-sans text-[18px] font-bold leading-[26px] text-text-strong [word-break:break-word]">
+      <div className="relative flex w-[353px] shrink-0 flex-col items-start pt-[4px]">
+        <p className="relative shrink-0 font-sans text-[18px] font-bold leading-[26px] text-text-strong [word-break:keep-all]">
           {title}
         </p>
       </div>
@@ -44,23 +44,23 @@ export function InnerCareHeader({ nodeId }) {
       data-name="NightContent"
     >
       <div className="relative flex w-full shrink-0 flex-col items-start">
-        <p className="relative shrink-0 whitespace-nowrap font-sans text-[12px] font-bold leading-[18px] tracking-[0.25px] text-accent-green [word-break:break-word]">
+        <p className="relative shrink-0 font-sans text-[12px] font-bold leading-[18px] tracking-[0.25px] text-accent-green [word-break:break-word]">
           {t.solution.innerCare}
         </p>
       </div>
-      <div className="relative flex h-[19px] w-[353px] shrink-0 flex-col items-start pt-[2px]">
-        <p className="relative shrink-0 whitespace-nowrap font-sans text-[11px] font-normal leading-[16.5px] text-label-sub [word-break:break-word]">
+      <div className="relative flex w-[353px] shrink-0 flex-col items-start pt-[2px]">
+        <p className="relative shrink-0 font-sans text-[11px] font-normal leading-[16.5px] text-label-sub [word-break:break-word]">
           {t.solution.todayIntake}
         </p>
       </div>
-      <div className="relative flex h-[56px] w-[353px] shrink-0 flex-col items-start pt-[4px]">
+      <div className="relative flex w-[353px] shrink-0 flex-col items-start pt-[4px]">
         <div className="relative flex w-full shrink-0 flex-col items-start">
-          <p className="relative shrink-0 whitespace-nowrap font-sans text-[18px] font-bold leading-[26px] text-text-strong [word-break:break-word]">
+          <p className="relative shrink-0 font-sans text-[18px] font-bold leading-[26px] text-text-strong [word-break:keep-all]">
             {t.solution.intakeSolution1}
           </p>
         </div>
         <div className="relative flex w-full shrink-0 flex-col items-start">
-          <p className="relative shrink-0 whitespace-nowrap font-sans text-[18px] font-bold leading-[26px] text-text-strong [word-break:break-word]">
+          <p className="relative shrink-0 font-sans text-[18px] font-bold leading-[26px] text-text-strong [word-break:keep-all]">
             {t.solution.intakeSolution2}
           </p>
         </div>
@@ -88,21 +88,21 @@ export function SupplementCards({ cards, nodeId }) {
           data-name="SupplementCard"
         >
           <div className="relative flex w-full shrink-0 flex-col items-start">
-            <p className="relative shrink-0 whitespace-nowrap font-sans text-[10px] font-normal leading-[10px] text-body [word-break:break-word]">
+            <p className="relative shrink-0 font-sans text-[10px] font-normal leading-[10px] text-body [word-break:break-word]">
               {t.solution.todayRecommend}
             </p>
           </div>
-          <div className="relative flex h-[25px] w-[319px] shrink-0 flex-col items-start pt-[4px]">
-            <p className="relative shrink-0 whitespace-nowrap font-sans text-[14px] font-bold leading-[21px] text-text-strong [word-break:break-word]">
+          <div className="relative flex w-[319px] shrink-0 flex-col items-start pt-[4px]">
+            <p className="relative shrink-0 font-sans text-[14px] font-bold leading-[21px] text-text-strong [word-break:keep-all]">
               {card.name}
             </p>
           </div>
           <div
             className={`relative flex w-[319px] shrink-0 flex-col items-start ${
-              card.note ? 'h-[24px] pt-[6px]' : 'h-[32px] pb-[8px] pt-[6px]'
+              card.note ? 'pt-[6px]' : 'pb-[8px] pt-[6px]'
             }`}
           >
-            <p className="relative shrink-0 whitespace-nowrap font-sans text-[12px] font-normal leading-[18px] text-text-strong [word-break:break-word]">
+            <p className="relative shrink-0 font-sans text-[12px] font-normal leading-[18px] text-text-strong [word-break:keep-all]">
               {card.howTo}
             </p>
           </div>
@@ -110,7 +110,7 @@ export function SupplementCards({ cards, nodeId }) {
             <div className="relative flex w-full shrink-0 flex-col items-start pt-[8px]" data-name="Container:margin">
               <div className="relative flex w-full shrink-0 flex-col items-start rounded-[10px] border border-solid border-note-line bg-note-bg px-[12px] py-[8px]">
                 <div className="relative flex w-full shrink-0 flex-col items-start">
-                  <p className="relative shrink-0 whitespace-nowrap font-sans text-[11px] font-normal leading-[16px] text-accent-green [word-break:break-word]">
+                  <p className="relative shrink-0 font-sans text-[11px] font-normal leading-[16px] text-accent-green [word-break:keep-all]">
                     {card.note}
                   </p>
                 </div>
@@ -133,14 +133,14 @@ export function AvoidBox({ items, nodeId }) {
       data-name="NightContent"
     >
       <div className="relative flex w-full shrink-0 flex-col items-start">
-        <p className="relative shrink-0 whitespace-nowrap font-sans text-[12px] font-bold leading-[18px] tracking-[0.25px] text-accent-brown [word-break:break-word]">
+        <p className="relative shrink-0 font-sans text-[12px] font-bold leading-[18px] tracking-[0.25px] text-accent-brown [word-break:break-word]">
           ETC
         </p>
       </div>
       <div className="relative flex w-full shrink-0 flex-col items-start pt-[8px]" data-name="Container:margin">
         <div className="relative flex w-full shrink-0 flex-col items-start rounded-[16px] border border-solid border-warn-line bg-warn-bg p-[16px]">
           <div className="relative flex w-full shrink-0 flex-col items-start">
-            <p className="relative shrink-0 whitespace-nowrap font-sans text-[13px] font-semibold leading-[19.5px] text-accent-brown [word-break:break-word]">
+            <p className="relative shrink-0 font-sans text-[13px] font-semibold leading-[19.5px] text-accent-brown [word-break:keep-all]">
               {t.solution.avoidToday}
             </p>
           </div>
@@ -148,12 +148,12 @@ export function AvoidBox({ items, nodeId }) {
             <div
               key={item}
               className={`relative flex w-[319px] shrink-0 items-center gap-[8px] ${
-                i === 0 ? 'h-[26px] pt-[8px]' : 'h-[22px] pt-[4px]'
+                i === 0 ? 'pt-[8px]' : 'pt-[4px]'
               }`}
             >
               <div className="relative size-[6px] shrink-0 rounded-full bg-accent-brown" />
               <div className="relative flex shrink-0 flex-col items-start">
-                <p className="relative shrink-0 whitespace-nowrap font-sans text-[12px] font-normal leading-[18px] text-accent-brown [word-break:break-word]">
+                <p className="relative shrink-0 font-sans text-[12px] font-normal leading-[18px] text-accent-brown [word-break:keep-all]">
                   {item}
                 </p>
               </div>
@@ -183,23 +183,23 @@ export function WhyBox({ text, tags, paddingBottom = 32, nodeId }) {
         style={{ filter: 'drop-shadow(0px 0px 1.25px rgba(0,0,0,0.25))' }}
       >
         <div className="relative flex w-full shrink-0 flex-col items-start">
-          <p className="relative shrink-0 whitespace-nowrap font-sans text-[11px] font-semibold uppercase leading-[16.5px] tracking-[0.275px] text-ink-50 [word-break:break-word]">
+          <p className="relative shrink-0 font-sans text-[11px] font-semibold uppercase leading-[16.5px] tracking-[0.275px] text-ink-50 [word-break:break-word]">
             {t.solution.whyThisRoutine}
           </p>
         </div>
         <div className="relative flex w-full shrink-0 flex-col items-start pt-[8px]">
-          <p className="relative w-[313px] shrink-0 font-sans text-[13px] font-normal leading-[20px] text-ink-90 [word-break:break-word]">
+          <p className="relative w-[313px] shrink-0 font-sans text-[13px] font-normal leading-[20px] text-ink-90 [word-break:keep-all]">
             {text}
           </p>
         </div>
-        <div className="relative flex h-[35px] w-[313px] shrink-0 items-start gap-[8px] pt-[12px]">
+        <div className="relative flex w-[313px] shrink-0 items-start gap-[8px] pt-[12px]">
           {tags.map((tag) => (
             <div
               key={tag}
               className="relative flex shrink-0 flex-col items-start rounded-full bg-ink-50 px-[8px] py-[4px]"
               data-name="Text"
             >
-              <p className="relative shrink-0 whitespace-nowrap font-sans text-[10px] font-medium leading-[15px] text-white [word-break:break-word]">
+              <p className="relative shrink-0 font-sans text-[10px] font-medium leading-[15px] text-white [word-break:break-word]">
                 {tag}
               </p>
             </div>

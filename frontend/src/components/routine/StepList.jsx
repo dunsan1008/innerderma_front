@@ -32,20 +32,24 @@ function StepCard({ step, nodeId }) {
       data-name="StepCard"
     >
       <div className="relative flex w-full shrink-0 flex-col items-start gap-[8px] px-[12px] py-[14px]">
+        {/*
+          제목 줄: 번호 배지 + 제목 + 카테고리 태그.
+          제목이 길어지면 태그를 밀지 않고 **제목이 먼저 줄어들며 줄바꿈**되어야 한다.
+          그래서 제목 쪽은 flex-1 + min-w-0 로 줄어들 수 있게 두고, 태그만 shrink-0 로 지킨다.
+          (Figma 의 titleFlex 는 제목 영역의 기본 폭 비율을 잡아 둔 값이라 flex-grow 로 쓴다)
+        */}
         <div className="relative flex w-full shrink-0 items-start gap-[8px]">
-          <div
-            className="relative flex min-w-px items-center gap-[8px]"
-            style={{ flex: step.titleFlex ? `${step.titleFlex} 0 0` : '1 1 0%' }}
-          >
+          <div className="relative flex min-w-0 flex-1 items-start gap-[8px]" style={{ flexGrow: step.titleFlex }}>
             <div className="relative flex size-[24px] shrink-0 items-center justify-center rounded-full bg-text-strong">
               <div className="relative flex shrink-0 flex-col items-start">
-                <p className="relative shrink-0 whitespace-nowrap font-sans text-[10px] font-bold leading-[10px] text-white [word-break:break-word]">
+                <p className="relative shrink-0 font-sans text-[10px] font-bold leading-[10px] text-white [word-break:break-word]">
                   {step.no}
                 </p>
               </div>
             </div>
-            <div className="relative flex shrink-0 flex-col items-start">
-              <p className="relative shrink-0 whitespace-nowrap font-sans text-[14px] font-bold leading-[21px] text-text-strong [word-break:break-word]">
+            <div className="relative flex min-w-0 flex-col items-start">
+              {/* 한국어는 어절 단위로 줄바꿈한다 (keep-all) — 단어 중간에서 잘리면 읽기 나쁘다 */}
+              <p className="relative font-sans text-[14px] font-bold leading-[21px] text-text-strong [word-break:keep-all]">
                 {step.title}
               </p>
             </div>
@@ -54,13 +58,13 @@ function StepCard({ step, nodeId }) {
             className={`relative flex shrink-0 flex-col items-start rounded-full px-[8px] py-[2px] ${TAG_STYLE[step.tagKey]}`}
             data-name="CategoryTag"
           >
-            <p className="relative shrink-0 whitespace-nowrap font-sans text-[10px] font-medium leading-[15px] [word-break:break-word]">
+            <p className="relative shrink-0 font-sans text-[10px] font-medium leading-[15px] [word-break:break-word]">
               {step.tag}
             </p>
           </div>
         </div>
         <div className="relative flex w-full shrink-0 flex-col items-start">
-          <p className="relative shrink-0 whitespace-nowrap font-sans text-[12px] font-medium leading-[18px] text-text-strong [word-break:break-word]">
+          <p className="relative shrink-0 font-sans text-[12px] font-medium leading-[18px] text-text-strong [word-break:keep-all]">
             {step.description}
           </p>
         </div>
@@ -69,16 +73,10 @@ function StepCard({ step, nodeId }) {
   );
 }
 
-/**
- * @param {number} height Figma StepList 프레임 높이.
- *   모닝(870:4086)은 435 인데 카드 합계는 406 이어서 아래에 29px 여백이 남는다.
- *   이 여백까지 재현해야 이후 섹션의 y 좌표가 어긋나지 않는다.
- */
-export default function StepList({ steps, nodeId, height }) {
+export default function StepList({ steps, nodeId }) {
   return (
     <div
       className="relative flex w-full flex-col items-start px-[20px] pt-[12px]"
-      style={height ? { height } : undefined}
       data-node-id={nodeId}
       data-name="StepList"
     >
