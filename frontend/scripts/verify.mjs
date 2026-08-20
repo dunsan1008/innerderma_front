@@ -864,6 +864,50 @@ await page.waitForTimeout(300);
 check('N) 선택삭제로 전부 비워짐', (await cartCards()) === 0);
 await page.screenshot({ path: `${OUT}/cart.png` });
 
+/**
+ * 베스트 조합은 3개 상품을 각각 담는다 (메인 상품을 수량 3으로 담는 게 아니다).
+ * 그리고 로그아웃("최초 접속"으로 되돌리기) 하면 장바구니·찜이 함께 비워져야 한다.
+ * 예전에는 온보딩·케어만 초기화해서 담아 둔 상품이 그대로 남아 있었다.
+ */
+await page.goto(`${base}/market/product/${encodeURIComponent('피쓰 코어 리빌드 크림 50ml')}`, { waitUntil: 'load' });
+await page.waitForTimeout(500);
+await page.locator('[data-testid="combo-add"]').click();
+await page.waitForTimeout(700);
+const comboItems = await page.evaluate(() =>
+  [...document.querySelectorAll('[data-name="CartItemCard"]')].map((el) => el.querySelector('p')?.textContent.trim()),
+);
+check('N) 베스트 조합은 3개 상품을 각각 담는다', comboItems.length === 3 && new Set(comboItems).size === 3,
+  `${comboItems.length}개: ${JSON.stringify(comboItems)}`);
+
+// 찜도 하나 담아 두고 로그아웃으로 함께 비워지는지 본다
+await page.goto(`${base}/market`, { waitUntil: 'load' });
+await page.waitForTimeout(500);
+await page.locator('button[aria-label="찜하기"]').first().click();
+await page.waitForTimeout(250);
+
+await page.goto(`${base}/mypage`, { waitUntil: 'load' });
+await page.waitForTimeout(500);
+await page.getByText('로그아웃', { exact: false }).first().click();
+await page.waitForTimeout(800);
+check('N) 로그아웃하면 첫 화면으로', new URL(page.url()).pathname === '/', `url=${new URL(page.url()).pathname}`);
+
+await page.goto(`${base}/market/cart`, { waitUntil: 'load' });
+await page.waitForTimeout(600);
+check('N) 로그아웃 후 장바구니가 비워짐', (await cartCards()) === 0, `카드 ${await cartCards()}개`);
+
+await page.goto(`${base}/market/wishlist`, { waitUntil: 'load' });
+await page.waitForTimeout(600);
+const wishAfterLogout = await page.locator('[data-name="PostCard"]').count();
+check('N) 로그아웃 후 찜도 비워짐', wishAfterLogout === 0, `${wishAfterLogout}개`);
+
+/*
+  뒤따르는 검사들은 "촬영 완료" 상태를 전제한다(추천 배너가 데일리 분석 상품).
+  로그아웃이 startFresh() 로 촬영 기록을 비웠으니 기본값으로 되돌려 놓는다.
+*/
+await page.evaluate(() => localStorage.removeItem('innerderma.care'));
+await page.goto(`${base}/market`, { waitUntil: 'load' });
+await page.waitForTimeout(400);
+
 // 자가진단 → 로딩 → 솔루션 요약
 await page.goto(`${base}/self-check`, { waitUntil: 'load' });
 await page.waitForTimeout(400);

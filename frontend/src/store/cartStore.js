@@ -107,11 +107,15 @@ export const useCartStore = create(
     }),
     {
       name: 'innerderma.cart',
-      // v2: 더미 3개로 시작하던 옛 저장값을 버리고 빈 장바구니로 출발한다
-      version: 2,
+      /**
+       * v2: 더미 3개로 시작하던 옛 저장값을 버리고 빈 장바구니로 출발.
+       * v3: 로그아웃이 장바구니를 비우지 않던 동안 남은 저장값을 정리한다.
+       *     (최초 접속 상태로 돌아왔는데도 담아 둔 상품이 남아 있었다)
+       */
+      version: 3,
       partialize: (state) => ({ items: state.items, selectedIds: state.selectedIds }),
 
-      /** v1→v2 마이그레이션: 사용자가 담지 않은 더미 상품을 비운다 */
+      /** 옛 버전에서 올라올 때는 사용자가 담지 않았을 수 있는 상품을 비운다 */
       migrate: () => ({ items: [], selectedIds: [] }),
 
       merge: (saved, current) => ({ ...current, ...normalize(saved) }),

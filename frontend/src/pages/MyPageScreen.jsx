@@ -8,6 +8,8 @@ import avatarIcon from '@/assets/figma/profile-avatar.svg';
 import chevronRight from '@/assets/figma/chevron-right.svg';
 import { useOnboardingStore } from '@/store/onboardingStore';
 import { useCareStore } from '@/store/careStore';
+import { useCartStore } from '@/store/cartStore';
+import { useWishlistStore } from '@/store/wishlistStore';
 
 /**
  * 마이페이지 (Figma 870:5963 "마이페이지 - {t.mypage.logout} 누르면 최초 접속").
@@ -79,12 +81,22 @@ export default function MyPageScreen() {
   const resetOnboarding = useOnboardingStore((s) => s.reset);
   const resetCare = useCareStore((s) => s.reset);
   const startFresh = useCareStore((s) => s.startFresh);
+  const clearCart = useCartStore((s) => s.clear);
+  const clearWishlist = useWishlistStore((s) => s.clear);
 
-  /** 프레임 이름대로("로그아웃 누르면 최초 접속") 상태를 비우고 첫 화면으로 */
+  /**
+   * 프레임 이름대로("로그아웃 누르면 최초 접속") 상태를 비우고 첫 화면으로.
+   *
+   * 장바구니·찜도 함께 비운다. 예전에는 온보딩·케어만 초기화해서, 로그아웃 뒤
+   * 최초 접속 상태로 돌아왔는데도 이전에 담아 둔 상품이 장바구니에 남아 있었다
+   * (담은 적 없는 상품이 들어 있는 것처럼 보였다).
+   */
   const logout = () => {
     resetOnboarding();
     resetCare();
     startFresh();
+    clearCart();
+    clearWishlist();
     navigate('/');
   };
 
