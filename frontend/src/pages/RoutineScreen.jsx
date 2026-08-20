@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useT } from '@/i18n';
 import { useRoutineText } from '@/i18n/useRoutineText';
 import Screen from '@/components/layout/Screen';
@@ -92,6 +92,21 @@ const LAYOUT = {
 /** 추천 카드 2x2 그리드 — 마켓 1 과 같은 열 좌표·행 간격을 쓴다 */
 const RECOMMEND_COLUMNS = [20, 204];
 const RECOMMEND_ROW_GAP = 294;
+/** PostCard 실측 높이 (마켓 카드와 동일) */
+const POST_CARD_HEIGHT = 272;
+
+/**
+ * 아래 세 값은 Figma 실측 좌표에서 뽑은 "블록 사이 간격"이다.
+ * 흐름 배치로 바꾸면서 절대 y 대신 간격으로 표현했다.
+ *  - 추천 제목 끝(1508) → 카드 시작(1517) = 9
+ *  - 카드 끝(모닝 2311) → 완료 버튼(2337) = 26, 버튼 블록 높이 50 + 아래 여백 22
+ */
+const RECOMMEND_TITLE_GAP = 9;
+const COMPLETE_BUTTON_GAP = 26;
+const COMPLETE_BUTTON_BLOCK = 72;
+
+/** 본문 끝 → 탭바 top 여백 (나이트 2109-2083, 모닝 2409-2387) */
+const CONTENT_TAIL_GAP = 26;
 
 /** 모닝 전용 — 저녁 세안 루틴 안내 카드 (Figma 870:4154) */
 function EveningWashCard() {
@@ -231,6 +246,31 @@ export default function RoutineScreen({ cycle: cycleProp }) {
     [],
   );
 
+  /**
+   * 본문 높이를 재서 프레임·스크롤 높이를 함께 늘린다.
+   * 흐름 배치라 텍스트가 길어지면 본문이 자라는데, Screen 은 높이를 숫자로 받으므로
+   * 실측값을 넘겨 줘야 스크롤이 잘린 부분까지 닿는다.
+   * scrollHeight 는 레이아웃 값이라 DeviceFrame 의 transform: scale 에 영향받지 않는다.
+   */
+  const bodyRef = useRef(null);
+  const [bodyHeight, setBodyHeight] = useState(null);
+
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return undefined;
+    const measure = () => setBodyHeight(el.scrollHeight);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    document.fonts?.ready?.then(measure).catch(() => {});
+    return () => ro.disconnect();
+  }, [cycle, rt]);
+
+  /** 본문이 끝나는 y (= 탭바 top). 아직 못 쟀으면 Figma 실측값을 쓴다 */
+  const contentBottom = bodyHeight === null ? L.tabBar : L.sectionHeader + bodyHeight + CONTENT_TAIL_GAP;
+  /** 프레임 높이 — 탭바 아래 여백을 원본과 같게 유지한다 */
+  const frameHeight = contentBottom + (L.frameHeight - L.tabBar);
+
   const header = (
     <RoutineHeader
       days={days}
@@ -273,102 +313,102 @@ export default function RoutineScreen({ cycle: cycleProp }) {
     );
   }
 
-  /** 블록을 Figma 좌표에 절대 배치하는 헬퍼 */
-  const block = (top, children, key) => (
-    <div key={key} className="absolute left-0 w-[393px]" style={{ top }}>
-      {children}
-    </div>
-  );
+  /**
+   * 본문은 세로로 쌓이는 흐름(flow)이다.
+   *
+   * 예전에는 블록마다 Figma 실측 y 를 절대 좌표로 박아 뒀는데, 텍스트가 길어져
+   * 카드가 자라면 아래 블록을 밀어내지 못하고 그대로 겹쳤다(설명을 2배로 늘리면
+   * 스텝 목록이 INNER CARE 제목을 72px 덮었다).
+   *
+   * 다행히 실측값이 각 블록의 자연 높이 누적과 정확히 맞아떨어져서
+   * (SectionHeader 끝 327.5 → StepList 시작 328, StepList 끝 734 = InnerCare 시작 734 …)
+   * 절대 배치를 흐름 배치로 바꿔도 1배 상태의 디자인은 그대로 유지된다.
+   * 각 블록의 간격은 컴포넌트 자신의 padding 이 이미 갖고 있다.
+   */
+  const contentTop = L.sectionHeader;
+
+  /** 추천 카드 그리드 높이 — PostCard 가 absolute 라 감싸는 상자가 높이를 가져야 한다 */
+  const recommendRows = Math.ceil(recommendProducts.length / 2);
+  const recommendGridHeight = (recommendRows - 1) * RECOMMEND_ROW_GAP + POST_CARD_HEIGHT;
 
   return (
     <Screen
       className="bg-white"
-      height={L.frameHeight}
+      height={frameHeight}
       nodeId={night ? '870:3771' : '870:4002'}
       name={night ? 'solution & home - night' : 'solution & home - morning'}
       headerHeight={HEADER_HEIGHT}
       header={header}
       tabBarHeight={TAB_BAR_HEIGHT}
       tabBar={<TabBar className="relative h-[96px] w-[393px]" />}
-      contentBottom={L.tabBar}
+      contentBottom={contentBottom}
     >
       {/* 세그먼트는 페이드 대상에서 빼야 선택 표시가 끊기지 않고 미끄러진다 */}
-      {block(L.segment, segment, 'segment')}
+      <div className="absolute left-0 w-[393px]" style={{ top: L.segment }}>
+        {segment}
+      </div>
 
       {/*
         본문은 사이클이 바뀔 때마다 새로 마운트되며 페이드 인 한다.
         (key 를 cycle 로 줘서 CSS 애니메이션이 다시 재생되게 한다)
       */}
-      <div key={cycle} className="animate-fade-in" data-name="CycleBody">
-      {block(
-        L.sectionHeader,
+      <div
+        key={cycle}
+        ref={bodyRef}
+        className="absolute left-0 flex w-[393px] flex-col items-start animate-fade-in"
+        style={{ top: contentTop }}
+        data-name="CycleBody"
+      >
         <SectionHeader
           label={rt.sectionLabel}
           sub={rt.sectionSub}
           title={rt.sectionTitle(night)}
           nodeId={night ? '870:3848' : '870:4079'}
-        />,
-        'sectionHeader',
-      )}
+        />
 
-      {block(
-        L.stepList[0],
-        <StepList
-          steps={night ? rt.nightSteps : rt.morningSteps}
-          height={L.stepList[1]}
-          nodeId={night ? '870:3855' : '870:4086'}
-        />,
-        'stepList',
-      )}
+        <StepList steps={night ? rt.nightSteps : rt.morningSteps} nodeId={night ? '870:3855' : '870:4086'} />
 
-      {night ? null : block(L.eveningWash, <EveningWashCard />, 'eveningWash')}
+        {night ? null : <EveningWashCard />}
 
-      {block(L.innerCare, <InnerCareHeader nodeId={night ? '870:3923' : '870:4173'} />, 'innerCare')}
+        <InnerCareHeader nodeId={night ? '870:3923' : '870:4173'} />
 
-      {block(
-        L.supplements,
-        <SupplementCards cards={rt.supplementCards} nodeId={night ? '870:3933' : '870:4183'} />,
-        'supplements',
-      )}
+        <SupplementCards cards={rt.supplementCards} nodeId={night ? '870:3933' : '870:4183'} />
 
-      {block(L.avoid, <AvoidBox items={night ? rt.nightAvoid : rt.morningAvoid} nodeId={night ? '870:3952' : '870:4202'} />, 'avoid')}
+        <AvoidBox items={night ? rt.nightAvoid : rt.morningAvoid} nodeId={night ? '870:3952' : '870:4202'} />
 
-      {block(
-        L.why[0],
-        <WhyBox text={rt.whyText} tags={rt.whyTags} paddingBottom={L.why[1]} nodeId={night ? '870:3971' : '870:4221'} />,
-        'why',
-      )}
+        <WhyBox text={rt.whyText} tags={rt.whyTags} paddingBottom={L.why[1]} nodeId={night ? '870:3971' : '870:4221'} />
 
-      {/*
-        오늘의 솔루션과 어울리는 제품 추천 (Figma 833:3029 · 989:1220 + Group 85 / Frame 88).
-        마켓 목록의 상품을 그대로 참조하므로 여기서 누른 하트가 마켓·상세와 함께 움직인다.
-      */}
-      {block(
-        L.recommendTitle,
-        <div className="flex w-full flex-col items-start px-[20px]" data-node-id="989:1220">
+        {/*
+          오늘의 솔루션과 어울리는 제품 추천 (Figma 833:3029 · 989:1220 + Group 85 / Frame 88).
+          마켓 목록의 상품을 그대로 참조하므로 여기서 누른 하트가 마켓·상세와 함께 움직인다.
+        */}
+        <div className="flex w-full shrink-0 flex-col items-start px-[20px]" data-node-id="989:1220">
           <p className="relative shrink-0 whitespace-nowrap font-sans text-[18px] font-bold leading-[26px] text-text-strong">
             {t.solution.recommendTitle}
           </p>
-        </div>,
-        'recommendTitle',
-      )}
+        </div>
 
-      {recommendProducts.map((product, i) => (
-        <PostCard
-          key={`recommend-${product.nodeId}`}
-          product={{
-            ...product,
-            left: RECOMMEND_COLUMNS[i % 2],
-            top: L.recommendCards + Math.floor(i / 2) * RECOMMEND_ROW_GAP,
-          }}
-          onOpen={(p) => navigate(`/market/product/${encodeURIComponent(productKey(p))}`)}
-        />
-      ))}
+        {/* PostCard 는 absolute 라 상대 좌표를 가진 상자 안에 넣는다 */}
+        <div
+          className="relative w-full shrink-0"
+          style={{ height: recommendGridHeight, marginTop: RECOMMEND_TITLE_GAP }}
+          data-name="RecommendGrid"
+        >
+          {recommendProducts.map((product, i) => (
+            <PostCard
+              key={`recommend-${product.nodeId}`}
+              product={{
+                ...product,
+                left: RECOMMEND_COLUMNS[i % 2],
+                top: Math.floor(i / 2) * RECOMMEND_ROW_GAP,
+              }}
+              onOpen={(p) => navigate(`/market/product/${encodeURIComponent(productKey(p))}`)}
+            />
+          ))}
+        </div>
 
-      {night
-        ? null
-        : block(
-            L.completeButton,
+        {night ? null : (
+          <div className="relative w-full shrink-0" style={{ marginTop: COMPLETE_BUTTON_GAP, height: COMPLETE_BUTTON_BLOCK }}>
             <CompleteButton
               enabled={isToday}
               completed={doneToday}
@@ -380,9 +420,9 @@ export default function RoutineScreen({ cycle: cycleProp }) {
                 markCompleted(selectedDate);
                 navigate('/home');
               }}
-            />,
-            'complete',
-          )}
+            />
+          </div>
+        )}
       </div>
     </Screen>
   );

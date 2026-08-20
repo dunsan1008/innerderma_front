@@ -32,8 +32,14 @@ function StepCard({ step, nodeId }) {
       data-name="StepCard"
     >
       <div className="relative flex w-full shrink-0 flex-col items-start gap-[8px] px-[12px] py-[14px]">
+        {/*
+          제목 줄: 번호 배지 + 제목 + 카테고리 태그.
+          제목이 길어지면 태그를 밀지 않고 **제목이 먼저 줄어들며 줄바꿈**되어야 한다.
+          그래서 제목 쪽은 flex-1 + min-w-0 로 줄어들 수 있게 두고, 태그만 shrink-0 로 지킨다.
+          (Figma 의 titleFlex 는 제목 영역의 기본 폭 비율을 잡아 둔 값이라 flex-grow 로 쓴다)
+        */}
         <div className="relative flex w-full shrink-0 items-start gap-[8px]">
-          <div className="relative flex min-w-px items-center gap-[8px]" style={{ flex: `${step.titleFlex} 0 0` }}>
+          <div className="relative flex min-w-0 flex-1 items-start gap-[8px]" style={{ flexGrow: step.titleFlex }}>
             <div className="relative flex size-[24px] shrink-0 items-center justify-center rounded-full bg-text-strong">
               <div className="relative flex shrink-0 flex-col items-start">
                 <p className="relative shrink-0 font-sans text-[10px] font-bold leading-[10px] text-white [word-break:break-word]">
@@ -41,8 +47,8 @@ function StepCard({ step, nodeId }) {
                 </p>
               </div>
             </div>
-            <div className="relative flex shrink-0 flex-col items-start">
-              <p className="relative shrink-0 font-sans text-[14px] font-bold leading-[21px] text-text-strong [word-break:break-word]">
+            <div className="relative flex min-w-0 flex-col items-start">
+              <p className="relative font-sans text-[14px] font-bold leading-[21px] text-text-strong [word-break:break-word]">
                 {step.title}
               </p>
             </div>
