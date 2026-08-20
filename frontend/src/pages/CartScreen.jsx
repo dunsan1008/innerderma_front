@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useT } from '@/i18n';
 import { FRAME } from '@/theme';
 import Screen from '@/components/layout/Screen';
@@ -198,6 +199,7 @@ function CartItemCard({ item, selected, onToggle, onRemove, onQuantity, onDelive
 }
 
 export default function CartScreen() {
+  const navigate = useNavigate();
   const t = useT();
   const items = useCartStore((s) => s.items);
   const selectedIds = useCartStore((s) => s.selectedIds);
