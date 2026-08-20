@@ -228,7 +228,15 @@ export default function CartScreen() {
    * 상품 3개까지는 스크롤 없이 한 화면에 들어온다.
    */
   const listBottom = LIST_TOP + items.length * (CARD_HEIGHT + CARD_GAP);
-  const summaryTop = items.length ? listBottom + 12 : EMPTY_MESSAGE_BOTTOM + 24;
+  /**
+   * 빈 상태에서는 구매하기 블록이 촬영 버튼(탭바 중앙 원, 위끝 ≈ 탭바 top - 12) 바로 위에
+   * 오되 가려지지 않는 위치에 붙는다. 탭바 가시 영역 = FRAME.height - TAB_BAR_HEIGHT = 756.
+   * 촬영 버튼(68 원)이 탭바 위로 튀어나와 실제 차지 영역은 그보다 좁다.
+   * summaryBottom ≤ 756 - 20(=여유) 이면 안 가리므로, summaryTop ≤ 736 - SUMMARY_HEIGHT ≈ 627.
+   */
+  const SUMMARY_BOTTOM_MAX = FRAME.height - TAB_BAR_HEIGHT - 20; // 736
+  const emptySummaryTop = SUMMARY_BOTTOM_MAX - SUMMARY_HEIGHT;   // ≈627
+  const summaryTop = items.length ? listBottom + 12 : Math.max(EMPTY_MESSAGE_BOTTOM + 24, emptySummaryTop);
   const contentBottom = summaryTop + SUMMARY_HEIGHT;
   /** Figma 프레임은 933 이었지만, 내용이 짧을 때 빈 높이를 잡아 둘 이유가 없다 */
   const frameHeight = Math.max(contentBottom, FRAME.height);

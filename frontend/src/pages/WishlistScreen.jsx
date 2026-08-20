@@ -106,12 +106,23 @@ export default function WishlistScreen() {
       tabBar={<TabBar className="relative h-[96px] w-[393px]" />}
       contentBottom={contentBottom}
     >
-      {/* MY 찜 */}
+      {/* MY 찜 + 뒤로가기 */}
       <div
-        className="absolute left-[24px] flex h-[24px] w-[345px] items-center justify-between"
+        className="absolute left-[24px] flex h-[24px] w-[345px] items-center gap-[10px]"
         style={{ top: 154 + HEADER_GROWTH }}
         data-node-id="870:5198"
       >
+        <button
+          type="button"
+          aria-label={t.common.back}
+          onClick={() => navigate(-1)}
+          className="relative -ml-[4px] flex size-[24px] shrink-0 items-center justify-center text-text-strong"
+          data-testid="wishlist-back"
+        >
+          <svg width="11" height="19" viewBox="0 0 11 19" fill="none" aria-hidden>
+            <path d="M9.75 1.25L1.5 9.5l8.25 8.25" stroke="currentColor" strokeWidth="2.5" />
+          </svg>
+        </button>
         <div className="relative flex shrink-0 flex-col items-start">
           <p className="relative shrink-0 whitespace-nowrap font-sans text-[20px] font-bold leading-[19.5px] text-text-strong [word-break:break-word]">
             {t.market.wishlist}
