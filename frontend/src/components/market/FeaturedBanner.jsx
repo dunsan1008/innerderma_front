@@ -7,9 +7,10 @@ import { translateTag } from '@/lib/marketTags';
  * 추천 상품 배너 (Figma `Frame 74` 870:5061 / `Frame 77` 870:5523 / `Frame 78` 870:5342).
  * 사진(비율 229/143, 상단 라운드 15) + 흰 정보 띠 + 상품명·가격·태그로 구성된다.
  *
- * 여러 제품을 일정 주기로 자동 전환한다.
+ * 여러 제품을 일정 주기로 자동 전환하고, 손으로도 좌우로 넘길 수 있다.
  *  - 4초마다 다음 슬라이드
- *  - 좌우 스와이프(드래그)로 수동 전환
+ *  - 좌우 스와이프(드래그)로 수동 전환 — 배너 밖에서 손을 떼도 인식된다
+ *  - 키보드 ←/→ 로도 전환 (Enter/Space 는 상세 열기)
  *  - 하단 인디케이터로 현재 위치 표시, 점을 눌러 이동
  *  - 포인터가 배너 위에 있으면 자동 전환을 멈춘다
  *
@@ -19,7 +20,7 @@ import { translateTag } from '@/lib/marketTags';
 
 /** 자동 전환 주기 */
 const INTERVAL_MS = 4000;
-/** 스와이프로 인정할 최소 이동 거리 */
+/** 스와이프로 인정할 최소 가로 이동 거리 */
 const SWIPE_THRESHOLD = 40;
 
 export default function FeaturedBanner({ banner, slides, onOpen }) {
@@ -28,7 +29,8 @@ export default function FeaturedBanner({ banner, slides, onOpen }) {
   const items = slides?.length ? slides : [banner];
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const dragStartX = useRef(null);
+  /** 드래그 시작점. 세로 우세 여부를 보려고 y 도 함께 기억한다 */
+  const dragStart = useRef(null);
 
   const go = useCallback(
     (next) => setIndex(((next % items.length) + items.length) % items.length),
@@ -55,34 +57,74 @@ export default function FeaturedBanner({ banner, slides, onOpen }) {
   const current = items[Math.min(index, items.length - 1)] ?? items[0];
 
   const onPointerDown = (e) => {
-    dragStartX.current = e.clientX;
+    dragStart.current = { x: e.clientX, y: e.clientY };
+    /*
+      포인터를 이 요소에 붙여 둔다.
+      이게 없으면 배너 밖에서 손을 떼는 순간 pointerup 이 다른 요소로 가버려
+      스와이프가 무시됐다(가로로 크게 밀면 손이 배너를 벗어나기 쉽다).
+    */
+    e.currentTarget.setPointerCapture?.(e.pointerId);
   };
 
   const onPointerUp = (e) => {
-    if (dragStartX.current === null) return;
-    const dx = e.clientX - dragStartX.current;
-    dragStartX.current = null;
-    // 스와이프였으면 슬라이드를 넘기고, 제자리 탭이었으면 상세로 보낸다
-    if (Math.abs(dx) < SWIPE_THRESHOLD) {
+    const start = dragStart.current;
+    dragStart.current = null;
+    if (!start) return;
+
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+
+    // 제자리 탭이면 상세로 보낸다
+    if (Math.abs(dx) < SWIPE_THRESHOLD && Math.abs(dy) < SWIPE_THRESHOLD) {
       onOpen?.(current);
       return;
     }
+    // 세로가 더 크면 화면을 스크롤하려던 것이므로 슬라이드를 넘기지 않는다
+    if (Math.abs(dy) > Math.abs(dx)) return;
+
     go(index + (dx < 0 ? 1 : -1));
+  };
+
+  /** 스크롤·제스처가 가로채이면 드래그 상태만 정리한다 */
+  const onPointerCancel = () => {
+    dragStart.current = null;
+  };
+
+  const onKeyDown = (e) => {
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      go(index + 1);
+      return;
+    }
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      go(index - 1);
+      return;
+    }
+    if (onOpen && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onOpen(current);
+    }
   };
 
   return (
     <>
       <div
-        role={onOpen ? 'button' : undefined}
-        tabIndex={onOpen ? 0 : undefined}
-        aria-label={onOpen ? `${current.name} ${t.common.viewDetail}` : undefined}
-        onKeyDown={onOpen ? (e) => (e.key === 'Enter' || e.key === ' ') && onOpen(current) : undefined}
+        role={onOpen ? 'button' : 'group'}
+        tabIndex={0}
+        aria-label={onOpen ? `${current.name} ${t.common.viewDetail}` : current.name}
+        onKeyDown={onKeyDown}
         className={`absolute flex flex-col items-start ${onOpen ? 'cursor-pointer' : ''}`}
-        style={{ left: fx, top: fy, width: fw, height: fh }}
+        /*
+          touchAction pan-y — 세로 스크롤은 브라우저에 넘기고 가로 제스처만 여기서 처리한다.
+          (기본값이면 가로로 밀 때 브라우저가 스크롤/스와이프 백으로 가져가 버린다)
+        */
+        style={{ left: fx, top: fy, width: fw, height: fh, touchAction: 'pan-y' }}
         onPointerEnter={() => setPaused(true)}
         onPointerLeave={() => setPaused(false)}
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
+        onPointerCancel={onPointerCancel}
         data-node-id={banner.nodeId}
         data-name="Frame 74"
         data-testid="featured-banner"
