@@ -1,0 +1,320 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 `frontend/src/constants/basicSolution.js` 에 표시 문구 상수를 정의": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252666778
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252681929
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787253422705
+      }
+    ],
+    "1.2 폴백 근거 더미와 상한 상수를 같은 파일에 추가": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252666842
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787253441278
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787253945063
+      }
+    ],
+    "2.1 `frontend/src/hooks/useBasicSolution.js` 에 `normalizeBasicSource` 를 구현하고 export": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252666865
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252690800
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787253429544
+      }
+    ],
+    "2.2 `useBasicSolution()` 훅 본체 구현": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252666891
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787253447677
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787253951792
+      }
+    ],
+    "3.1 `frontend/src/lib/solutionView.js` 에 `toFullView(solution, rt, cycle)` 를 순수 이동": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252666919
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787253962044
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787255049830
+      }
+    ],
+    "3.2 같은 파일에 `toBasicView(source, cycle)` 구현": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252666945
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787255057521
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787255983614
+      }
+    ],
+    "4. 체크포인트 - 데이터 계층 확인": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252666969
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787256082664
+      }
+    ],
+    "5.1 `RoutineSections.jsx` 의 4개 컴포넌트에 라벨 prop 을 추가 (기본값 = 기존 `useT()` 값)": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252666996
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252692100
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787253431416
+      }
+    ],
+    "6.1 `frontend/src/components/routine/SolutionBody.jsx` 렌더 구조 구현": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252667028
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787256107288
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787256520279
+      }
+    ],
+    "6.2 높이 측정과 사이클 전환 처리를 `SolutionBody` 에 통합": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252667085
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787256531191
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787257067983
+      }
+    ],
+    "7.1 본문 렌더·측정 코드를 제거하고 `toFullView` + `SolutionBody` 로 교체": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252667118
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787257116293
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787257915822
+      }
+    ],
+    "8.1 기능 회귀 확인": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252667144
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787257922005
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787258040177
+      }
+    ],
+    "8.2 픽셀 회귀 확인 (기존 실패와 신규 실패를 구분)": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252667169
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787258046791
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787258091917
+      }
+    ],
+    "9.1 자리표시 UI 를 제거하고 기본 솔루션 본문을 연결": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252667199
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787258098530
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787258679207
+      }
+    ],
+    "9.2 사이클 세그먼트 토글과 CTA 버튼 연결": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252667228
+      },
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787258685666
+      }
+    ],
+    "9.3 측정값 기반 프레임 높이·`contentBottom` 계산 연결": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252667261
+      }
+    ],
+    "10.1 전체 검증 실행": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252667286
+      }
+    ],
+    "10.2 임시 산출물 정리": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787252667312
+      }
+    ],
+    "5. 공용 섹션 컴포넌트에 옵셔널 라벨 prop 추가": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787253431473
+      }
+    ],
+    "1. 기본 솔루션 문구·폴백 상수 모듈 신설": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787253945226
+      }
+    ],
+    "2. 근거 데이터 정규화와 병렬 조회 훅": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787253951826
+      }
+    ],
+    "3. 뷰 모델 어댑터": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787255983694
+      }
+    ],
+    "6. 공유 본문 컴포넌트 `SolutionBody`": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787257068038
+      }
+    ],
+    "7. `RoutineScreen` 을 `SolutionBody` 로 위임 전환": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787257915861
+      }
+    ],
+    "8. 회귀 검증 관문 (여기서 통과하지 못하면 다음 단계로 넘어가지 않는다)": [
+      {
+        "executionId": "e3fcc694-6831-4cdf-b967-8341a99bada5",
+        "chatSessionId": "sess_cb2a23f8-d657-4e99-aebd-9847649bc210",
+        "timestamp": 1787258091984
+      }
+    ]
+  }
+}
