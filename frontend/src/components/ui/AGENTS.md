@@ -10,7 +10,7 @@ Small, generic, feature-agnostic UI primitives shared across screens: a variant-
 | File | Description |
 |------|-------------|
 | `Button.jsx` | Shared button matching Figma component set `Button` (`643:1189`) with three variants — `enabled` (black), `enabled2` (white/outlined), `disable` (grey, non-interactive); default size 353×52 with radius 14, overridable via `className`. |
-| `Spinner.jsx` | Loading spinner composed of two stacked Figma image assets (a static base ring + a rotating arc); rotation is applied via CSS `animate-[spin_1s_linear_infinite]` on the arc's wrapper. |
+| `Spinner.jsx` | Loading spinner composed of two stacked Figma image assets (a static base ring + a rotating arc); rotation is applied via CSS `animate-[spin_2s_linear_infinite]` on the arc's wrapper (2s per revolution — halved from the original 1s because it read as too hurried). Shared by every loading screen, so changing the duration here covers all of them. |
 
 ## For AI Agents
 
