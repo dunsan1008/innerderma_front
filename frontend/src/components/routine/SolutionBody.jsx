@@ -48,21 +48,42 @@ import {
  */
 const WHY_BOTTOM_GAP = 32;
 
-/** 추천 카드 2x2 그리드 — 마켓 1 과 같은 열 좌표·행 간격을 쓴다 */
-const RECOMMEND_COLUMNS = [20, 204];
-const RECOMMEND_ROW_GAP = 294;
-/** PostCard 실측 높이 (마켓 카드와 동일) */
-const POST_CARD_HEIGHT = 272;
+/**
+ * 추천 카드 2열 격자의 간격.
+ *
+ * 마켓 1 의 실측 좌표(열 20 / 204, 행 간격 294, 카드 167x272)를 **간격**으로 환산한 값이다.
+ *   열 간격 = 204 - (20 + 167) = 17
+ *   행 간격 = 294 - 272 = 22
+ * 좌표(absolute)가 아니라 간격(flex-wrap + gap)으로 두는 이유: 솔루션 화면은 제품명을
+ * 자르지 않으므로(`clampName={false}`) 이름이 길면 카드가 아래로 자란다. 행 top 을
+ * 294 고정으로 계산하면 자란 카드가 다음 행 카드와 겹친다(카드 여유는 22px 뿐이다).
+ * 흐름 배치면 다음 행이 실제 카드 높이만큼 밀려나고, 격자 높이도 브라우저가 정하므로
+ * 본문 scrollHeight 측정값이 항상 실제 내용과 일치한다.
+ * 카드 높이가 272 그대로일 때의 좌표는 예전 절대좌표와 동일하다(20 / 204, 행 간격 294).
+ */
+const RECOMMEND_COL_GAP = 17;
+const RECOMMEND_ROW_GAP = 22;
 
 /**
  * 아래 세 값은 Figma 실측 좌표에서 뽑은 "블록 사이 간격"이다.
  * 흐름 배치로 바꾸면서 절대 y 대신 간격으로 표현했다.
  *  - 추천 제목 끝(1508) → 카드 시작(1517) = 9
- *  - 카드 끝(모닝 2311) → 완료 버튼(2337) = 26, 버튼 블록 높이 50 + 아래 여백 22
+ *  - 카드 끝(모닝 2311) → 완료 버튼 블록 시작(2337) = 26
  */
 const RECOMMEND_TITLE_GAP = 9;
 const CTA_GAP = 26;
-const CTA_BLOCK = 72;
+/**
+ * CTA 블록 높이 — 촬영 후 수행 완료 버튼(Figma 870:4234)의 블록 높이 102 를 쓴다.
+ * (위 여백 20 + 버튼 50 + 아래 여백 32)
+ *
+ * 예전에는 72(=20+50+2)였다. `CompleteButton` 은 자기 자신이 h-102 상자를 갖고 있어
+ * 슬롯 밖으로 30px 넘쳐 흐르면서도 scrollHeight 에는 102 로 잡혔고, 그래서 촬영 후
+ * 화면의 버튼 아래 여백은 실측 58px(32 + 26)이었다. 반면 촬영 전 CTA 는 슬롯 높이가
+ * 그대로 적용돼 28px 이라 같은 자리의 버튼인데 아래 여백만 30px 달랐다.
+ * 슬롯을 102 로 맞추면 촬영 후 화면은 넘침이 사라질 뿐 총 높이가 그대로이고(102 유지),
+ * 촬영 전 화면이 촬영 후와 같은 하단 여백을 갖는다.
+ */
+const CTA_BLOCK = 102;
 
 /**
  * 모닝 전용 — 저녁 세안 루틴 안내 카드 (Figma 870:4154).
@@ -216,6 +237,7 @@ export default function SolutionBody({ view, cycle, onMeasure, cta }) {
 
   const navigate = useNavigate();
   const t = useT();
+  const wrap = useWrapClass();
   const night = cycle !== 'morning';
   /** 기본 솔루션은 Figma 원본 노드가 없다 — data-name 만 붙이고 없는 node id 를 발명하지 않는다 */
   const basic = view.depth === 'basic';
@@ -253,10 +275,7 @@ export default function SolutionBody({ view, cycle, onMeasure, cta }) {
   /** 추천 제목은 basic 만 자체 문구를 갖는다. full 은 기존 번역 문구로 폴백한다 */
   const recommendTitle = view.recommend.title ?? t.solution.recommendTitle;
 
-  /** 추천 그리드 높이 — PostCard 가 absolute 라 감싸는 상자가 높이를 가져야 한다 */
   const recommendProducts = view.recommend.products;
-  const recommendRows = Math.ceil(recommendProducts.length / 2);
-  const recommendGridHeight = recommendRows === 0 ? 0 : (recommendRows - 1) * RECOMMEND_ROW_GAP + POST_CARD_HEIGHT;
 
   return (
     /*
@@ -315,25 +334,39 @@ export default function SolutionBody({ view, cycle, onMeasure, cta }) {
         data-node-id={ids?.recommendTitle}
         data-name={basic ? 'BasicRecommendTitle' : undefined}
       >
-        <p className="relative shrink-0 whitespace-nowrap font-sans text-[18px] font-bold leading-[26px] text-text-strong">
+        {/*
+          제목도 자르지 않는다. 예전에는 `whitespace-nowrap` 이라 문구가 길어지면 프레임
+          밖으로 흘러 잘렸다 — 현재 4개 언어 모두 한 줄에 들어가지만(가장 긴 일본어 342px
+          < 353) 여유가 11px 뿐이라, 넘칠 때 잘리지 말고 줄바꿈되도록 둔다.
+        */}
+        <p className={`relative w-full shrink-0 font-sans text-[18px] font-bold leading-[26px] text-text-strong ${wrap}`}>
           {recommendTitle}
         </p>
       </div>
 
-      {/* PostCard 는 absolute 라 상대 좌표를 가진 상자 안에 넣는다 */}
+      {/*
+        추천 격자. 카드를 흐름 배치(`flow`)로 놓고 좌표는 padding·gap 으로 만든다.
+        `items-start` 라 한 행의 두 카드는 높이가 달라도 위쪽에 정렬된다.
+      */}
       <div
-        className="relative w-full shrink-0"
-        style={{ height: recommendGridHeight, marginTop: RECOMMEND_TITLE_GAP }}
+        className="flex w-full shrink-0 flex-wrap items-start px-[20px]"
+        style={{
+          marginTop: RECOMMEND_TITLE_GAP,
+          columnGap: RECOMMEND_COL_GAP,
+          rowGap: RECOMMEND_ROW_GAP,
+        }}
         data-name={basic ? 'BasicRecommendGrid' : 'RecommendGrid'}
       >
-        {recommendProducts.map((product, i) => (
+        {recommendProducts.map((product) => (
           <PostCard
             key={`recommend-${product.nodeId}`}
-            product={{
-              ...product,
-              left: RECOMMEND_COLUMNS[i % 2],
-              top: Math.floor(i / 2) * RECOMMEND_ROW_GAP,
-            }}
+            product={product}
+            flow
+            /*
+              솔루션 화면에서는 제품명을 자르지 않는다 — 길어지면 줄바꿈되어 전부 보인다.
+              마켓 카드의 "두 줄 초과분은 …" 규칙은 마켓 화면에만 적용된다(기본값 true).
+            */
+            clampName={false}
             onOpen={(p) => navigate(`/market/product/${encodeURIComponent(productKey(p))}`)}
           />
         ))}
