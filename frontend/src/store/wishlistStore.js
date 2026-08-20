@@ -20,7 +20,8 @@ import { useAuthStore } from '@/store/authStore';
  * 있으면(= 실제 백엔드 상품, hooks/useMarketProducts.js가 붙여준다) 백그라운드로
  * 서버에도 반영한다 — 실패해도 로컬 상태는 그대로 두고 콘솔에만 남긴다(대회 시연 중
  * 흐름이 끊기지 않게). 더미 상품(productCode 없음)은 예전처럼 로컬 전용으로 동작한다.
- * 앱 시작 시 서버 찜 목록을 가져와 로컬과 합치는 건 아직 안 함(다음 과제).
+ * 앱 시작 시 서버 찜 목록을 가져와 로컬과 합치는 건 mergeFromServer가 하는데,
+ * `lib/syncBackendCollections.js`가 SplashScreen 재방문 시 호출한다.
  */
 function syncToggle(product, nowWished) {
   const userCode = useAuthStore.getState().userCode;
@@ -59,6 +60,10 @@ export const useWishlistStore = create(
         set((state) => ({ keys: state.keys.filter((k) => !targets.includes(k)) }));
         for (const product of products) syncToggle(product, false);
       },
+
+      /** 서버 찜 목록을 로컬에 병합한다 — syncToggle을 호출하지 않는다(이미 서버에 있는 걸 다시 안 보냄) */
+      mergeFromServer: (keys) =>
+        set((state) => ({ keys: Array.from(new Set([...state.keys, ...keys])) })),
 
       clear: () => set({ keys: [] }),
     }),

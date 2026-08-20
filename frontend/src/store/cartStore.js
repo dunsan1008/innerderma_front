@@ -16,7 +16,8 @@ import { useAuthStore } from '@/store/authStore';
  * 반영한다(추가/수량변경/삭제). 실패해도 로컬 상태는 그대로 둔다(대회 시연 흐름 유지).
  * 더미 상품(productCode 없음, 예: 베스트 조합)은 예전처럼 로컬 전용이다.
  * 로그아웃 시 clear()는 서버 장바구니를 지우지 않는다 — 다음 로그인 때 되찾아야 하므로
- * 로컬 표시만 비운다. 앱 시작 시 서버 장바구니를 가져와 로컬과 합치는 것도 아직 안 함(다음 과제).
+ * 로컬 표시만 비운다. 앱 시작 시 서버 장바구니를 가져와 로컬과 합치는 건 mergeFromServer가
+ * 하는데, `lib/syncBackendCollections.js`가 SplashScreen 재방문 시 호출한다.
  */
 function syncAdd(product, quantity) {
   const userCode = useAuthStore.getState().userCode;
@@ -142,6 +143,23 @@ export const useCartStore = create(
         get()
           .items.filter((it) => get().selectedIds.includes(it.id))
           .reduce((sum, it) => sum + it.price * it.quantity, 0),
+
+      /**
+       * 서버 장바구니를 로컬에 병합한다 — 이미 로컬에 있는 id는 건드리지 않는다
+       * (다른 탭에서 방금 추가해 서버 동기화가 아직 안 갔을 수도 있는 항목을
+       * 서버의 옛 상태로 덮어쓰지 않기 위함). syncAdd 등을 호출하지 않는다 —
+       * 서버에 이미 있는 걸 다시 서버로 보내는 건 의미가 없다.
+       */
+      mergeFromServer: (items) =>
+        set((state) => {
+          const existingIds = new Set(state.items.map((it) => it.id));
+          const toAdd = items.filter((it) => !existingIds.has(it.id));
+          if (!toAdd.length) return state;
+          return {
+            items: [...state.items, ...toAdd],
+            selectedIds: [...state.selectedIds, ...toAdd.map((it) => it.id)],
+          };
+        }),
 
       clear: () => set({ items: [], selectedIds: [] }),
     }),
