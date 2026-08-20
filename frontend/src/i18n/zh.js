@@ -95,10 +95,9 @@ export default {
     reopenAria: '再次查看每日肌肤分析',
     factors: {
       pigmentation: '色素',
-      pore: '毛孔',
+      poreTexture: '毛孔与肤质',
       wrinkle: '皱纹',
       redness: '泛红',
-      texture: '肤质',
     },
   },
 
@@ -181,6 +180,25 @@ export default {
     categoryElasticity: '弹力',
   },
 
+  marketTagLabels: {
+    건성: '干性',
+    미백개선: '美白',
+    수부지: '缺水出油',
+    시술케어: '术后护理',
+    장내환경: '肠道健康',
+    '저자극 인증': '低刺激认证',
+    저탄수: '低碳水',
+    정밀진단: '精密诊断',
+    주름개선: '抗皱',
+    지방재생: '脂肪再生',
+    지방파괴: '燃脂',
+    피부과전용: '皮肤科专用',
+    피부보습: '保湿',
+    피부보호: '肌肤保护',
+    피부재생: '肌肤再生',
+    피부탄력: '弹力',
+  },
+
   filter: {
     gender: '性别',
     age: '年龄',
@@ -244,6 +262,8 @@ export default {
   solutionLoading: {
     deriving: '正在生成护理方案。\n请稍候',
     aggregating: '正在汇总数据。',
+    analysisFailedTitle: '面部分析失败',
+    analysisFailedSub: '将根据自我检测信息为您准备护理流程。',
   },
 
   errorBoundary: {

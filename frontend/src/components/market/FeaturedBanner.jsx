@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n';
 import { clampSingleLine, joinNameLines } from '@/lib/productName';
+import { translateTag } from '@/lib/marketTags';
 
 /**
  * 추천 상품 배너 (Figma `Frame 74` 870:5061 / `Frame 77` 870:5523 / `Frame 78` 870:5342).
@@ -257,7 +258,7 @@ export default function FeaturedBanner({ banner, slides, onOpen }) {
               data-name="Text"
             >
               <p className="relative shrink-0 whitespace-nowrap text-center font-sans text-[11px] font-medium leading-[13.5px] text-white">
-                {tag.label ?? tag}
+                {tag.label ?? translateTag(tag, t)}
               </p>
             </div>
           );

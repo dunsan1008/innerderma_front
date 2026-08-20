@@ -103,10 +103,9 @@ export default {
     reopenAria: '데일리 스킨 분석 다시 보기',
     factors: {
       pigmentation: '색소',
-      pore: '모공',
+      poreTexture: '모공·피부결',
       wrinkle: '주름',
       redness: '홍조',
-      texture: '피부결',
     },
   },
 
@@ -202,6 +201,30 @@ export default {
     categoryElasticity: '피부탄력',
   },
 
+  /**
+   * 더미 상품 카탈로그(marketProducts.js/wimProducts.js/productDetail.js/marketScreens.js)의
+   * 태그는 한국어 문자열이 그대로 데이터 값이라, 이 키(원문 그대로)로 찾아 표시 언어로 바꾼다.
+   * 실제 백엔드 상품의 skinStateTags 는 hooks/useMarketProducts.js 의 별도 맵을 쓴다.
+   */
+  marketTagLabels: {
+    건성: '건성',
+    미백개선: '미백개선',
+    수부지: '수부지',
+    시술케어: '시술케어',
+    장내환경: '장내환경',
+    '저자극 인증': '저자극 인증',
+    저탄수: '저탄수',
+    정밀진단: '정밀진단',
+    주름개선: '주름개선',
+    지방재생: '지방재생',
+    지방파괴: '지방파괴',
+    피부과전용: '피부과전용',
+    피부보습: '피부보습',
+    피부보호: '피부보호',
+    피부재생: '피부재생',
+    피부탄력: '피부탄력',
+  },
+
   // ─── 필터 ───
   filter: {
     gender: '성별',
@@ -272,6 +295,8 @@ export default {
   solutionLoading: {
     deriving: '솔루션을 도출 중입니다.\n잠시만 기다려주세요',
     aggregating: '데이터를 취합 중입니다.',
+    analysisFailedTitle: '얼굴 분석에 실패했어요',
+    analysisFailedSub: '자가진단 정보로 루틴을 준비할게요.',
   },
 
   // ─── 에러 경계 ───

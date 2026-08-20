@@ -1,4 +1,5 @@
 import divider from '@/assets/figma/step-divider.svg';
+import { useWrapClass } from '@/i18n';
 
 /**
  * 루틴 단계 목록.
@@ -25,6 +26,7 @@ const TAG_STYLE = {
 };
 
 function StepCard({ step, nodeId }) {
+  const wrap = useWrapClass();
   return (
     <div
       className="relative flex w-[353px] shrink-0 flex-col items-start rounded-[16px] border-2 border-solid border-line"
@@ -48,8 +50,8 @@ function StepCard({ step, nodeId }) {
               </div>
             </div>
             <div className="relative flex min-w-0 flex-col items-start">
-              {/* 한국어는 어절 단위로 줄바꿈한다 (keep-all) — 단어 중간에서 잘리면 읽기 나쁘다 */}
-              <p className="relative font-sans text-[14px] font-bold leading-[21px] text-text-strong [word-break:keep-all]">
+              {/* 한국어는 어절 단위로, 나머지 언어는 각 언어 기본 규칙으로 줄바꿈한다 */}
+              <p className={`relative font-sans text-[14px] font-bold leading-[21px] text-text-strong ${wrap}`}>
                 {step.title}
               </p>
             </div>
@@ -64,7 +66,7 @@ function StepCard({ step, nodeId }) {
           </div>
         </div>
         <div className="relative flex w-full shrink-0 flex-col items-start">
-          <p className="relative shrink-0 font-sans text-[12px] font-medium leading-[18px] text-text-strong [word-break:keep-all]">
+          <p className={`relative shrink-0 font-sans text-[12px] font-medium leading-[18px] text-text-strong ${wrap}`}>
             {step.description}
           </p>
         </div>

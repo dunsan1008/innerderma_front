@@ -36,4 +36,23 @@ export function getT() {
   return dictionaries[lang] || dictionaries.ko;
 }
 
+/**
+ * 문장형(설명·안내) 텍스트의 줄바꿈 규칙. `다국어 텍스트 줄바꿈 규칙.md` 참고.
+ *
+ * 한국어만 어절 단위로 끊는다(keep-all) — 나머지 언어에 그대로 적용하면
+ * 중국어·일본어처럼 띄어쓰기가 없는 언어는 끊을 지점을 못 찾아 줄바꿈 자체가
+ * 안 되고 컨테이너 밖으로 흘러넘친다. 영어·중국어·일본어는 각 언어의 기본
+ * 줄바꿈(word-break: normal)에 맡기고, 컨테이너 폭을 넘는 단어만
+ * overflow-wrap: break-word 로 강제 개행한다.
+ *
+ * 버튼 라벨처럼 애초에 한 줄로 두는 짧은 문구에는 적용하지 않는다 —
+ * 여러 줄로 접힐 수 있는 문장·설명형 텍스트에만 쓴다.
+ */
+export function useWrapClass() {
+  const lang = useUiStore((s) => s.lang);
+  return lang === 'ko'
+    ? '[word-break:keep-all] [overflow-wrap:break-word]'
+    : '[word-break:normal] [overflow-wrap:break-word]';
+}
+
 export { dictionaries };
