@@ -47,11 +47,19 @@ export const useUiStore = create(
       openLang: () => set({ langOpen: true }),
       closeLang: () => set({ langOpen: false }),
 
+      /**
+       * 데일리 스킨 분석 모달 — 솔루션 도출 직후 메인 솔루션 화면에서 한 번 자동으로
+       * 뜨고, 이후에는 RoutineScreen 의 재확인 버튼으로 언제든 다시 열 수 있다.
+       */
+      skinAnalysisOpen: false,
+      openSkinAnalysis: () => set({ skinAnalysisOpen: true }),
+      closeSkinAnalysis: () => set({ skinAnalysisOpen: false }),
+
       /** 표시 언어 — 저장된 값이 없으면 브라우저 언어에서 추론 */
       lang: detectLang(),
       setLang: (code) => set({ lang: SUPPORTED_LANGS.includes(code) ? code : DEFAULT_LANG }),
 
-      closeAll: () => set({ calendarOpen: false, washCheckOpen: false, langOpen: false }),
+      closeAll: () => set({ calendarOpen: false, washCheckOpen: false, langOpen: false, skinAnalysisOpen: false }),
     }),
     {
       name: 'innerderma.ui',

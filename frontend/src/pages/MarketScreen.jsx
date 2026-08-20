@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useT } from '@/i18n';
 import Screen from '@/components/layout/Screen';
@@ -12,6 +12,7 @@ import StoreToggle from '@/components/market/StoreToggle';
 import { MARKET_SCREENS } from '@/constants/marketScreens';
 import { productKey } from '@/store/wishlistStore';
 import { useCareStore } from '@/store/careStore';
+import { useMarketProducts } from '@/hooks/useMarketProducts';
 
 /**
  * 마켓 화면.
@@ -27,6 +28,16 @@ import { useCareStore } from '@/store/careStore';
  * 그 전에는 보여줄 근거가 없다.
  */
 const ROUTE_BY_CATEGORY = { all: '/market', oily: '/market/oily', skin: '/market/elasticity' };
+
+/**
+ * 상품 목록 무한 스크롤 — 백엔드 `/products` 가 page/size 파라미터를 지원하지 않아
+ * (전체 목록을 한 번에 내려준다) 이미 다 받아온 배열을 화면에서 나눠 보여준다.
+ * 처음엔 PAGE_SIZE 개만 렌더하고, 목록 끝 근처(IntersectionObserver 센티널)에
+ * 스크롤이 닿으면 다음 PAGE_SIZE 개를 더 보여준다.
+ */
+const PAGE_SIZE = 10;
+/** 카드 높이(272) + 다음 섹션까지 하단 여백(107) — buildSlots/marketScreens.js와 동일 공식 */
+const CARD_ROW_HEIGHT = 272 + 107;
 
 /** 필터 행의 각 드롭다운이 여는 바텀시트. 번역되는 라벨이 아니라 안정적인 key 로 찾는다. */
 const FILTER_ROUTE_BY_KEY = {
@@ -49,13 +60,14 @@ const HEADER_GROWTH = MARKET_HEADER_HEIGHT - 129;
 const TAB_BAR_HEIGHT = 96;
 
 /**
- * 스토어 전환 토글이 놓이는 y — 상단 고정 헤더(129) 바로 아래, 제목 위.
+ * 스토어 전환 토글이 놓이는 y — 상단 고정 헤더 바로 아래, 제목 위.
  * 어느 스토어를 보고 있는지가 화면에서 가장 먼저 읽혀야 해서 맨 위로 올렸다.
+ * (Figma 헤더 129 기준 145 에서, 헤더를 줄인 만큼 HEADER_GROWTH 를 더해 100 이 된다)
  */
 const TOGGLE_TOP = 145 + HEADER_GROWTH;
 /**
  * 토글이 차지하는 높이(56) + 아래 여백 — 제목 이하 모든 요소를 이만큼 밀어낸다.
- * 헤더가 129 → 157 로 커진 만큼(HEADER_GROWTH)도 함께 더한다.
+ * 헤더가 129 → 84 로 줄어든 만큼(HEADER_GROWTH, 음수)도 함께 더한다.
  * (TOGGLE_TOP 은 자기 좌표에 이미 HEADER_GROWTH 를 갖고 있어 중복으로 더하지 않는다)
  */
 const CONTENT_SHIFT = 68 + HEADER_GROWTH;
@@ -84,14 +96,60 @@ export default function MarketScreen({ variant = 'all' }) {
   const isWim = config.store === 'wim';
 
   /**
+   * 실제 상품(피쓰 서울/윔 스토어) — 있으면 이걸 쓰고, 없으면(세션 없음·요청 실패·
+   * 그 카테고리에 실상품이 하나도 없음) 기존 더미 카탈로그로 자연스럽게 폴백한다
+   * (RoutineScreen의 useCareSolution과 같은 패턴).
+   */
+  const { products: realProducts, frameContentHeight } = useMarketProducts(
+    isWim ? 'wim' : 'pith',
+    config.category,
+  );
+  const products = realProducts ?? config.products;
+
+  /** 스토어/카테고리(=variant)가 바뀌면 처음 페이지부터 다시 보여준다 */
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [variant]);
+
+  const visibleProducts = products.slice(0, visibleCount);
+  const hasMore = visibleCount < products.length;
+
+  /** 카드는 격자 순서대로 나열되므로, 마지막으로 보이는 카드의 top 만으로 높이를 구한다 */
+  const lastVisible = visibleProducts[visibleProducts.length - 1];
+  const frameHeight = lastVisible ? lastVisible.top + CARD_ROW_HEIGHT : frameContentHeight ?? config.frameHeight;
+  const tabBarTop = frameHeight - 96;
+
+  /** 더 보여줄 카드가 남아있으면 목록 끝 근처에서 다음 페이지를 이어 보여준다 */
+  const sentinelRef = useRef(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !hasMore) return undefined;
+    const scrollRoot = el.closest('.app-scroll');
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) setVisibleCount((c) => Math.min(c + PAGE_SIZE, products.length));
+      },
+      { root: scrollRoot, rootMargin: '400px 0px' },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasMore, products.length]);
+
+  /**
    * 촬영·자가진단 전이면 추천 배너에 다른 상품이 올라간다.
    * 화면 구성 자체는 촬영 여부와 무관하게 같다 — 오프라인 정밀진단·시술 데이터만으로도
    * 추천·판매가 되므로 마켓을 잠글 이유가 없다. 달라지는 건 추천 근거뿐이다.
+   *
+   * 실상품이 있으면 그중 최대 3개를 배너로 쓴다 — 촬영 전/후 구분은 더미에만
+   * 있는 개념이라(실제 데이터는 "카탈로그" 하나뿐) 실상품이 있을 때는 이 구분을 하지 않는다.
    */
   const beforeSolution = !hasCaptureToday;
-  const bannerSlides = beforeSolution
-    ? (config.preSolutionSlides ?? config.bannerSlides)
-    : config.bannerSlides;
+  const realBannerSlides = realProducts?.length
+    ? realProducts.slice(0, 3).map((p) => ({ image: p.layers[0]?.srcs[0], name: p.name, price: p.price, tags: p.tags }))
+    : null;
+  const bannerSlides =
+    realBannerSlides ?? (beforeSolution ? (config.preSolutionSlides ?? config.bannerSlides) : config.bannerSlides);
 
   /** 토글이 위로 들어온 만큼 배너 좌표를 전부 내린다 */
   const banner = useMemo(() => {
@@ -109,7 +167,7 @@ export default function MarketScreen({ variant = 'all' }) {
   return (
     <Screen
       className="bg-white"
-      height={config.frameHeight + CONTENT_SHIFT}
+      height={frameHeight + CONTENT_SHIFT}
       nodeId={config.nodeId}
       name={config.name}
       headerHeight={MARKET_HEADER_HEIGHT}
@@ -123,7 +181,7 @@ export default function MarketScreen({ variant = 'all' }) {
       }
       tabBarHeight={TAB_BAR_HEIGHT}
       tabBar={<TabBar className="relative h-[96px] w-[393px]" />}
-      contentBottom={config.tabBarTop + CONTENT_SHIFT}
+      contentBottom={tabBarTop + CONTENT_SHIFT}
     >
       {/* 스토어 전환 토글 — 상단바 바로 아래, 제목 위 */}
       <div
@@ -180,14 +238,25 @@ export default function MarketScreen({ variant = 'all' }) {
         onOpen={(item) => navigate(FILTER_ROUTE_BY_KEY[item.key])}
       />
 
-      {/* 상품 카드 — 촬영 여부와 무관하게 항상 보여준다 */}
-      {config.products.map((product) => (
+      {/* 상품 카드 — 촬영 여부와 무관하게 항상 보여준다. 무한 스크롤로 일부만 렌더한다 */}
+      {visibleProducts.map((product) => (
         <PostCard
           key={product.nodeId}
           product={{ ...product, top: product.top + CONTENT_SHIFT }}
           onOpen={openDetail}
         />
       ))}
+
+      {/* 다음 페이지를 이어 보여줄 트리거 — 화면에 보이지 않는 감지용 엘리먼트 */}
+      {hasMore ? (
+        <div
+          ref={sentinelRef}
+          aria-hidden
+          className="absolute left-0 h-px w-[393px]"
+          style={{ top: frameHeight - CARD_ROW_HEIGHT + CONTENT_SHIFT }}
+          data-testid="market-load-more-sentinel"
+        />
+      ) : null}
     </Screen>
   );
 }

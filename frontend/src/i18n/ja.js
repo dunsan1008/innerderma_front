@@ -89,6 +89,19 @@ export default {
     recommendTitle: '今日のソリューションに合うおすすめ商品',
   },
 
+  skinAnalysis: {
+    title: 'デイリースキン分析',
+    routineButton: 'デイリーケアルーティンを見る',
+    reopenAria: 'デイリースキン分析を再表示',
+    factors: {
+      pigmentation: '色素',
+      pore: '毛穴',
+      wrinkle: 'シワ',
+      redness: '赤み',
+      texture: 'キメ',
+    },
+  },
+
   noSolution: {
     title: 'まだソリューションが生成されていません',
     description: 'ソリューションはその日の撮影した肌状態を分析して作成されます。\n該当日になればケアルーティンを確認できます。',
@@ -203,6 +216,17 @@ export default {
     comboExpandAria: 'ベストコンボを開く',
     comboTitle: '人気のベストコンボ',
     comboCta: 'カートにまとめて追加',
+    detailFeaturesTitle: '製品の特徴',
+    detailUsageTitle: '使い方',
+    detailCareTitle: '保管方法・注意事項',
+    skincareIntro: '毎日のルーティンに気軽に取り入れられます。',
+    skincareUsageSteps: ['洗顔後、適量を取ります', '顔全体にやさしく伸ばします', '軽く叩き込むように吸収させます'],
+    skincareCare:
+      '直射日光を避け、涼しい場所で保管してください。使用後はキャップをしっかり閉めてください。使用中に赤みや刺激を感じた場合は使用を中止し、専門医にご相談ください。',
+    supplementIntro: '忙しい日でも手軽に続けられます。',
+    supplementUsageSteps: ['1日1回、表示量を摂取します', '水や飲み物とよく混ぜます', '継続して摂取するとより効果的です'],
+    supplementCare:
+      '直射日光を避け、涼しく乾燥した場所で保管してください。持病がある方、妊娠中・授乳中の方は摂取前に医師にご相談ください。アレルギー体質の方は原材料をご確認ください。',
   },
 
   selfCheck: {

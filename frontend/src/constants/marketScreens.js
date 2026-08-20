@@ -261,10 +261,26 @@ const BANNER_PRODUCTS = [
 
 const keyOf = (p) => (p.nameLines ? p.nameLines.join('').trim() : (p.name ?? '').trim());
 
+/**
+ * 실제 백엔드에서 불러온 상품(런타임에 fetch됨)을 등록해 findProductByKey 로
+ * 찾을 수 있게 한다. 이 파일의 다른 목록(ALL_KNOWN_PRODUCTS 등)은 모듈 로드
+ * 시점에 고정된 더미 데이터라 fetch로 받은 실상품을 담을 수 없어서, 별도
+ * 런타임 레지스트리를 둔다. `hooks/useMarketProducts.js`가 상품을 받을 때마다 호출한다.
+ */
+const dynamicProducts = new Map();
+
+export function registerDynamicProducts(products) {
+  for (const p of products) {
+    const key = keyOf(p);
+    if (key) dynamicProducts.set(key, p);
+  }
+}
+
 export function findProductByKey(key) {
   if (!key) return null;
   const target = String(key).trim();
   return (
+    dynamicProducts.get(target) ||
     ALL_KNOWN_PRODUCTS.find((p) => keyOf(p) === target) ||
     BANNER_PRODUCTS.find((p) => keyOf(p) === target) ||
     null

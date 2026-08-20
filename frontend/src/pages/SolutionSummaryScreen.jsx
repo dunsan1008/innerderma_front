@@ -43,7 +43,10 @@ export default function SolutionSummaryScreen() {
     // 첫 페인트 뒤에 켜야 트랜지션이 잘리지 않는다
     const raf = requestAnimationFrame(() => requestAnimationFrame(() => setShown(true)));
     const leaveTimer = setTimeout(() => setLeaving(true), LEAVE_AT);
-    const navTimer = setTimeout(() => navigate('/solution/night'), NAVIGATE_AT);
+    const navTimer = setTimeout(
+      () => navigate('/solution/night', { state: { showSkinAnalysis: true } }),
+      NAVIGATE_AT,
+    );
     return () => {
       cancelAnimationFrame(raf);
       clearTimeout(leaveTimer);

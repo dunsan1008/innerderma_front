@@ -101,7 +101,17 @@ export default function PostCard({ product, selectable = false, selected = false
             ) : (
               <div aria-hidden className="pointer-events-none absolute inset-0">
                 {layer.srcs.map((src) => (
-                  <img key={src} alt="" src={src} className="absolute size-full max-w-none object-cover" />
+                  // 실제 백엔드 상품의 imageUrl 이 아직 리졸브 안 되는 경우가 있다 —
+                  // 깨진 이미지 아이콘 대신 카드 배경(bg-image-bg)만 남긴다.
+                  <img
+                    key={src}
+                    alt=""
+                    src={src}
+                    className="absolute size-full max-w-none object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
                 ))}
               </div>
             )}

@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { INITIAL_CART_ITEMS, INITIAL_CART_SELECTED } from '@/constants/cartItems';
+import { addToCart, removeFromCart, updateCartQuantity } from '@/api/cart';
+import { useAuthStore } from '@/store/authStore';
 
 /**
  * 장바구니 상태 (Figma 1026:2397 MY 장바구니).
@@ -8,8 +10,33 @@ import { INITIAL_CART_ITEMS, INITIAL_CART_SELECTED } from '@/constants/cartItems
  *  - selectedIds: 선택된 상품 id (구매/선택삭제 대상)
  *
  * 새로고침해도 유지되도록 localStorage 에 저장한다.
- * 추후 백엔드 연동 시 `/api/v1/cart` CRUD 로 교체한다.
+ *
+ * 로컬 상태가 항상 즉시 UI를 반영하는 진실 소스다. 담기는 상품에 productCode/source가
+ * 있으면(실제 백엔드 상품 — ProductDetailScreen이 붙여준다) 백그라운드로 서버 장바구니에도
+ * 반영한다(추가/수량변경/삭제). 실패해도 로컬 상태는 그대로 둔다(대회 시연 흐름 유지).
+ * 더미 상품(productCode 없음, 예: 베스트 조합)은 예전처럼 로컬 전용이다.
+ * 로그아웃 시 clear()는 서버 장바구니를 지우지 않는다 — 다음 로그인 때 되찾아야 하므로
+ * 로컬 표시만 비운다. 앱 시작 시 서버 장바구니를 가져와 로컬과 합치는 건 mergeFromServer가
+ * 하는데, `lib/syncBackendCollections.js`가 SplashScreen 재방문 시 호출한다.
  */
+function syncAdd(product, quantity) {
+  const userCode = useAuthStore.getState().userCode;
+  if (!userCode || !product.productCode || !product.source) return;
+  addToCart(userCode, { productId: product.productCode, productSource: product.source, quantity })
+    .catch((err) => console.error('[cartStore] add sync failed', err));
+}
+function syncQuantity(item, quantity) {
+  const userCode = useAuthStore.getState().userCode;
+  if (!userCode || !item?.productCode || !item?.source) return;
+  updateCartQuantity(userCode, item.productCode, quantity)
+    .catch((err) => console.error('[cartStore] quantity sync failed', err));
+}
+function syncRemove(item) {
+  const userCode = useAuthStore.getState().userCode;
+  if (!userCode || !item?.productCode || !item?.source) return;
+  removeFromCart(userCode, item.productCode)
+    .catch((err) => console.error('[cartStore] remove sync failed', err));
+}
 
 /**
  * 저장값이 깨져 있어도 화면이 죽지 않게 형태를 맞춘다.
@@ -47,10 +74,13 @@ export const useCartStore = create(
         })),
 
       /** 수량 변경 (1 미만으로는 내려가지 않는다) */
-      setQuantity: (id, quantity) =>
+      setQuantity: (id, quantity) => {
+        const q = Math.max(1, quantity);
         set((state) => ({
-          items: state.items.map((it) => (it.id === id ? { ...it, quantity: Math.max(1, quantity) } : it)),
-        })),
+          items: state.items.map((it) => (it.id === id ? { ...it, quantity: q } : it)),
+        }));
+        syncQuantity(get().items.find((it) => it.id === id), q);
+      },
 
       /** 배송방법 변경 */
       setDelivery: (id, delivery) =>
@@ -67,27 +97,32 @@ export const useCartStore = create(
         })),
 
       /** 상품 한 개 제거 (X 버튼) */
-      remove: (id) =>
+      remove: (id) => {
+        const item = get().items.find((it) => it.id === id);
         set((state) => ({
           items: state.items.filter((it) => it.id !== id),
           selectedIds: state.selectedIds.filter((v) => v !== id),
-        })),
+        }));
+        syncRemove(item);
+      },
 
       /** 선택된 상품 제거 (선택삭제) */
-      removeSelected: () =>
-        set((state) => ({
-          items: state.items.filter((it) => !state.selectedIds.includes(it.id)),
-          selectedIds: [],
-        })),
+      removeSelected: () => {
+        const { items, selectedIds } = get();
+        const removed = items.filter((it) => selectedIds.includes(it.id));
+        set({ items: items.filter((it) => !selectedIds.includes(it.id)), selectedIds: [] });
+        removed.forEach(syncRemove);
+      },
 
       /** 상품 추가 — 이미 있으면 수량만 늘린다 */
-      add: (product) =>
+      add: (product) => {
+        const found = get().items.find((it) => it.id === product.id);
+        const addedQuantity = product.quantity || 1;
         set((state) => {
-          const found = state.items.find((it) => it.id === product.id);
           if (found) {
             return {
               items: state.items.map((it) =>
-                it.id === product.id ? { ...it, quantity: it.quantity + (product.quantity || 1) } : it,
+                it.id === product.id ? { ...it, quantity: it.quantity + addedQuantity } : it,
               ),
             };
           }
@@ -95,13 +130,36 @@ export const useCartStore = create(
             items: [...state.items, { delivery: '기본', quantity: 1, ...product }],
             selectedIds: [...state.selectedIds, product.id],
           };
-        }),
+        });
+        if (found) {
+          syncQuantity(get().items.find((it) => it.id === product.id), found.quantity + addedQuantity);
+        } else {
+          syncAdd(product, addedQuantity);
+        }
+      },
 
       /** 선택된 상품 합계 금액 */
       selectedTotal: () =>
         get()
           .items.filter((it) => get().selectedIds.includes(it.id))
           .reduce((sum, it) => sum + it.price * it.quantity, 0),
+
+      /**
+       * 서버 장바구니를 로컬에 병합한다 — 이미 로컬에 있는 id는 건드리지 않는다
+       * (다른 탭에서 방금 추가해 서버 동기화가 아직 안 갔을 수도 있는 항목을
+       * 서버의 옛 상태로 덮어쓰지 않기 위함). syncAdd 등을 호출하지 않는다 —
+       * 서버에 이미 있는 걸 다시 서버로 보내는 건 의미가 없다.
+       */
+      mergeFromServer: (items) =>
+        set((state) => {
+          const existingIds = new Set(state.items.map((it) => it.id));
+          const toAdd = items.filter((it) => !existingIds.has(it.id));
+          if (!toAdd.length) return state;
+          return {
+            items: [...state.items, ...toAdd],
+            selectedIds: [...state.selectedIds, ...toAdd.map((it) => it.id)],
+          };
+        }),
 
       clear: () => set({ items: [], selectedIds: [] }),
     }),

@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useT } from '@/i18n';
 import { useRoutineText } from '@/i18n/useRoutineText';
@@ -22,17 +22,9 @@ import { useCareStore } from '@/store/careStore';
 import { useUiStore } from '@/store/uiStore';
 import NoSolutionNotice from '@/components/routine/NoSolutionNotice';
 import { buildWeekStrip, formatDateLabel, isFutureDate, todayKey } from '@/lib/calendar';
-import {
-  EVENING_WASH,
-  MORNING_AVOID,
-  MORNING_STEPS,
-  NIGHT_AVOID,
-  NIGHT_STEPS,
-  SUPPLEMENT_CARDS,
-  WHY_TAGS,
-  WHY_TEXT,
-} from '@/constants/routines';
-// 이제 위 상수를 직접 렌더하지 않고 useRoutineText() 훅의 번역된 값을 쓴다
+import { useCareSolution } from '@/hooks/useCareSolution';
+// constants/routines.js 의 더미 상수는 이제 useRoutineText() 를 거쳐 폴백으로만 쓰인다
+// (실제 데이터가 있으면 useCareSolution() 의 응답으로 덮어쓴다 — 아래 참고)
 
 /**
  * 루틴(솔루션) 화면. Figma 프레임 두 개를 한 컴포넌트의 두 사이클로 구현한다.
@@ -100,8 +92,7 @@ const COMPLETE_BUTTON_BLOCK = 72;
 const CONTENT_TAIL_GAP = 26;
 
 /** 모닝 전용 — 저녁 세안 루틴 안내 카드 (Figma 870:4154) */
-function EveningWashCard() {
-  const { eveningWash: ew } = useRoutineText();
+function EveningWashCard({ data: ew }) {
   return (
     <div className="flex w-full flex-col items-start px-[20px] pt-[16px]" data-node-id="870:4154" data-name="MorningContent">
       {/*
@@ -211,6 +202,7 @@ function CompleteButton({ onClick, enabled = true, completed = false }) {
 
 export default function RoutineScreen({ cycle: cycleProp }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const params = useParams();
   const t = useT();
   const rt = useRoutineText();
@@ -219,9 +211,22 @@ export default function RoutineScreen({ cycle: cycleProp }) {
   const setPhase = useCareStore((s) => s.setPhase);
   const selectedDate = useCareStore((s) => s.selectedDate);
   const openCalendar = useUiStore((s) => s.openCalendar);
+  const openSkinAnalysis = useUiStore((s) => s.openSkinAnalysis);
   const completedDates = useCareStore((s) => s.completedDates);
   const markCompleted = useCareStore((s) => s.markCompleted);
   const unmarkCompleted = useCareStore((s) => s.unmarkCompleted);
+
+  /**
+   * 촬영·자가진단 → 솔루션 도출 중 → 오늘의 솔루션 한 줄 정리를 지나 이 화면에
+   * 막 도착했을 때만 데일리 스킨 분석 모달을 자동으로 한 번 띄운다
+   * (SolutionSummaryScreen 이 navigate 할 때 이 state 를 실어 보낸다).
+   * state 를 바로 비워서 새로고침·뒤로가기로 다시 떠 있지 않게 한다.
+   */
+  useEffect(() => {
+    if (!location.state?.showSkinAnalysis) return;
+    openSkinAnalysis();
+    navigate(location.pathname, { replace: true, state: {} });
+  }, []);
 
   const today = todayKey();
   const days = buildWeekStrip(selectedDate, completedDates, today);
@@ -229,16 +234,31 @@ export default function RoutineScreen({ cycle: cycleProp }) {
   /** 수행 완료는 오늘 날짜에서만 기록할 수 있다 */
   const isToday = selectedDate === today;
   const doneToday = completedDates.includes(selectedDate);
-  /**
-   * 솔루션이 없는 날 판별:
-   *  - 미래: 아직 촬영이 안 됨
-   *  - 과거인데 completedDates 에 없음: 그날 촬영·수행 기록이 없음
-   *  - 오늘: 촬영을 마쳤으므로 항상 보여준다 (HomeRoute 가 hasCaptureToday 로 분기하니 여기까지 온 건 촬영 완료 의미)
-   */
   const future = isFutureDate(selectedDate, today);
-  const noSolution = future || (!isToday && !completedDates.includes(selectedDate));
   const night = cycle === 'night';
   const L = LAYOUT[cycle];
+
+  /**
+   * 실제 케어 솔루션 조회. 아직 그 날짜에 솔루션이 없거나(신규 유저, 미연동 환경)
+   * 요청이 실패하면 solution 은 null 로 남고, 아래에서 기존 더미(rt.*)로 자연스럽게
+   * 폴백한다 — 이 화면은 백엔드 연동 여부와 무관하게 항상 뭔가는 보여줘야 한다.
+   */
+  const { solution, loading: solutionLoading } = useCareSolution(selectedDate);
+
+  /**
+   * 솔루션이 없는 날 판별:
+   *  - 미래: 아직 촬영이 안 됨 → 조회할 것도 없이 확정한다.
+   *  - 그 외 날짜는 실제 백엔드 솔루션 존재 여부를 우선한다. 예전에는 로컬
+   *    `completedDates`(수행 완료 버튼을 눌렀는지)만 보고 판단해서, 다른 기기에서
+   *    촬영했거나 완료 버튼을 안 눌렀을 뿐인데도 실제로는 솔루션이 있는 날을
+   *    "솔루션 없음"으로 잘못 보여줬다.
+   *  - 아직 응답 전(loading)이면 성급하게 "솔루션 없음"으로 보여주지 않고 기다린다
+   *    (오늘은 원래 로직대로 보여주고, 그 외 날짜는 로딩이 끝날 때까지 대기).
+   *  - 응답이 왔는데도 솔루션이 없으면(진짜 그날 기록이 없거나 백엔드 미연동 환경)
+   *    기존 로컬 휴리스틱(오늘 여부 / completedDates)으로 폴백한다.
+   */
+  const noSolution =
+    future || (!solutionLoading && !solution && !isToday && !completedDates.includes(selectedDate));
 
   /** 하단 추천 카드 4개 — 마켓 목록의 상품을 이름으로 찾아 그대로 쓴다 */
   const recommendProducts = useMemo(
@@ -246,10 +266,34 @@ export default function RoutineScreen({ cycle: cycleProp }) {
     [],
   );
 
+  const realSteps = solution ? (night ? solution.eveningSteps : solution.morningSteps) : null;
+  const steps = realSteps?.length
+    ? realSteps.map((s, i) => ({ ...s, no: String(i + 1).padStart(2, '0'), nodeId: `step-${i}` }))
+    : night
+      ? rt.nightSteps
+      : rt.morningSteps;
+  const avoidItems = solution
+    ? night
+      ? solution.eveningAvoid
+      : solution.morningAvoid
+    : night
+      ? rt.nightAvoid
+      : rt.morningAvoid;
+  const supplementCards = solution?.supplements?.length
+    ? solution.supplements.map((s) => ({ name: s.title, howTo: s.usage, note: null }))
+    : rt.supplementCards;
+  const eveningWash = solution?.eveningWash
+    ? { badge: 'N', ...solution.eveningWash }
+    : rt.eveningWash;
+  /** "왜 이 루틴인가요" 본문은 WHS 진단 요약을 우선하고, 없으면 안전 안내 메시지를 쓴다 */
+  const whyText = solution?.whsDiagnosisSummary || solution?.safetyMessage || rt.whyText;
+  const whyTags = solution?.concernTags?.length ? solution.concernTags : rt.whyTags;
+
   /**
    * 본문 높이를 재서 프레임·스크롤 높이를 함께 늘린다.
-   * 흐름 배치라 텍스트가 길어지면 본문이 자라는데, Screen 은 높이를 숫자로 받으므로
-   * 실측값을 넘겨 줘야 스크롤이 잘린 부분까지 닿는다.
+   * 흐름 배치라 텍스트/스텝 개수가 실제 데이터에 따라 달라지면 본문이 자라거나
+   * 줄어드는데, Screen 은 높이를 숫자로 받으므로 실측값을 넘겨 줘야 스크롤이
+   * 잘리거나 탭바 위에 빈 여백이 남지 않는다.
    * scrollHeight 는 레이아웃 값이라 DeviceFrame 의 transform: scale 에 영향받지 않는다.
    */
   const bodyRef = useRef(null);
@@ -316,13 +360,13 @@ export default function RoutineScreen({ cycle: cycleProp }) {
   /**
    * 본문은 세로로 쌓이는 흐름(flow)이다.
    *
-   * 예전에는 블록마다 Figma 실측 y 를 절대 좌표로 박아 뒀는데, 텍스트가 길어져
-   * 카드가 자라면 아래 블록을 밀어내지 못하고 그대로 겹쳤다(설명을 2배로 늘리면
-   * 스텝 목록이 INNER CARE 제목을 72px 덮었다).
+   * 예전에는 블록마다 Figma 실측 y 를 절대 좌표로 박아 뒀는데, 텍스트가 길어지거나
+   * 실제 데이터의 항목 수가 더미와 다르면 아래 블록을 밀어내지 못하고 그대로 겹치거나
+   * 빈 여백이 남았다(설명을 2배로 늘리면 스텝 목록이 INNER CARE 제목을 72px 덮었다).
    *
    * 다행히 실측값이 각 블록의 자연 높이 누적과 정확히 맞아떨어져서
    * (SectionHeader 끝 327.5 → StepList 시작 328, StepList 끝 734 = InnerCare 시작 734 …)
-   * 절대 배치를 흐름 배치로 바꿔도 1배 상태의 디자인은 그대로 유지된다.
+   * 절대 배치를 흐름 배치로 바꿔도 더미 데이터 기준 디자인은 그대로 유지된다.
    * 각 블록의 간격은 컴포넌트 자신의 padding 이 이미 갖고 있다.
    */
   const contentTop = L.sectionHeader;
@@ -340,7 +384,33 @@ export default function RoutineScreen({ cycle: cycleProp }) {
       headerHeight={HEADER_HEIGHT}
       header={header}
       tabBarHeight={TAB_BAR_HEIGHT}
-      tabBar={<TabBar className="relative h-[96px] w-[393px]" />}
+      tabBar={
+        <>
+          <TabBar className="relative h-[96px] w-[393px]" />
+          {/*
+            데일리 스킨 분석 재확인 버튼. Figma 에 없는 요소라 디자인·위치를 직접 정했다.
+            탭바 위, 화면 오른쪽 아래에 떠 있는 원형 버튼 — 탭바 슬롯 안에 같이 넣어 두면
+            스크롤과 무관하게 항상 같은 자리에 고정된다(Screen 이 tabBar 를 절대 위치로 고정한다).
+          */}
+          <button
+            type="button"
+            aria-label={t.skinAnalysis.reopenAria}
+            onClick={openSkinAnalysis}
+            data-testid="skin-analysis-reopen"
+            className="absolute bottom-[112px] right-[16px] flex size-[48px] items-center justify-center rounded-full bg-header-dark shadow-lg transition-transform active:scale-95"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path
+                d="M12 3L20.6 9.2L17.3 19.3L6.7 19.3L3.4 9.2Z"
+                stroke="white"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+                fill="none"
+              />
+            </svg>
+          </button>
+        </>
+      }
       contentBottom={contentBottom}
     >
       {/* 세그먼트는 페이드 대상에서 빼야 선택 표시가 끊기지 않고 미끄러진다 */}
@@ -366,22 +436,17 @@ export default function RoutineScreen({ cycle: cycleProp }) {
           nodeId={night ? '870:3848' : '870:4079'}
         />
 
-        <StepList steps={night ? rt.nightSteps : rt.morningSteps} nodeId={night ? '870:3855' : '870:4086'} />
+        <StepList steps={steps} nodeId={night ? '870:3855' : '870:4086'} />
 
-        {night ? null : <EveningWashCard />}
+        {night ? null : <EveningWashCard data={eveningWash} />}
 
         <InnerCareHeader nodeId={night ? '870:3923' : '870:4173'} />
 
-        <SupplementCards cards={rt.supplementCards} nodeId={night ? '870:3933' : '870:4183'} />
+        <SupplementCards cards={supplementCards} nodeId={night ? '870:3933' : '870:4183'} />
 
-        <AvoidBox items={night ? rt.nightAvoid : rt.morningAvoid} nodeId={night ? '870:3952' : '870:4202'} />
+        <AvoidBox items={avoidItems} nodeId={night ? '870:3952' : '870:4202'} />
 
-        <WhyBox
-          text={rt.whyText}
-          tags={rt.whyTags}
-          paddingBottom={WHY_BOTTOM_GAP}
-          nodeId={night ? '870:3971' : '870:4221'}
-        />
+        <WhyBox text={whyText} tags={whyTags} paddingBottom={WHY_BOTTOM_GAP} nodeId={night ? '870:3971' : '870:4221'} />
 
         {/*
           오늘의 솔루션과 어울리는 제품 추천 (Figma 833:3029 · 989:1220 + Group 85 / Frame 88).

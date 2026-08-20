@@ -5,6 +5,8 @@ import Screen from '@/components/layout/Screen';
 import StatusBar from '@/components/layout/StatusBar';
 import chevron from '@/assets/figma/selfcheck-chevron.svg';
 import { SELF_CHECK_ITEMS, SELF_CHECK_OTHER } from '@/constants/selfCheck';
+import { submitSelfCheck, buildSelfCheckAnswers } from '@/api/selfCheck';
+import { useAuthStore } from '@/store/authStore';
 
 /**
  * 데일리 자가 진단 (Figma 970:1090).
@@ -56,10 +58,20 @@ export default function SelfCheckScreen() {
 
   /** 아무것도 고르지 않으면 저장할 수 없다 */
   const canSave = selected.length > 0 || otherText.trim().length > 0;
+  const [saving, setSaving] = useState(false);
 
-  const save = () => {
-    if (!canSave) return;
-    // 추후 백엔드 연동 시 POST /api/v1/self-check 로 보낸다
+  const save = async () => {
+    if (!canSave || saving) return;
+    setSaving(true);
+    const userCode = useAuthStore.getState().userCode;
+    if (userCode) {
+      try {
+        await submitSelfCheck(userCode, buildSelfCheckAnswers(selected, otherText));
+      } catch (err) {
+        // 대회 시연 중 흐름이 끊기지 않도록, 실패해도 다음 화면으로는 넘어간다.
+        console.error('[SelfCheckScreen] submit failed', err);
+      }
+    }
     navigate('/solution-loading');
   };
 
@@ -167,16 +179,16 @@ export default function SelfCheckScreen() {
         <button
           type="button"
           onClick={save}
-          disabled={!canSave}
+          disabled={!canSave || saving}
           className={`absolute left-[72px] top-[19px] h-[55px] w-[277px] rounded-[16px] transition-colors duration-150 ${
-            canSave ? 'bg-header-dark' : 'bg-disabled-bg'
+            canSave && !saving ? 'bg-header-dark' : 'bg-disabled-bg'
           }`}
           data-node-id="970:1126"
           data-testid="selfcheck-save"
         >
           <span
             className={`absolute left-[132.5px] top-[16px] h-[28px] w-[73px] -translate-x-1/2 text-center font-sans text-[16px] font-bold leading-[24px] tracking-[-0.3125px] ${
-              canSave ? 'text-white' : 'text-disabled-text'
+              canSave && !saving ? 'text-white' : 'text-disabled-text'
             }`}
           >
             {t.selfCheck.saveItems}

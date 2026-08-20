@@ -73,12 +73,7 @@ function StepCard({ step, nodeId }) {
   );
 }
 
-/**
- * @param {number} height Figma StepList 프레임 높이.
- *   모닝(870:4086)은 435 인데 카드 합계는 406 이어서 아래에 29px 여백이 남는다.
- *   이 여백까지 재현해야 이후 섹션의 y 좌표가 어긋나지 않는다.
- */
-export default function StepList({ steps, nodeId, height }) {
+export default function StepList({ steps, nodeId }) {
   return (
     <div
       className="relative flex w-full flex-col items-start px-[20px] pt-[12px]"

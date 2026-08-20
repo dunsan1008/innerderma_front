@@ -144,9 +144,16 @@ function CartItemCard({ item, selected, onToggle, onRemove, onQuantity, onDelive
           </button>
         </div>
 
-        {/* 썸네일 */}
+        {/* 썸네일 — 실제 백엔드 상품 imageUrl 이 안 리졸브되면 배경(bg-thumb-bg)만 남긴다 */}
         <div className="relative flex size-[72px] shrink-0 flex-col items-start overflow-clip rounded-[8px] bg-thumb-bg">
-          <img alt="" src={item.image} className="pointer-events-none absolute inset-0 size-full max-w-none object-cover" />
+          <img
+            alt=""
+            src={item.image}
+            className="pointer-events-none absolute inset-0 size-full max-w-none object-cover"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
         </div>
 
         {/* 이름 / 옵션 */}

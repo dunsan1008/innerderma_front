@@ -9,7 +9,7 @@ App-shell scaffolding shared across every screen: the scaled iPhone device frame
 ## Key Files
 | File | Description |
 |------|-------------|
-| `AppModals.jsx` | Global overlay host mounted once at the top of `DeviceFrame`. Reads `useUiStore`/`useCareStore` to conditionally render `CalendarModal`, `WashCheckModal`, and `LanguageModal`; owns the "pick a date → navigate to that day's solution" logic and keeps modals mounted through their exit animation via `useMountTransition`. |
+| `AppModals.jsx` | Global overlay host mounted once at the top of `DeviceFrame`. Reads `useUiStore`/`useCareStore` to conditionally render `CalendarModal`, `WashCheckModal`, `LanguageModal`, and `routine/SkinAnalysisModal`; owns the "pick a date → navigate to that day's solution" logic and keeps modals mounted through their exit animation via `useMountTransition` (`SkinAnalysisModal` manages its own mount transition internally, so it's passed `open`/`onClose` directly rather than a precomputed `entered` flag). |
 | `DeviceFrame.jsx` | Web-shell wrapper that centers a fixed 393×852 iPhone-16-sized frame on the page and scales it down (via CSS `transform: scale`, never by resizing) to fit the viewport, so internal absolute coordinates never need to change. |
 | `ErrorBoundary.jsx` | Class-based React render-error boundary wrapping the frame's contents; shows an inline error message + "다시 시도" retry button instead of leaving a blank frame, logs to `console.error` for Playwright capture, and auto-resets when `resetKey` (route) changes. |
 | `HomeIndicator.jsx` | Static bottom home-indicator pill matching Figma component `Home Indicator/Light` (`38:1660`). |

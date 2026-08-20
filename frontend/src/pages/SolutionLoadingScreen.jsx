@@ -4,21 +4,53 @@ import { useT } from '@/i18n';
 import Screen from '@/components/layout/Screen';
 import StatusBar from '@/components/layout/StatusBar';
 import Spinner from '@/components/ui/Spinner';
+import { createCareCycle, createCareSolution } from '@/api/care';
+import { useAuthStore } from '@/store/authStore';
+
+/** 최소 노출 시간 — 응답이 즉시 와도 화면이 깜빡이지 않게 한다 */
+const MIN_DISPLAY_MS = 1200;
 
 /**
  * 로딩중-솔루션 생성 (Figma 970:1129).
  * 자가진단 저장 후 솔루션을 도출하는 동안 노출된다.
  * 구조는 로딩중-최초접속(870:3454)과 동일하고 문구만 다르다.
  *
- * 추후 백엔드 연동 시 setTimeout 대신 솔루션 생성 API 응답을 기다린다.
+ * 이 화면에서 실제로 케어 사이클 생성 → 그 사이클 기준 케어 솔루션 생성을
+ * 순서대로 호출한다(둘 다 오늘 촬영·자가문진 기록을 서버가 자동으로 엮는다).
+ * 결과 자체는 여기서 쓰지 않는다 — SolutionSummary/RoutineScreen이 각자
+ * 필요할 때 다시 조회한다(새로고침·재방문에도 항상 최신 데이터를 보게 하려고).
  */
 export default function SolutionLoadingScreen() {
   const t = useT();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const timer = setTimeout(() => navigate('/solution-summary'), 1800);
-    return () => clearTimeout(timer);
+    let cancelled = false;
+    const start = Date.now();
+
+    const proceed = () => {
+      const wait = Math.max(MIN_DISPLAY_MS - (Date.now() - start), 0);
+      setTimeout(() => {
+        if (!cancelled) navigate('/solution-summary');
+      }, wait);
+    };
+
+    (async () => {
+      const userCode = useAuthStore.getState().userCode;
+      if (userCode) {
+        try {
+          const cycle = await createCareCycle(userCode);
+          await createCareSolution(userCode, cycle.id);
+        } catch (err) {
+          console.error('[SolutionLoadingScreen] solution generation failed', err);
+        }
+      }
+      proceed();
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [navigate]);
 
   return (
