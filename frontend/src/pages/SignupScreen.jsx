@@ -4,7 +4,9 @@ import Screen from '@/components/layout/Screen';
 import StatusBar from '@/components/layout/StatusBar';
 import HomeIndicator from '@/components/layout/HomeIndicator';
 import Button from '@/components/ui/Button';
+import GlobeIcon from '@/components/ui/GlobeIcon';
 import { useOnboardingStore } from '@/store/onboardingStore';
+import { useUiStore } from '@/store/uiStore';
 
 /**
  * 가입화면 (Figma 870:3426).
@@ -16,6 +18,7 @@ export default function SignupScreen() {
   const t = useT();
   const navigate = useNavigate();
   const setUserType = useOnboardingStore((s) => s.setUserType);
+  const openLang = useUiStore((s) => s.openLang);
 
   const select = (userType) => {
     setUserType(userType);
@@ -32,6 +35,23 @@ export default function SignupScreen() {
       >
         InnerDerma
       </p>
+
+      {/*
+        언어 변경 — 이 화면이 앱의 첫 선택 화면이라 여기서 언어를 못 바꾸면
+        외국인 사용자는 뜻을 모른 채 시술 여부를 골라야 한다.
+        로고와 같은 줄 반대쪽에 두되 여백은 로고와 같은 24 를 쓴다(오른쪽 끝 369).
+        aria-label 은 번역하지 않는다 — 언어를 바꾼 뒤에도 같은 앵커로 찾아야 한다
+        (verify-i18n.mjs 가 이 라벨로 버튼을 집는다).
+      */}
+      <button
+        type="button"
+        aria-label="언어 선택"
+        onClick={openLang}
+        className="absolute left-[348px] top-[77.5px] flex size-[21px] items-center justify-center text-ink"
+        data-name="LanguageButton"
+      >
+        <GlobeIcon />
+      </button>
 
       <div
         className="absolute left-[82px] top-[299px] h-[55px] w-[226px] font-sans text-[20px] font-semibold leading-[0] text-ink [word-break:break-word] whitespace-pre-wrap"
