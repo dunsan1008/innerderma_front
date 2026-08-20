@@ -9,6 +9,8 @@ import noise from '@/assets/figma/camera-noise.png';
 import maskDisable from '@/assets/figma/camera-mask-disable.svg';
 import maskEnable from '@/assets/figma/camera-mask-enable.svg';
 import closeIcon from '@/assets/figma/camera-close.svg';
+import { uploadAndAnalyzeSkinCapture } from '@/api/skinCapture';
+import { useAuthStore } from '@/store/authStore';
 
 /**
  * 카메라 화면. Figma 프레임 두 개를 한 컴포넌트의 두 상태로 구현한다.
@@ -47,9 +49,27 @@ export default function CameraScreen({ initialDetected = false }) {
 
   /** 촬영 → 프레임 캡처 후 오늘 기록으로 저장하고 자가진단으로 */
   const shoot = () => {
-    markCaptured(capture());
+    const dataUrl = capture();
+    markCaptured(dataUrl);
     // 촬영은 항상 "오늘"의 솔루션을 만드는 행위이므로 선택 날짜를 오늘로 되돌린다
     setSelectedDate(todayKey());
+
+    /*
+     * 업로드는 다음 화면 전환을 막지 않는다(자가진단은 촬영 결과와 무관하게
+     * 바로 진행할 수 있어야 한다). 실패해도 콘솔에만 남기고 넘어간다 — 대회
+     * 시연 중 흐름이 끊기지 않게 하기 위함(ConnectingScreen과 같은 패턴).
+     */
+    const userCode = useAuthStore.getState().userCode;
+    if (userCode && dataUrl) {
+      fetch(dataUrl)
+        .then((res) => res.blob())
+        .then((blob) => {
+          const file = new File([blob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
+          return uploadAndAnalyzeSkinCapture(userCode, file);
+        })
+        .catch((err) => console.error('[CameraScreen] upload failed', err));
+    }
+
     navigate('/self-check');
   };
 
