@@ -37,23 +37,32 @@ export default function SolutionHeader({
         그 달 전체 캘린더가 펼쳐진다. 로고·아이콘·요일 칩보다 아래에 깔아 둔다.
       */}
       <button type="button" aria-label={t.calendar.openCalendar} onClick={onOpenCalendar} className="absolute inset-0" />
-      <div className="relative flex shrink-0 flex-col items-start pl-[13px] pt-[7px]" data-node-id="870:3575">
-        <StatusBar tone="white" className="relative h-[44px] w-[366px] shrink-0" />
+      {/*
+        상태바·로고 줄은 루틴 헤더(870:3773)와 같은 규격을 쓴다.
+        예전에는 상태바를 pl-13 pt-7 로 밀고 로고에 고정 h-13/w-123 과 pl-5/pr-20/pt-5,
+        줄 자체에 pr-30 을 줘서, 솔루션을 받은 뒤 헤더와 로고·아이콘 위치가 어긋났다
+        (로고 left 25 vs 20 / top 76.5 vs 48, 아이콘 우측 끝 363 vs 373).
+      */}
+      {/*
+        상태바를 프레임 전체 폭으로 둔다. 366 폭을 left 13 에 놓으면 내부 시간이
+        frame x=34 로 밀려 기준 헤더(x=21)와 어긋난다. 전체 폭이면 내부 좌표가
+        그대로 기준과 맞는다 (시간 21 / 우측 아이콘 오른쪽 끝 378.33).
+      */}
+      <div className="relative h-[44px] w-full shrink-0" data-node-id="870:3575">
+        <StatusBar tone="white" className="absolute left-0 top-0 h-[44px] w-[393px]" />
       </div>
 
       <div
-        className="relative flex w-full shrink-0 items-center justify-between pb-[16px] pl-[20px] pr-[30px] pt-[20px]"
+        className="relative flex w-full shrink-0 items-center justify-between px-[20px] pb-[16px] pt-[4px]"
         data-node-id="870:3577"
       >
-        <div className="relative flex shrink-0 items-center justify-center pl-[5px] pr-[20px] pt-[5px]" data-node-id="870:3578">
-          <div className="relative flex shrink-0 items-center justify-center pr-[100px]" data-node-id="870:3579">
-            <p
-              className="relative h-[13px] w-[123px] shrink-0 font-logo text-[20px] font-bold not-italic leading-[16.5px] text-white [word-break:break-word]"
-              data-node-id="870:3580"
-            >
-              InnerDerma
-            </p>
-          </div>
+        <div className="relative flex shrink-0 flex-col items-start" data-node-id="870:3578">
+          <p
+            className="relative shrink-0 whitespace-nowrap font-logo text-[20px] font-bold not-italic leading-[20px] text-white [word-break:break-word]"
+            data-node-id="870:3580"
+          >
+            InnerDerma
+          </p>
         </div>
         <div className="relative flex h-[19px] w-[52px] shrink-0 items-center justify-between" data-node-id="870:3581" data-name="Group 3">
           {/* 번역(지구본) 아이콘. aria-label은 의도적으로 번역하지 않는다 —
