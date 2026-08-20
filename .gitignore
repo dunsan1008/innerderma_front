@@ -21,5 +21,6 @@ frontend/.shots/
 *.swo
 
 # oh-my-claudecode (OMC) runtime state — session/notepad/logs/plans, not project config
-.omc/*
-!.omc/skills/
+# (anywhere in the tree — subagents sometimes create it under a subdirectory)
+**/.omc/*
+!**/.omc/skills/
