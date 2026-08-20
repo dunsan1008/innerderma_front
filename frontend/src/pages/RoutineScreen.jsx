@@ -1,23 +1,13 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useT, useWrapClass } from '@/i18n';
+import { useEffect, useState } from 'react';
+import { useT } from '@/i18n';
 import { useRoutineText } from '@/i18n/useRoutineText';
 import Screen from '@/components/layout/Screen';
-import PostCard from '@/components/market/PostCard';
-import { findProductByKey } from '@/constants/marketScreens';
-import { SOLUTION_RECOMMEND_NAMES } from '@/constants/marketProducts';
-import { productKey } from '@/store/wishlistStore';
 import CycleSegment from '@/components/home/CycleSegment';
 import RoutineHeader from '@/components/routine/RoutineHeader';
 import TabBar from '@/components/layout/TabBar';
-import StepList from '@/components/routine/StepList';
-import {
-  AvoidBox,
-  InnerCareHeader,
-  SectionHeader,
-  SupplementCards,
-  WhyBox,
-} from '@/components/routine/RoutineSections';
+import SolutionBody from '@/components/routine/SolutionBody';
+import { toFullView } from '@/lib/solutionView';
 import { useCareStore } from '@/store/careStore';
 import { useUiStore } from '@/store/uiStore';
 import NoSolutionNotice from '@/components/routine/NoSolutionNotice';
@@ -33,6 +23,11 @@ import { useCareSolution } from '@/hooks/useCareSolution';
  *
  * 블록 y 좌표는 Figma 프레임 실측치를 그대로 쓴다.
  * (프레임 높이가 내용 합계보다 큰 블록이 있어 flow 로 쌓으면 누적 오차가 생긴다)
+ *
+ * 본문 항목 렌더와 높이 측정은 `SolutionBody` 가 맡는다 — 촬영 전 기본 솔루션 화면과
+ * **같은 구조**를 공유해야 한쪽만 항목이 빠지는 일이 구조적으로 생기지 않는다.
+ * 이 화면에 남은 책임은 데이터 취득(`useCareSolution`), 헤더·세그먼트, 프레임 높이 계산,
+ * 그리고 CTA(수행 완료 버튼) 동작이다.
  */
 
 /** 상단 고정 헤더 높이 (Figma Container 870:3773) */
@@ -63,106 +58,8 @@ const LAYOUT = {
   },
 };
 
-/**
- * '왜 이 루틴인가요?' 박스 아래 여백.
- *
- * Figma 는 나이트 32 / 모닝 0 으로 서로 달라서, 모닝에서 바로 아래
- * '오늘의 솔루션과 어울리는 제품 추천' 제목이 붙어 답답했다.
- * 두 사이클 모두 나이트 값(32)으로 통일한다.
- */
-const WHY_BOTTOM_GAP = 32;
-
-/** 추천 카드 2x2 그리드 — 마켓 1 과 같은 열 좌표·행 간격을 쓴다 */
-const RECOMMEND_COLUMNS = [20, 204];
-const RECOMMEND_ROW_GAP = 294;
-/** PostCard 실측 높이 (마켓 카드와 동일) */
-const POST_CARD_HEIGHT = 272;
-
-/**
- * 아래 세 값은 Figma 실측 좌표에서 뽑은 "블록 사이 간격"이다.
- * 흐름 배치로 바꾸면서 절대 y 대신 간격으로 표현했다.
- *  - 추천 제목 끝(1508) → 카드 시작(1517) = 9
- *  - 카드 끝(모닝 2311) → 완료 버튼(2337) = 26, 버튼 블록 높이 50 + 아래 여백 22
- */
-const RECOMMEND_TITLE_GAP = 9;
-const COMPLETE_BUTTON_GAP = 26;
-const COMPLETE_BUTTON_BLOCK = 72;
-
 /** 본문 끝 → 탭바 top 여백 (나이트 2109-2083, 모닝 2409-2387) */
 const CONTENT_TAIL_GAP = 26;
-
-/** 모닝 전용 — 저녁 세안 루틴 안내 카드 (Figma 870:4154) */
-function EveningWashCard({ data: ew }) {
-  const wrap = useWrapClass();
-  return (
-    <div className="flex w-full flex-col items-start px-[20px] pt-[16px]" data-node-id="870:4154" data-name="MorningContent">
-      {/*
-        번호 배지가 스텝 카드와 같은 자리에 오도록 테두리·padding 을 스텝 카드에 맞춘다.
-        예전에는 border 1 + px-16 pt-12 라 배지가 스텝 카드보다 오른쪽으로 3px,
-        위로 3px 어긋나 있었다 (스텝 카드는 border-2 + px-12 py-14 → 배지 left 14 / top 16).
-      */}
-      <div className="relative flex w-full shrink-0 flex-col items-start rounded-[16px] border-2 border-solid border-line bg-white px-[12px] pb-[14px] pt-[14px]">
-        <div className="relative flex w-full shrink-0 items-start justify-between">
-          <div className="relative flex shrink-0 items-center gap-[8px]">
-            <div className="relative flex size-[24px] shrink-0 items-center justify-center rounded-full bg-text-strong">
-              <div className="relative flex shrink-0 flex-col items-start">
-                <p className="relative shrink-0 whitespace-nowrap font-sans text-[10px] font-bold leading-[10px] text-white [word-break:break-word]">
-                  {ew.badge}
-                </p>
-              </div>
-            </div>
-            <div className="relative flex shrink-0 flex-col items-start">
-              <p className="relative shrink-0 whitespace-nowrap font-sans text-[14px] font-bold leading-[21px] text-text-strong [word-break:break-word]">
-                {ew.title}
-              </p>
-            </div>
-          </div>
-          <div
-            className="relative flex shrink-0 flex-col items-start rounded-full bg-tag-waste-bg px-[8px] py-[2px]"
-            data-name="CategoryTag"
-          >
-            <p className="relative shrink-0 whitespace-nowrap font-sans text-[10px] font-medium leading-[15px] text-tag-waste-text [word-break:break-word]">
-              {ew.tag}
-            </p>
-          </div>
-        </div>
-
-        {/*
-          한국어는 어절 단위로 줄바꿈한다.
-          Figma 가 문자 단위로 접어 둬서 break-all 로 맞춰 놨었는데,
-          "메이크업과 외|출하신" 처럼 단어 중간이 잘려 읽기 나빴다.
-        */}
-        <div className="relative flex w-full shrink-0 flex-col items-start pt-[8px]">
-          <p className={`relative w-full shrink-0 font-sans text-[12px] font-normal leading-[18px] text-text-strong ${wrap}`}>
-            {ew.description}
-          </p>
-        </div>
-
-        <div className="relative flex w-full shrink-0 flex-col items-start pt-[12px]" data-name="Container:margin">
-          <div className="relative flex w-full shrink-0 flex-col items-start rounded-[10px] border border-solid border-note-line bg-note-bg px-[12px] py-[8px]">
-            <div className="relative flex w-full shrink-0 flex-col items-start">
-              {/* 어절 단위로만 줄바꿈한다 (break-all 은 글자 중간에서 잘려 읽기 나쁘다) */}
-              <p className={`relative w-full shrink-0 font-sans text-[11px] font-normal leading-[16px] text-accent-green ${wrap}`}>
-                {ew.note}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/*
-          "3~4 펌프 · 깨끗한 맨손으로 사용" 은 한 줄로 둔다.
-          Figma 실측 폭(135)을 그대로 박아 두면 브라우저 폰트가 더 넓어서 두 줄로 접히고,
-          컨테이너 높이(23)에 잘려 아랫줄이 반쯤 보였다.
-        */}
-        <div className="relative flex w-full shrink-0 flex-col items-start pt-[8px]">
-          <p className="relative h-[15px] shrink-0 whitespace-nowrap font-sans text-[10px] font-normal leading-[15px] text-body">
-            {ew.footnote}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 /**
  * 모닝 전용 — 수행 완료 버튼 (Figma 870:4234).
@@ -241,8 +138,8 @@ export default function RoutineScreen({ cycle: cycleProp }) {
 
   /**
    * 실제 케어 솔루션 조회. 아직 그 날짜에 솔루션이 없거나(신규 유저, 미연동 환경)
-   * 요청이 실패하면 solution 은 null 로 남고, 아래에서 기존 더미(rt.*)로 자연스럽게
-   * 폴백한다 — 이 화면은 백엔드 연동 여부와 무관하게 항상 뭔가는 보여줘야 한다.
+   * 요청이 실패하면 solution 은 null 로 남고, 아래 `toFullView` 가 기존 더미(rt.*)로
+   * 필드별 폴백한다 — 이 화면은 백엔드 연동 여부와 무관하게 항상 뭔가는 보여줘야 한다.
    */
   const { solution, loading: solutionLoading } = useCareSolution(selectedDate);
 
@@ -261,55 +158,21 @@ export default function RoutineScreen({ cycle: cycleProp }) {
   const noSolution =
     future || (!solutionLoading && !solution && !isToday && !completedDates.includes(selectedDate));
 
-  /** 하단 추천 카드 4개 — 마켓 목록의 상품을 이름으로 찾아 그대로 쓴다 */
-  const recommendProducts = useMemo(
-    () => SOLUTION_RECOMMEND_NAMES.map((name) => findProductByKey(name)).filter(Boolean),
-    [],
-  );
-
-  const realSteps = solution ? (night ? solution.eveningSteps : solution.morningSteps) : null;
-  const steps = realSteps?.length
-    ? realSteps.map((s, i) => ({ ...s, no: String(i + 1).padStart(2, '0'), nodeId: `step-${i}` }))
-    : night
-      ? rt.nightSteps
-      : rt.morningSteps;
-  const avoidItems = solution
-    ? night
-      ? solution.eveningAvoid
-      : solution.morningAvoid
-    : night
-      ? rt.nightAvoid
-      : rt.morningAvoid;
-  const supplementCards = solution?.supplements?.length
-    ? solution.supplements.map((s) => ({ name: s.title, howTo: s.usage, note: null }))
-    : rt.supplementCards;
-  const eveningWash = solution?.eveningWash
-    ? { badge: 'N', ...solution.eveningWash }
-    : rt.eveningWash;
-  /** "왜 이 루틴인가요" 본문은 WHS 진단 요약을 우선하고, 없으면 안전 안내 메시지를 쓴다 */
-  const whyText = solution?.whsDiagnosisSummary || solution?.safetyMessage || rt.whyText;
-  const whyTags = solution?.concernTags?.length ? solution.concernTags : rt.whyTags;
+  /**
+   * 표시 모델. 필드별 폴백 순서는 `toFullView` 안에 그대로 옮겨져 있다.
+   * `rt` 가 렌더마다 새 객체이므로 view 도 매 렌더 새로 만들어진다 — 예전에 `rt` 를
+   * 그대로 쓰던 것과 성질이 같아 memo 없이 두어도 안전하다.
+   */
+  const view = toFullView(solution, rt, cycle);
 
   /**
    * 본문 높이를 재서 프레임·스크롤 높이를 함께 늘린다.
    * 흐름 배치라 텍스트/스텝 개수가 실제 데이터에 따라 달라지면 본문이 자라거나
    * 줄어드는데, Screen 은 높이를 숫자로 받으므로 실측값을 넘겨 줘야 스크롤이
    * 잘리거나 탭바 위에 빈 여백이 남지 않는다.
-   * scrollHeight 는 레이아웃 값이라 DeviceFrame 의 transform: scale 에 영향받지 않는다.
+   * 측정은 `SolutionBody` 가 하고(ResizeObserver + fonts.ready) 여기서는 결과만 받는다.
    */
-  const bodyRef = useRef(null);
   const [bodyHeight, setBodyHeight] = useState(null);
-
-  useEffect(() => {
-    const el = bodyRef.current;
-    if (!el) return undefined;
-    const measure = () => setBodyHeight(el.scrollHeight);
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    document.fonts?.ready?.then(measure).catch(() => {});
-    return () => ro.disconnect();
-  }, [cycle, rt]);
 
   /** 본문이 끝나는 y (= 탭바 top). 아직 못 쟀으면 Figma 실측값을 쓴다 */
   const contentBottom = bodyHeight === null ? L.tabBar : L.sectionHeader + bodyHeight + CONTENT_TAIL_GAP;
@@ -369,12 +232,11 @@ export default function RoutineScreen({ cycle: cycleProp }) {
    * (SectionHeader 끝 327.5 → StepList 시작 328, StepList 끝 734 = InnerCare 시작 734 …)
    * 절대 배치를 흐름 배치로 바꿔도 더미 데이터 기준 디자인은 그대로 유지된다.
    * 각 블록의 간격은 컴포넌트 자신의 padding 이 이미 갖고 있다.
+   *
+   * 이 화면이 정하는 것은 본문 블록의 시작 y 하나뿐이다. 흐름 배치·페이드 인·높이 측정은
+   * 모두 `SolutionBody` 안에 있다.
    */
   const contentTop = L.sectionHeader;
-
-  /** 추천 카드 그리드 높이 — PostCard 가 absolute 라 감싸는 상자가 높이를 가져야 한다 */
-  const recommendRows = Math.ceil(recommendProducts.length / 2);
-  const recommendGridHeight = (recommendRows - 1) * RECOMMEND_ROW_GAP + POST_CARD_HEIGHT;
 
   return (
     <Screen
@@ -420,80 +282,36 @@ export default function RoutineScreen({ cycle: cycleProp }) {
       </div>
 
       {/*
-        본문은 사이클이 바뀔 때마다 새로 마운트되며 페이드 인 한다.
-        (key 를 cycle 로 줘서 CSS 애니메이션이 다시 재생되게 한다)
+        본문 블록의 시작 y 만 이 상자가 정한다. key/animate-fade-in/ref 를 여기에 다시
+        붙이면 페이드가 이중으로 걸린다 — `SolutionBody` 가 이미 갖고 있다.
       */}
-      <div
-        key={cycle}
-        ref={bodyRef}
-        className="absolute left-0 flex w-[393px] flex-col items-start animate-fade-in"
-        style={{ top: contentTop }}
-        data-name="CycleBody"
-      >
-        <SectionHeader
-          label={rt.sectionLabel}
-          sub={rt.sectionSub}
-          title={rt.sectionTitle(night)}
-          nodeId={night ? '870:3848' : '870:4079'}
+      <div className="absolute left-0 w-[393px]" style={{ top: contentTop }}>
+        <SolutionBody
+          view={view}
+          cycle={cycle}
+          onMeasure={setBodyHeight}
+          /*
+            CTA 슬롯. 모닝에만 수행 완료 버튼을 둔다. 나이트에는 아무것도 넘기지 않아
+            `SolutionBody` 가 버튼 자리(26+72)를 만들지 않게 한다.
+            래퍼 여백·높이는 `SolutionBody` 가 갖고 있으므로 버튼 자체만 넘긴다.
+          */
+          cta={
+            night ? null : (
+              <CompleteButton
+                enabled={isToday}
+                completed={doneToday}
+                onClick={() => {
+                  if (doneToday) {
+                    unmarkCompleted(selectedDate);
+                    return;
+                  }
+                  markCompleted(selectedDate);
+                  navigate('/home');
+                }}
+              />
+            )
+          }
         />
-
-        <StepList steps={steps} nodeId={night ? '870:3855' : '870:4086'} />
-
-        {night ? null : <EveningWashCard data={eveningWash} />}
-
-        <InnerCareHeader nodeId={night ? '870:3923' : '870:4173'} />
-
-        <SupplementCards cards={supplementCards} nodeId={night ? '870:3933' : '870:4183'} />
-
-        <AvoidBox items={avoidItems} nodeId={night ? '870:3952' : '870:4202'} />
-
-        <WhyBox text={whyText} tags={whyTags} paddingBottom={WHY_BOTTOM_GAP} nodeId={night ? '870:3971' : '870:4221'} />
-
-        {/*
-          오늘의 솔루션과 어울리는 제품 추천 (Figma 833:3029 · 989:1220 + Group 85 / Frame 88).
-          마켓 목록의 상품을 그대로 참조하므로 여기서 누른 하트가 마켓·상세와 함께 움직인다.
-        */}
-        <div className="flex w-full shrink-0 flex-col items-start px-[20px]" data-node-id="989:1220">
-          <p className="relative shrink-0 whitespace-nowrap font-sans text-[18px] font-bold leading-[26px] text-text-strong">
-            {t.solution.recommendTitle}
-          </p>
-        </div>
-
-        {/* PostCard 는 absolute 라 상대 좌표를 가진 상자 안에 넣는다 */}
-        <div
-          className="relative w-full shrink-0"
-          style={{ height: recommendGridHeight, marginTop: RECOMMEND_TITLE_GAP }}
-          data-name="RecommendGrid"
-        >
-          {recommendProducts.map((product, i) => (
-            <PostCard
-              key={`recommend-${product.nodeId}`}
-              product={{
-                ...product,
-                left: RECOMMEND_COLUMNS[i % 2],
-                top: Math.floor(i / 2) * RECOMMEND_ROW_GAP,
-              }}
-              onOpen={(p) => navigate(`/market/product/${encodeURIComponent(productKey(p))}`)}
-            />
-          ))}
-        </div>
-
-        {night ? null : (
-          <div className="relative w-full shrink-0" style={{ marginTop: COMPLETE_BUTTON_GAP, height: COMPLETE_BUTTON_BLOCK }}>
-            <CompleteButton
-              enabled={isToday}
-              completed={doneToday}
-              onClick={() => {
-                if (doneToday) {
-                  unmarkCompleted(selectedDate);
-                  return;
-                }
-                markCompleted(selectedDate);
-                navigate('/home');
-              }}
-            />
-          </div>
-        )}
       </div>
     </Screen>
   );
