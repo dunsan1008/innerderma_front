@@ -226,6 +226,17 @@ export default {
     comboExpandAria: '베스트 조합 펼치기',
     comboTitle: '많이 구매하는 베스트 조합',
     comboCta: '장바구니에 바로 담기',
+    detailFeaturesTitle: '제품 특징',
+    detailUsageTitle: '사용 방법',
+    detailCareTitle: '보관 및 주의사항',
+    skincareIntro: '매일 사용하는 루틴에 부담 없이 더할 수 있어요.',
+    skincareUsageSteps: ['세안 후 적당량을 덜어요', '얼굴 전체에 부드럽게 펴 발라요', '가볍게 두드려 흡수시켜요'],
+    skincareCare:
+      '직사광선을 피해 서늘한 곳에 보관하세요. 사용 후에는 뚜껑을 꼭 닫아주세요. 사용 중 붉어짐이나 자극이 느껴지면 사용을 멈추고 전문의와 상담하세요.',
+    supplementIntro: '바쁜 하루에도 간편하게 챙길 수 있어요.',
+    supplementUsageSteps: ['하루 1회, 표시된 양만큼 섭취해요', '물이나 음료에 잘 섞어요', '꾸준히 섭취하면 더 좋아요'],
+    supplementCare:
+      '직사광선을 피해 서늘하고 건조한 곳에 보관하세요. 특정 질환이 있거나 임신·수유 중이라면 섭취 전 전문의와 상담하세요. 알레르기 체질은 원재료를 꼭 확인해주세요.',
   },
 
   // ─── 데일리 자가 진단 ───

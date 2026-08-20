@@ -203,6 +203,15 @@ export default {
     comboExpandAria: '展开最佳组合',
     comboTitle: '热门最佳组合',
     comboCta: '直接加入购物车',
+    detailFeaturesTitle: '产品特点',
+    detailUsageTitle: '使用方法',
+    detailCareTitle: '保存及注意事项',
+    skincareIntro: '可以轻松加入日常护肤程序。',
+    skincareUsageSteps: ['洁面后取适量', '轻轻涂抹于全脸', '轻拍至吸收'],
+    skincareCare: '请避光置于阴凉处保存，使用后请拧紧瓶盖。使用过程中如出现泛红或刺激感，请停止使用并咨询医生。',
+    supplementIntro: '再忙也能轻松坚持。',
+    supplementUsageSteps: ['每日1次，按标示量摄入', '与水或饮品充分混合', '坚持摄入效果更佳'],
+    supplementCare: '请避光置于阴凉干燥处保存。如有基础疾病或处于孕期、哺乳期，摄入前请咨询医生。过敏体质者请确认原料成分。',
   },
 
   selfCheck: {

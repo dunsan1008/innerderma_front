@@ -59,12 +59,30 @@ const NAME_TOP = ICON_CENTER_Y - NAME_LINE_HEIGHT / 2;
 /** 찜 아이콘(x310) 앞에서 끝나도록 잡은 폭 */
 const NAME_WIDTH = 270;
 
-/** 상세 설명 자리표시 블록 (Figma Frame 60/61/62) */
+/**
+ * 상세 설명 3블록 (Figma Frame 60/61/62).
+ * Figma 원본은 내부 그룹이 전부 hidden 인 빈 자리표시였다 — 제품 특징 / 사용 방법 /
+ * 보관 및 주의사항 실제 콘텐츠로 채운다. 백엔드에 상품 설명 필드가 없어서(이름·가격·
+ * 태그·이미지뿐) 특정 성분·효능을 지어내는 대신, 스킨케어/이너뷰티 두 카테고리에
+ * 공통으로 적용 가능한 일반적인 안내문을 쓰고, 태그는 실제 상품 데이터를 그대로 쓴다.
+ */
 const DETAIL_BLOCKS = [
   { top: 592, height: 245, nodeId: '1026:2608' },
   { top: 856, height: 181, nodeId: '1026:2609' },
   { top: 1056, height: 194, nodeId: '1026:2610' },
 ];
+
+/**
+ * 상품이 이너뷰티(윔 스토어, 섭취형)인지 스킨케어(피쓰 서울, 바르는 제품)인지 구분한다.
+ * 실제 백엔드 상품은 `source`로 바로 구분되지만, 더미 상품은 그 필드가 없어서
+ * 이름에 섭취형 제품에 흔한 단어가 있는지로 대신 판별한다.
+ */
+const SUPPLEMENT_KEYWORDS = ['쉐이크', '식이섬유', '도시락', '콜라겐', '프로바이오틱스', '환', '스틱'];
+function isSupplementProduct(name, source) {
+  if (source === 'WIM_STORE') return true;
+  if (source === 'PIECE_SEOUL') return false;
+  return SUPPLEMENT_KEYWORDS.some((kw) => name.includes(kw));
+}
 
 /** 태그 pill 좌표 (Figma Container 1026:2594 / 2598 / 2602) */
 const TAG_LEFT = [15.83, 82.83, 149.83];
@@ -151,6 +169,12 @@ export default function ProductDetailScreen() {
   /** 한 줄일 때 0, 두 줄이면 16.5, 세 줄이면 33 */
   const nameLines = Math.max(1, Math.round(nameHeight / NAME_LINE_HEIGHT));
   const extra = (nameLines - 1) * NAME_LINE_HEIGHT;
+
+  /** 상세 설명 3블록 콘텐츠 — 이너뷰티/스킨케어 카테고리별로 문구가 갈린다 */
+  const isSupplement = isSupplementProduct(view.name, selected?.source);
+  const usageSteps = isSupplement ? t.productDetail.supplementUsageSteps : t.productDetail.skincareUsageSteps;
+  const featuresIntro = isSupplement ? t.productDetail.supplementIntro : t.productDetail.skincareIntro;
+  const careText = isSupplement ? t.productDetail.supplementCare : t.productDetail.skincareCare;
 
   /** 하단 바의 선택 개수 — Figma 기본값은 0개 */
   const [quantity, setQuantity] = useState(0);
@@ -282,11 +306,18 @@ export default function ProductDetailScreen() {
         data-node-id="1026:2585"
         data-name="image 15"
       >
+        {/*
+          실제 백엔드 상품의 imageUrl 이 아직 리졸브 안 되는 경우가 있다 —
+          깨진 이미지 아이콘 대신 위 배경(bg-image-bg)만 남긴다.
+        */}
         <img
           alt=""
           src={view.image}
           className="pointer-events-none absolute inset-0 size-full max-w-none object-cover"
           data-testid="pd-hero"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
         />
       </div>
 
@@ -371,16 +402,69 @@ export default function ProductDetailScreen() {
         </div>
       ))}
 
-      {/* 상세 설명 자리표시 3블록 */}
-      {DETAIL_BLOCKS.map((block) => (
-        <div
-          key={block.nodeId}
-          className="absolute left-[4px] w-[384px] rounded-[16px] border-2 border-solid border-placeholder-line bg-detail-placeholder"
-          style={{ top: block.top + extra, height: block.height }}
-          data-node-id={block.nodeId}
-          data-name="DetailPlaceholder"
-        />
-      ))}
+      {/* 상세 설명 1 — 제품 특징: 실제 태그 + 카테고리별 소개 문구 */}
+      <div
+        className="absolute left-[4px] flex w-[384px] flex-col items-start gap-[10px] rounded-[16px] border border-solid border-line bg-white px-[16px] py-[16px]"
+        style={{ top: DETAIL_BLOCKS[0].top + extra, height: DETAIL_BLOCKS[0].height }}
+        data-node-id={DETAIL_BLOCKS[0].nodeId}
+        data-name="DetailFeatures"
+      >
+        <p className="font-sans text-[14px] font-bold leading-[21px] text-text-strong">
+          {t.productDetail.detailFeaturesTitle}
+        </p>
+        {view.tags.length ? (
+          <div className="flex flex-col items-start gap-[4px]">
+            {view.tags.slice(0, 3).map((tag) => (
+              <div key={tag} className="flex items-center gap-[6px]">
+                <span className="size-[4px] shrink-0 rounded-full bg-accent-teal" />
+                <p className="font-sans text-[12px] font-normal leading-[18px] text-body">{tag}</p>
+              </div>
+            ))}
+          </div>
+        ) : null}
+        <p className="font-sans text-[12px] font-normal leading-[18px] text-label-sub [word-break:keep-all]">
+          {featuresIntro}
+        </p>
+      </div>
+
+      {/* 상세 설명 2 — 사용 방법: 카테고리별 3단계 */}
+      <div
+        className="absolute left-[4px] flex w-[384px] flex-col items-start gap-[8px] rounded-[16px] border border-solid border-line bg-white px-[16px] py-[16px]"
+        style={{ top: DETAIL_BLOCKS[1].top + extra, height: DETAIL_BLOCKS[1].height }}
+        data-node-id={DETAIL_BLOCKS[1].nodeId}
+        data-name="DetailUsage"
+      >
+        <p className="font-sans text-[14px] font-bold leading-[21px] text-text-strong">
+          {t.productDetail.detailUsageTitle}
+        </p>
+        <div className="flex w-full flex-col items-start gap-[6px]">
+          {usageSteps.map((step, i) => (
+            <div key={step} className="flex w-full items-center gap-[8px]">
+              <span className="flex size-[18px] shrink-0 items-center justify-center rounded-full bg-text-strong">
+                <span className="font-sans text-[9px] font-bold leading-[9px] text-white">{i + 1}</span>
+              </span>
+              <p className="font-sans text-[12px] font-normal leading-[18px] text-text-strong [word-break:keep-all]">
+                {step}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 상세 설명 3 — 보관 및 주의사항: AvoidBox 와 같은 경고색 톤 재사용 */}
+      <div
+        className="absolute left-[4px] flex w-[384px] flex-col items-start gap-[6px] rounded-[16px] border border-solid border-warn-line bg-warn-bg px-[16px] py-[16px]"
+        style={{ top: DETAIL_BLOCKS[2].top + extra, height: DETAIL_BLOCKS[2].height }}
+        data-node-id={DETAIL_BLOCKS[2].nodeId}
+        data-name="DetailCare"
+      >
+        <p className="font-sans text-[13px] font-semibold leading-[19.5px] text-accent-brown">
+          {t.productDetail.detailCareTitle}
+        </p>
+        <p className="font-sans text-[12px] font-normal leading-[18px] text-accent-brown [word-break:keep-all]">
+          {careText}
+        </p>
+      </div>
 
       {/* 많이 구매하는 베스트 조합 */}
       <p

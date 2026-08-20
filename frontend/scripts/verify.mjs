@@ -791,8 +791,13 @@ check('L) 상품 상세에 이름·가격·태그 3개 렌더',
   (await page.getByText('피쓰 코어 리빌드 크림 50ml').count()) > 0 &&
     (await page.getByText('54,000원').count()) > 0 &&
     (await page.getByText('피부과전용').count()) > 0);
-check('L) 상품 상세 상세설명 자리표시 3블록',
-  (await page.locator('[data-name="DetailPlaceholder"]').count()) === 3);
+check('L) 상품 상세 상세설명 3블록(특징·사용법·보관)에 실제 내용이 채워짐',
+  (await page.locator('[data-name="DetailFeatures"]').count()) === 1 &&
+    (await page.locator('[data-name="DetailUsage"]').count()) === 1 &&
+    (await page.locator('[data-name="DetailCare"]').count()) === 1 &&
+    (await page.getByText('제품 특징').count()) > 0 &&
+    (await page.getByText('사용 방법').count()) > 0 &&
+    (await page.getByText('보관 및 주의사항').count()) > 0);
 
 // 찜 토글이 상세에서도 동작하는지
 await page.locator('[data-testid="pd-wish"]').click();
@@ -1060,7 +1065,7 @@ const readDetailName = () =>
     const wish = box('[data-testid="pd-wish"]');
     const price = box('[data-node-id="1026:2593"]');
     const infoBg = box('[data-node-id="1026:2588"]');
-    const detailBlock = box('[data-name="DetailPlaceholder"]');
+    const detailBlock = box('[data-name="DetailFeatures"]');
 
     const tags = [...document.querySelectorAll('[data-name="Container"]')]
       .map((t) => t.getBoundingClientRect())

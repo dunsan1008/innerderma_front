@@ -207,6 +207,17 @@ export default {
     comboExpandAria: 'Expand best combo',
     comboTitle: 'Best-Selling Combo',
     comboCta: 'Add Combo to Cart',
+    detailFeaturesTitle: 'Product Highlights',
+    detailUsageTitle: 'How to Use',
+    detailCareTitle: 'Storage & Precautions',
+    skincareIntro: 'Easy to add to your everyday routine.',
+    skincareUsageSteps: ['Take an adequate amount after cleansing', 'Smooth gently over your whole face', 'Pat lightly until absorbed'],
+    skincareCare:
+      'Store away from direct sunlight in a cool place. Close the cap tightly after use. If redness or irritation occurs, stop use and consult a doctor.',
+    supplementIntro: 'An easy way to stay on track, even on busy days.',
+    supplementUsageSteps: ['Take the labeled amount once a day', 'Mix well with water or a drink', 'Best when taken consistently'],
+    supplementCare:
+      'Store away from direct sunlight in a cool, dry place. If you have a medical condition or are pregnant or breastfeeding, consult a doctor before use. Check the ingredients if you have allergies.',
   },
 
   selfCheck: {
