@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useT } from '@/i18n';
+import { FRAME } from '@/theme';
 import Screen from '@/components/layout/Screen';
 import TabBar from '@/components/layout/TabBar';
 import StatusBar from '@/components/layout/StatusBar';
@@ -51,8 +52,9 @@ const CARD_HEIGHT = 136.667;
 const CARD_GAP = 12;
 /** 합계 블록 높이 (Figma 1026:2528) */
 const SUMMARY_HEIGHT = 108.667;
-/** Figma 기본 상태의 합계 블록 top */
-const SUMMARY_TOP_MIN = 728.333 + HEADER_GROWTH;
+/** 장바구니가 비었을 때 안내 문구의 top / 아래끝 (leading 20) */
+const EMPTY_MESSAGE_TOP = 380 + HEADER_GROWTH;
+const EMPTY_MESSAGE_BOTTOM = EMPTY_MESSAGE_TOP + 20;
 
 /** 배송방법 셀렉트 (Figma 1026:2444) — 디자인은 정적이지만 실제로 고를 수 있게 한다 */
 function DeliverySelect({ value, onChange }) {
@@ -214,15 +216,27 @@ export default function CartScreen() {
     .filter((it) => selectedIds.includes(it.id))
     .reduce((sum, it) => sum + it.price * it.quantity, 0);
 
-  /** 카드 목록이 끝나는 y */
+  /**
+   * 합계·구매하기 블록은 **내용 바로 아래**에 붙인다.
+   *
+   * 예전에는 Figma 기본 상태(상품 3개)의 y 를 최소값으로 깔아 둬서, 상품이 1~2개거나
+   * 아예 없어도 블록이 그 자리에 머물렀다. 그러면 목록과 블록 사이가 크게 비고
+   * 콘텐츠가 화면보다 길어져(contentBottom 792 > 756) 구매하기 버튼이 탭바 아래로
+   * 밀려 스크롤해야 보였다.
+   *
+   * 이제 목록이 끝나는 곳(비어 있으면 안내 문구 아래)에서 이어지므로
+   * 상품 3개까지는 스크롤 없이 한 화면에 들어온다.
+   */
   const listBottom = LIST_TOP + items.length * (CARD_HEIGHT + CARD_GAP);
-  const summaryTop = Math.max(listBottom + 12, SUMMARY_TOP_MIN);
+  const summaryTop = items.length ? listBottom + 12 : EMPTY_MESSAGE_BOTTOM + 24;
   const contentBottom = summaryTop + SUMMARY_HEIGHT;
+  /** Figma 프레임은 933 이었지만, 내용이 짧을 때 빈 높이를 잡아 둘 이유가 없다 */
+  const frameHeight = Math.max(contentBottom, FRAME.height);
 
   return (
     <Screen
       className="bg-white"
-      height={Math.max(contentBottom + TAB_BAR_HEIGHT, 933)}
+      height={frameHeight}
       nodeId="1026:2397"
       name="MY 장바구니"
       headerHeight={HEADER_HEIGHT}
@@ -264,13 +278,31 @@ export default function CartScreen() {
       tabBar={<TabBar className="relative h-[96px] w-[393px]" />}
       contentBottom={contentBottom}
     >
-      {/* 제목 */}
+      {/*
+        제목 + 뒤로가기.
+
+        뒤로가기는 헤더가 아니라 제목 줄에 둔다. 헤더에 넣으면 로고가 오른쪽으로
+        밀려(상품 상세는 그래서 로고가 46.83 에 있다) 홈·마켓과 맞춰 둔 로고 위치가
+        다시 어긋난다. 제목 줄에 두면 헤더는 그대로 두면서 되돌아갈 길이 생긴다.
+      */}
       <div
-        className="absolute left-0 flex h-[53px] w-[393px] flex-col items-start px-[24px] pb-[8px] pt-[20px]"
+        className="absolute left-0 flex h-[53px] w-[393px] items-center gap-[10px] px-[24px] pb-[8px] pt-[20px]"
         style={{ top: 129 + HEADER_GROWTH }}
         data-node-id="1026:2406"
         data-name="Heading 1"
       >
+        <button
+          type="button"
+          aria-label={t.common.back}
+          onClick={() => navigate(-1)}
+          className="relative -ml-[4px] flex size-[24px] shrink-0 items-center justify-center text-text-strong"
+          data-testid="cart-back"
+        >
+          {/* 상품 상세의 셰브론(19x10 을 90도 돌린 것)과 같은 모양·굵기 */}
+          <svg width="11" height="19" viewBox="0 0 11 19" fill="none" aria-hidden>
+            <path d="M9.75 1.25L1.5 9.5l8.25 8.25" stroke="currentColor" strokeWidth="2.5" />
+          </svg>
+        </button>
         <p className="relative shrink-0 whitespace-nowrap font-sans text-[20px] font-bold leading-[25px] text-text-strong">
           {t.cart.title}
         </p>
@@ -373,7 +405,7 @@ export default function CartScreen() {
       ) : (
         <p
           className="absolute left-0 w-[393px] text-center font-sans text-[13px] font-normal leading-[20px] text-body"
-          style={{ top: 380 + HEADER_GROWTH }}
+          style={{ top: EMPTY_MESSAGE_TOP }}
         >
           {t.cart.emptyMessage}
         </p>
