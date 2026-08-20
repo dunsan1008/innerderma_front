@@ -36,13 +36,13 @@ function StepCard({ step, nodeId }) {
           <div className="relative flex min-w-px items-center gap-[8px]" style={{ flex: `${step.titleFlex} 0 0` }}>
             <div className="relative flex size-[24px] shrink-0 items-center justify-center rounded-full bg-text-strong">
               <div className="relative flex shrink-0 flex-col items-start">
-                <p className="relative shrink-0 whitespace-nowrap font-sans text-[10px] font-bold leading-[10px] text-white [word-break:break-word]">
+                <p className="relative shrink-0 font-sans text-[10px] font-bold leading-[10px] text-white [word-break:break-word]">
                   {step.no}
                 </p>
               </div>
             </div>
             <div className="relative flex shrink-0 flex-col items-start">
-              <p className="relative shrink-0 whitespace-nowrap font-sans text-[14px] font-bold leading-[21px] text-text-strong [word-break:break-word]">
+              <p className="relative shrink-0 font-sans text-[14px] font-bold leading-[21px] text-text-strong [word-break:break-word]">
                 {step.title}
               </p>
             </div>
@@ -51,13 +51,13 @@ function StepCard({ step, nodeId }) {
             className={`relative flex shrink-0 flex-col items-start rounded-full px-[8px] py-[2px] ${TAG_STYLE[step.tagKey]}`}
             data-name="CategoryTag"
           >
-            <p className="relative shrink-0 whitespace-nowrap font-sans text-[10px] font-medium leading-[15px] [word-break:break-word]">
+            <p className="relative shrink-0 font-sans text-[10px] font-medium leading-[15px] [word-break:break-word]">
               {step.tag}
             </p>
           </div>
         </div>
         <div className="relative flex w-full shrink-0 flex-col items-start">
-          <p className="relative shrink-0 whitespace-nowrap font-sans text-[12px] font-medium leading-[18px] text-text-strong [word-break:break-word]">
+          <p className="relative shrink-0 font-sans text-[12px] font-medium leading-[18px] text-text-strong [word-break:break-word]">
             {step.description}
           </p>
         </div>
@@ -75,7 +75,6 @@ export default function StepList({ steps, nodeId, height }) {
   return (
     <div
       className="relative flex w-full flex-col items-start px-[20px] pt-[12px]"
-      style={height ? { height } : undefined}
       data-node-id={nodeId}
       data-name="StepList"
     >
