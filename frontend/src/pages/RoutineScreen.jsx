@@ -104,12 +104,17 @@ function EveningWashCard() {
   const { eveningWash: ew } = useRoutineText();
   return (
     <div className="flex w-full flex-col items-start px-[20px] pt-[16px]" data-node-id="870:4154" data-name="MorningContent">
-      <div className="relative flex w-full shrink-0 flex-col items-start rounded-[16px] border border-solid border-line bg-white px-[16px] pb-[16px] pt-[12px]">
+      {/*
+        번호 배지가 스텝 카드와 같은 자리에 오도록 테두리·padding 을 스텝 카드에 맞춘다.
+        예전에는 border 1 + px-16 pt-12 라 배지가 스텝 카드보다 오른쪽으로 3px,
+        위로 3px 어긋나 있었다 (스텝 카드는 border-2 + px-12 py-14 → 배지 left 14 / top 16).
+      */}
+      <div className="relative flex w-full shrink-0 flex-col items-start rounded-[16px] border-2 border-solid border-line bg-white px-[12px] pb-[14px] pt-[14px]">
         <div className="relative flex w-full shrink-0 items-start justify-between">
           <div className="relative flex shrink-0 items-center gap-[8px]">
             <div className="relative flex size-[24px] shrink-0 items-center justify-center rounded-full bg-text-strong">
               <div className="relative flex shrink-0 flex-col items-start">
-                <p className="relative shrink-0 whitespace-nowrap font-sans text-[10px] font-bold leading-[15px] text-white [word-break:break-word]">
+                <p className="relative shrink-0 whitespace-nowrap font-sans text-[10px] font-bold leading-[10px] text-white [word-break:break-word]">
                   {ew.badge}
                 </p>
               </div>
@@ -132,7 +137,7 @@ function EveningWashCard() {
 
         {/* Figma 는 한글을 문자 단위로 줄바꿈하므로 break-all 로 맞춘다 */}
         <div className="relative flex w-full shrink-0 flex-col items-start pt-[8px]">
-          <p className="relative w-[319px] shrink-0 break-all font-sans text-[12px] font-normal leading-[18px] text-text-strong">
+          <p className="relative w-full shrink-0 break-all font-sans text-[12px] font-normal leading-[18px] text-text-strong">
             {ew.description}
           </p>
         </div>
@@ -141,7 +146,7 @@ function EveningWashCard() {
           <div className="relative flex w-full shrink-0 flex-col items-start rounded-[10px] border border-solid border-note-line bg-note-bg px-[12px] py-[8px]">
             <div className="relative flex w-full shrink-0 flex-col items-start">
               {/* 어절 단위로만 줄바꿈한다 (break-all 은 글자 중간에서 잘려 읽기 나쁘다) */}
-              <p className="relative w-[293px] shrink-0 font-sans text-[11px] font-normal leading-[16px] text-accent-green [word-break:keep-all]">
+              <p className="relative w-full shrink-0 font-sans text-[11px] font-normal leading-[16px] text-accent-green [word-break:keep-all]">
                 {ew.note}
               </p>
             </div>
@@ -153,7 +158,7 @@ function EveningWashCard() {
           Figma 실측 폭(135)을 그대로 박아 두면 브라우저 폰트가 더 넓어서 두 줄로 접히고,
           컨테이너 높이(23)에 잘려 아랫줄이 반쯤 보였다.
         */}
-        <div className="relative flex w-[319px] shrink-0 flex-col items-start pt-[8px]">
+        <div className="relative flex w-full shrink-0 flex-col items-start pt-[8px]">
           <p className="relative h-[15px] shrink-0 whitespace-nowrap font-sans text-[10px] font-normal leading-[15px] text-body">
             {ew.footnote}
           </p>
