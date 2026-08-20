@@ -9,7 +9,7 @@ import noise from '@/assets/figma/camera-noise.png';
 import maskDisable from '@/assets/figma/camera-mask-disable.svg';
 import maskEnable from '@/assets/figma/camera-mask-enable.svg';
 import closeIcon from '@/assets/figma/camera-close.svg';
-import { uploadAndAnalyzeSkinCapture } from '@/api/skinCapture';
+import { uploadAndAnalyzeSkinCapture, getLatestSkinCapture } from '@/api/skinCapture';
 import { useAuthStore } from '@/store/authStore';
 
 /**
@@ -46,6 +46,35 @@ export default function CameraScreen({ initialDetected = false }) {
     const timer = setTimeout(() => setDetected(true), 1500);
     return () => clearTimeout(timer);
   }, [initialDetected, status]);
+
+  /**
+   * 상단 "마지막 기록 후 N일" 안내 — 예전에는 항상 고정값 10을 보여줬다.
+   * 시연에서 같은 날 재촬영(0일 전)을 하면 이 값이 그대로 남아 명백히 틀려 보이므로,
+   * 실제 마지막 촬영 기록을 조회해 날짜 차이를 계산한다. 이전 기록이 아예 없으면
+   * (첫 촬영) "비교" 문구 자체가 성립하지 않으니 이 안내 블록을 통째로 숨긴다.
+   */
+  const [daysSinceLastCapture, setDaysSinceLastCapture] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const userCode = useAuthStore.getState().userCode;
+    if (!userCode) return undefined;
+
+    getLatestSkinCapture(userCode)
+      .then((latest) => {
+        if (cancelled || !latest?.capturedDate) return;
+        const [ly, lm, ld] = latest.capturedDate.split('-').map(Number);
+        const [ty, tm, td] = todayKey().split('-').map(Number);
+        const last = Date.UTC(ly, lm - 1, ld);
+        const today = Date.UTC(ty, tm - 1, td);
+        setDaysSinceLastCapture(Math.max(0, Math.round((today - last) / 86400000)));
+      })
+      .catch((err) => console.error('[CameraScreen] getLatestSkinCapture failed', err));
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   /** 촬영 → 프레임 캡처 후 오늘 기록으로 저장하고 자가진단으로 */
   const shoot = () => {
@@ -130,21 +159,25 @@ export default function CameraScreen({ initialDetected = false }) {
         className="absolute left-0 top-0 flex w-[393px] flex-col items-center px-[24px] pt-[64px]"
         data-node-id="870:3687"
       >
-        <p
-          className="relative w-full shrink-0 break-words text-center font-sans text-[20px] font-bold leading-[28px] text-white"
-          data-node-id="870:3688"
-        >
-          {t.camera.lastRecord(10)}
-        </p>
+        {daysSinceLastCapture !== null ? (
+          <>
+            <p
+              className="relative w-full shrink-0 break-words text-center font-sans text-[20px] font-bold leading-[28px] text-white"
+              data-node-id="870:3688"
+            >
+              {t.camera.lastRecord(daysSinceLastCapture)}
+            </p>
 
-        <div className="relative flex shrink-0 flex-col items-start pt-[4px]" data-node-id="870:3689">
-          <p
-            className="relative w-full shrink-0 break-words text-center font-sans text-[13px] font-normal leading-[20px] text-white-60"
-            data-node-id="870:3690"
-          >
-            {t.camera.compareMessage}
-          </p>
-        </div>
+            <div className="relative flex shrink-0 flex-col items-start pt-[4px]" data-node-id="870:3689">
+              <p
+                className="relative w-full shrink-0 break-words text-center font-sans text-[13px] font-normal leading-[20px] text-white-60"
+                data-node-id="870:3690"
+              >
+                {t.camera.compareMessage}
+              </p>
+            </div>
+          </>
+        ) : null}
 
         <div
           className="relative flex h-[32px] w-[48px] shrink-0 items-center gap-[6px] pt-[12px]"
