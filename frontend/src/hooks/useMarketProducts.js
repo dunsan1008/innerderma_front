@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { getProducts } from '@/api/market';
 import { CARD_IMAGE_BLEED, CARD_SIZES, buildSlots } from '@/constants/cardLayout';
 import { registerDynamicProducts } from '@/constants/marketScreens';
+import { matchesSkinStateCategory } from '@/lib/skinStateCategory';
 
 const SOURCE_BY_STORE = { pith: 'PIECE_SEOUL', wim: 'WIM_STORE' };
 
@@ -17,18 +18,6 @@ const TAG_LABELS = {
   ACNE: '트러블 케어',
   SEBUM: '피지 케어',
 };
-
-/**
- * "수부지"/"피부탄력" 탭은 백엔드에 없는 카테고리라 skinStateTags로 클라이언트에서
- * 흉내낸다 — 백엔드팀 확인 기준: 수부지=HYDRATION 포함, 피부탄력=BARRIER_RECOVERY
- * 또는 STABLE 포함.
- */
-function matchesCategory(product, category) {
-  const tags = product.skinStateTags || [];
-  if (category === 'oily') return tags.includes('HYDRATION');
-  if (category === 'skin') return tags.includes('BARRIER_RECOVERY') || tags.includes('STABLE');
-  return true;
-}
 
 export function toCardTags(product) {
   return (product.skinStateTags || []).slice(0, 3).map((tag) => TAG_LABELS[tag] || tag);
@@ -64,7 +53,9 @@ export function toCardProduct(product, slot) {
  * (RoutineScreen의 useCareSolution과 같은 패턴).
  *
  * @param {'pith'|'wim'} store
- * @param {'all'|'oily'|'skin'} category store가 'wim'이면 무시된다(윔은 전체만 있음)
+ * @param {'all'|'oily'|'skin'} category 두 스토어 모두 같은 세 카테고리를 갖는다.
+ *   판정은 `lib/skinStateCategory.js` 한 곳에 있고, 더미 카탈로그(wimProducts.js)도
+ *   같은 규칙으로 갈라 놨다 — 실상품으로 바뀌는 순간 탭 내용이 어긋나지 않게.
  */
 export function useMarketProducts(store, category) {
   const [raw, setRaw] = useState(null);
@@ -91,9 +82,11 @@ export function useMarketProducts(store, category) {
 
   const filtered = useMemo(() => {
     if (!raw) return null;
-    const list = store === 'wim' ? raw : raw.filter((p) => matchesCategory(p, category));
+    /* 스토어 구분 없이 같은 판정을 쓴다 — 예전엔 윔만 필터를 건너뛰어(전체 탭만 있었다)
+       윔 카테고리 탭이 생기면 전체와 같은 목록이 나왔다 */
+    const list = raw.filter((p) => matchesSkinStateCategory(p.skinStateTags, category));
     return list.length ? list : null;
-  }, [raw, store, category]);
+  }, [raw, category]);
 
   const cards = useMemo(() => {
     if (!filtered) return null;

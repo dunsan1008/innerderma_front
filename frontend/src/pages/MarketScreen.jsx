@@ -18,6 +18,8 @@ import { useMarketProducts } from '@/hooks/useMarketProducts';
  * 마켓 화면.
  *  - 피쓰 서울 : Figma 마켓 1 / 2 / 3 (카테고리 전체 · 수부지 · 피부탄력)
  *  - 윔 스토어 : Figma 마켓 4 (좌표·카드 규격은 마켓 1 과 동일하게 통일)
+ *                같은 세 카테고리를 갖고, 상품은 skinState 기준으로 갈린다
+ *                (`constants/wimProducts.js` 참고)
  *
  * 두 스토어는 같은 레이아웃을 공유하고 `variant` 로 콘텐츠만 바뀐다.
  * 그래서 스토어 전환 토글이 항상 같은 자리(y=536)에 있고, 전환해도 배너·탭·카드가
@@ -27,7 +29,15 @@ import { useMarketProducts } from '@/hooks/useMarketProducts';
  * 회색 스태틱으로 대체하고 상품 목록을 감춘다. 추천은 촬영·분석 결과물이라
  * 그 전에는 보여줄 근거가 없다.
  */
-const ROUTE_BY_CATEGORY = { all: '/market', oily: '/market/oily', skin: '/market/elasticity' };
+/**
+ * 카테고리 탭 → 라우트. **스토어별로** 갖는다.
+ * 예전에는 피쓰 라우트 하나뿐이라 윔에서 탭을 누르면 스토어가 피쓰로 바뀌어 버려
+ * 윔 탭 세 개를 아예 못 누르게 막아뒀다. 이제 윔도 카테고리 라우트가 있어 그럴 필요가 없다.
+ */
+const ROUTE_BY_CATEGORY = {
+  pith: { all: '/market', oily: '/market/oily', skin: '/market/elasticity' },
+  wim: { all: '/market/wim', oily: '/market/wim/oily', skin: '/market/wim/elasticity' },
+};
 
 /**
  * 상품 목록 무한 스크롤 — 백엔드 `/products` 가 page/size 파라미터를 지원하지 않아
@@ -94,16 +104,14 @@ export default function MarketScreen({ variant = 'all' }) {
   const hasCaptureToday = useCareStore((s) => s.hasCaptureToday);
 
   const isWim = config.store === 'wim';
+  const storeKey = isWim ? 'wim' : 'pith';
 
   /**
    * 실제 상품(피쓰 서울/윔 스토어) — 있으면 이걸 쓰고, 없으면(세션 없음·요청 실패·
    * 그 카테고리에 실상품이 하나도 없음) 기존 더미 카탈로그로 자연스럽게 폴백한다
    * (RoutineScreen의 useCareSolution과 같은 패턴).
    */
-  const { products: realProducts, frameContentHeight } = useMarketProducts(
-    isWim ? 'wim' : 'pith',
-    config.category,
-  );
+  const { products: realProducts, frameContentHeight } = useMarketProducts(storeKey, config.category);
   const products = realProducts ?? config.products;
 
   /** 스토어/카테고리(=variant)가 바뀌면 처음 페이지부터 다시 보여준다 */
@@ -189,9 +197,15 @@ export default function MarketScreen({ variant = 'all' }) {
         style={{ left: 0, top: TOGGLE_TOP }}
         data-name="StoreToggleContainer"
       >
+        {/*
+          스토어를 바꿔도 **보고 있던 카테고리를 유지**한다.
+          두 스토어가 같은 세 카테고리를 갖게 됐으니, 수부지를 보다가 스토어만 바꾸면
+          "같은 관심사로 다른 스토어를 본다"는 게 이 토글의 목적에 맞다. 전체로 리셋하면
+          탭을 매번 다시 눌러야 하고, 화면상 카테고리 칩만 슬쩍 되돌아가 이유가 안 보인다.
+        */}
         <StoreToggle
           wim={isWim}
-          onChange={(next) => navigate(next ? '/market/wim' : '/market')}
+          onChange={(next) => navigate(ROUTE_BY_CATEGORY[next ? 'wim' : 'pith'][config.category])}
         />
       </div>
 
@@ -216,10 +230,10 @@ export default function MarketScreen({ variant = 'all' }) {
       <FeaturedBanner banner={banner} slides={bannerSlides} onOpen={openDetail} />
 
       {/*
-        카테고리 탭.
-        윔 스토어에는 수부지·피부탄력 카테고리 라우트가 없다. 예전에는 그 탭을 누르면
-        피쓰 서울 화면으로 튕겨 나가 스토어가 바뀌어 버렸다. 그래서 윔에서는 두 탭을
-        스태틱(누를 수 없음)으로 두고 '전체'만 남긴다.
+        카테고리 탭 — 두 스토어 모두 동작한다.
+        같은 스토어 안에서만 이동하므로(ROUTE_BY_CATEGORY[storeKey]) 탭을 눌러도
+        토글은 계속 지금 보고 있는 스토어를 가리킨다.
+        (`CategoryTabs` 의 `staticKeys` 는 다른 용도로 남겨 두고 여기서는 넘기지 않는다)
       */}
       <div
         className="absolute"
@@ -227,8 +241,7 @@ export default function MarketScreen({ variant = 'all' }) {
       >
         <CategoryTabs
           value={config.category}
-          staticKeys={isWim ? ['all', 'oily', 'skin'] : undefined}
-          onChange={(next) => navigate(ROUTE_BY_CATEGORY[next])}
+          onChange={(next) => navigate(ROUTE_BY_CATEGORY[storeKey][next])}
         />
       </div>
 
