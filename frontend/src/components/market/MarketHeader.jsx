@@ -17,11 +17,17 @@ import cartIcon from '@/assets/figma/market-cart-icon.svg';
  * 아이콘 자체(찜·장바구니)는 홈의 언어·마이페이지와 기능이 전혀 달라 그대로 둔다.
  * 바꾸는 건 위치와 정렬뿐이다.
  */
-export default function MarketHeader({ showHeart = false, onWish, onCart }) {
+/**
+ * @param {number} height 헤더 높이. 기본 157 — 솔루션을 받은 뒤 홈 헤더와 같은 값이다.
+ *   마켓에는 요일 스트립이 없어 로고 줄 아래가 빈 배경으로 남는데, 화면을 옮길 때
+ *   상단바가 줄어드는 것보다 그 공백이 낫다고 판단해 높이를 맞췄다.
+ */
+export default function MarketHeader({ showHeart = false, onWish, onCart, height = 157 }) {
   const t = useT();
   return (
     <div
-      className="relative flex h-[129px] w-[393px] flex-col items-start overflow-clip bg-header-dark"
+      className="relative flex w-[393px] flex-col items-start overflow-clip bg-header-dark"
+      style={{ height }}
       data-node-id="870:5080"
       data-name="Container"
     >

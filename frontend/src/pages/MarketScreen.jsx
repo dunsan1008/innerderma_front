@@ -35,8 +35,16 @@ const FILTER_ROUTE_BY_KEY = {
   diagnosis: '/market/filter/diagnosis',
 };
 
-/** 상단 고정 헤더 높이 (Figma Container 870:5080) */
-const MARKET_HEADER_HEIGHT = 129;
+/**
+ * 상단 고정 헤더 높이.
+ * 솔루션을 받은 뒤 홈 헤더(루틴 헤더 870:3773)와 같은 157 로 맞춘다.
+ * Figma 마켓 헤더(870:5080)는 129 였는데, 홈에서 마켓으로 넘어갈 때 상단바가
+ * 줄어들어 화면이 튀었다. 마켓에는 요일 스트립이 없어 아래쪽이 빈 배경으로 남는데,
+ * 그 공백은 의도한 것이다(높이를 맞추는 쪽이 전환이 자연스럽다).
+ */
+const MARKET_HEADER_HEIGHT = 157;
+/** Figma 원본(129) 대비 늘어난 만큼 — 아래 블록 좌표에 더한다 */
+const HEADER_GROWTH = MARKET_HEADER_HEIGHT - 129;
 /** 하단 고정 탭바 높이 */
 const TAB_BAR_HEIGHT = 96;
 
@@ -44,9 +52,13 @@ const TAB_BAR_HEIGHT = 96;
  * 스토어 전환 토글이 놓이는 y — 상단 고정 헤더(129) 바로 아래, 제목 위.
  * 어느 스토어를 보고 있는지가 화면에서 가장 먼저 읽혀야 해서 맨 위로 올렸다.
  */
-const TOGGLE_TOP = 145;
-/** 토글이 차지하는 높이(56) + 아래 여백 — 제목 이하 모든 요소를 이만큼 밀어낸다 */
-const TOGGLE_BLOCK = 68;
+const TOGGLE_TOP = 145 + HEADER_GROWTH;
+/**
+ * 토글이 차지하는 높이(56) + 아래 여백 — 제목 이하 모든 요소를 이만큼 밀어낸다.
+ * 헤더가 129 → 157 로 커진 만큼(HEADER_GROWTH)도 함께 더한다.
+ * (TOGGLE_TOP 은 자기 좌표에 이미 HEADER_GROWTH 를 갖고 있어 중복으로 더하지 않는다)
+ */
+const CONTENT_SHIFT = 68 + HEADER_GROWTH;
 
 /**
  * 배너 설정의 y 좌표를 한꺼번에 내린다.
@@ -83,7 +95,7 @@ export default function MarketScreen({ variant = 'all' }) {
 
   /** 토글이 위로 들어온 만큼 배너 좌표를 전부 내린다 */
   const banner = useMemo(() => {
-    const shifted = shiftBanner(config.banner, TOGGLE_BLOCK);
+    const shifted = shiftBanner(config.banner, CONTENT_SHIFT);
     const first = bannerSlides[0];
     // 배너의 대표 이미지·이름·가격은 첫 슬라이드와 맞춰 둔다 (슬라이드가 교체됐을 수 있다)
     return first
@@ -97,12 +109,13 @@ export default function MarketScreen({ variant = 'all' }) {
   return (
     <Screen
       className="bg-white"
-      height={config.frameHeight + TOGGLE_BLOCK}
+      height={config.frameHeight + CONTENT_SHIFT}
       nodeId={config.nodeId}
       name={config.name}
       headerHeight={MARKET_HEADER_HEIGHT}
       header={
         <MarketHeader
+          height={MARKET_HEADER_HEIGHT}
           showHeart={config.showHeart}
           onWish={() => navigate('/market/wishlist')}
           onCart={() => navigate('/market/cart')}
@@ -110,7 +123,7 @@ export default function MarketScreen({ variant = 'all' }) {
       }
       tabBarHeight={TAB_BAR_HEIGHT}
       tabBar={<TabBar className="relative h-[96px] w-[393px]" />}
-      contentBottom={config.tabBarTop + TOGGLE_BLOCK}
+      contentBottom={config.tabBarTop + CONTENT_SHIFT}
     >
       {/* 스토어 전환 토글 — 상단바 바로 아래, 제목 위 */}
       <div
@@ -129,7 +142,7 @@ export default function MarketScreen({ variant = 'all' }) {
         className="absolute flex items-center justify-between"
         style={{
           left: config.title.x,
-          top: config.title.y + TOGGLE_BLOCK,
+          top: config.title.y + CONTENT_SHIFT,
           width: config.title.width,
           height: config.title.height,
         }}
@@ -152,7 +165,7 @@ export default function MarketScreen({ variant = 'all' }) {
       */}
       <div
         className="absolute"
-        style={{ left: config.tabs.x, top: config.tabs.y + TOGGLE_BLOCK, width: config.tabs.width }}
+        style={{ left: config.tabs.x, top: config.tabs.y + CONTENT_SHIFT, width: config.tabs.width }}
       >
         <CategoryTabs
           value={config.category}
@@ -162,7 +175,7 @@ export default function MarketScreen({ variant = 'all' }) {
       </div>
 
       <FilterRow
-        top={config.filters.top + TOGGLE_BLOCK}
+        top={config.filters.top + CONTENT_SHIFT}
         items={config.filters.items}
         onOpen={(item) => navigate(FILTER_ROUTE_BY_KEY[item.key])}
       />
@@ -171,7 +184,7 @@ export default function MarketScreen({ variant = 'all' }) {
       {config.products.map((product) => (
         <PostCard
           key={product.nodeId}
-          product={{ ...product, top: product.top + TOGGLE_BLOCK }}
+          product={{ ...product, top: product.top + CONTENT_SHIFT }}
           onOpen={openDetail}
         />
       ))}
