@@ -5,7 +5,12 @@ import img17 from '@/assets/figma/products/img-17.jpg';
 import img19 from '@/assets/figma/products/img-19.jpg';
 import { CARD_IMAGE_BLEED, CARD_SIZES } from '@/constants/cardLayout';
 import { MARKET_ALL_COMBINED, MARKET_ALL_PRODUCTS, MARKET_OILY_PRODUCTS, MARKET_SKIN_PRODUCTS } from '@/constants/marketProducts';
-import { WIM_BANNER_SLIDE, WIM_PRE_SOLUTION_SLIDE, WIM_PRODUCTS } from '@/constants/wimProducts';
+import {
+  WIM_BANNER_SLIDE,
+  WIM_BANNER_SLIDES,
+  WIM_PRE_SOLUTION_SLIDE,
+  WIM_PRODUCTS,
+} from '@/constants/wimProducts';
 
 /**
  * 추천 배너 슬라이드.
@@ -61,15 +66,12 @@ export const PITH_PRE_SOLUTION_SLIDES = [
 ];
 
 /**
- * 필터 행의 세 드롭다운. 네 화면(마켓 1/2/3/윔) 모두 같은 좌표를 쓴다.
+ * 필터 행의 세 드롭다운. 네 화면(마켓 1/2/3/윔) 모두 같은 순서를 쓴다.
  * `label` 대신 안정적인 `key` 를 쓴다 — 라벨은 `t.filter[key]` 로 언어별로 번역되므로,
  * 번역된 문자열을 라우팅 키로 쓰면 한국어 외 언어에서 매칭이 깨진다.
+ * 좌표는 FilterRow 가 오른쪽 정렬로 직접 잡으므로 여기서 갖지 않는다.
  */
-const FILTER_ITEMS = [
-  { key: 'gender', x: 191, caretX: 219, width: 25 },
-  { key: 'age', x: 244, caretX: 282, width: 35 },
-  { key: 'diagnosis', x: 303, caretX: 365, width: 58 },
-];
+const FILTER_ITEMS = [{ key: 'gender' }, { key: 'age' }, { key: 'diagnosis' }];
 
 /**
  * 마켓 화면 3종의 배치값. 모두 Figma 프레임 실측 절대 좌표다.
@@ -219,7 +221,7 @@ export const MARKET_SCREENS = {
       items: FILTER_ITEMS,
     },
     products: WIM_PRODUCTS,
-    bannerSlides: [WIM_BANNER_SLIDE],
+    bannerSlides: WIM_BANNER_SLIDES,
     preSolutionSlides: [WIM_PRE_SOLUTION_SLIDE],
     tabBarTop: 1541,
   },

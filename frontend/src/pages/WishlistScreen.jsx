@@ -19,12 +19,17 @@ import chevronSmall from '@/assets/figma/chevron-small.svg';
  * 이 화면에 나타나지 않았다.
  */
 
-/** 상단 고정 헤더 높이 */
-const HEADER_HEIGHT = 129;
+/**
+ * 상단 고정 헤더 높이 — 마켓 헤더와 같은 값을 쓴다.
+ * (홈 헤더 157 은 요일 스트립 73 을 포함한 높이라, 그게 없는 마켓 계열은 84 다)
+ */
+const HEADER_HEIGHT = 84;
+/** Figma 원본(129) 대비 줄어든 만큼 — 아래 블록 좌표에서 뺀다 */
+const HEADER_GROWTH = HEADER_HEIGHT - 129;
 const TAB_BAR_HEIGHT = 96;
 
 /** Figma 격자 규격: 2열, 카드 167x272 */
-const GRID = { left: [22, 206], top: 231, rowGap: 294 };
+const GRID = { left: [22, 206], top: 231 + HEADER_GROWTH, rowGap: 294 };
 
 export default function WishlistScreen() {
   const t = useT();
@@ -90,14 +95,21 @@ export default function WishlistScreen() {
       nodeId="870:5089"
       name="마켓 - 찜"
       headerHeight={HEADER_HEIGHT}
-      header={<MarketHeader onWish={() => navigate('/market/wishlist')} onCart={() => navigate('/market/cart')} />}
+      header={
+        <MarketHeader
+          height={HEADER_HEIGHT}
+          onWish={() => navigate('/market/wishlist')}
+          onCart={() => navigate('/market/cart')}
+        />
+      }
       tabBarHeight={TAB_BAR_HEIGHT}
       tabBar={<TabBar className="relative h-[96px] w-[393px]" />}
       contentBottom={contentBottom}
     >
       {/* MY 찜 */}
       <div
-        className="absolute left-[24px] top-[154px] flex h-[24px] w-[345px] items-center justify-between"
+        className="absolute left-[24px] flex h-[24px] w-[345px] items-center justify-between"
+        style={{ top: 154 + HEADER_GROWTH }}
         data-node-id="870:5198"
       >
         <div className="relative flex shrink-0 flex-col items-start">
@@ -112,7 +124,10 @@ export default function WishlistScreen() {
         간격이 밀려 있었다. 좌측 그룹(체크박스·전체·배송방법 변경)과 우측 선택삭제로 나눠
         같은 baseline 에 정렬한다.
       */}
-      <div className="absolute left-[24px] top-[186px] flex h-[20px] w-[345px] items-center justify-between">
+      <div
+        className="absolute left-[24px] flex h-[20px] w-[345px] items-center justify-between"
+        style={{ top: 186 + HEADER_GROWTH }}
+      >
         <div className="flex items-center gap-[8px]">
           <button
             type="button"

@@ -16,8 +16,10 @@ import plus from '@/assets/figma/cart-plus.svg';
 /**
  * MY 장바구니 (Figma 1026:2397, 393x933).
  *
- * 구조 (좌표는 프레임 기준 절대값)
+ * 구조 (좌표는 Figma 프레임 기준 절대값 — 헤더를 129→84 로 줄였으므로
+ *  실제 렌더 y 는 헤더 아래 블록마다 HEADER_GROWTH(-45) 가 더해진다)
  *  - Group 83 (1026:2399) 393x129 : bg #16161a, 상태바 white, 흰 로고 @ (25, 79)
+ *      → 홈·마켓 헤더와 같은 규격(84, 로고 20/48)으로 맞춤
  *  - Heading 1 (1026:2406) @ y129 h53 : "MY 장바구니" 20px bold @ (24, 149)
  *  - Container (1026:2408) @ y182 h34 : px-24 py-8
  *      전체 체크(14x14 r3) · 배송방법 변경(12px #959595) · 선택삭제(11px #959595)
@@ -30,10 +32,19 @@ import plus from '@/assets/figma/cart-plus.svg';
  * (Figma 기본 3개일 때의 y728.333 을 최소값으로 유지한다)
  */
 
-const HEADER_HEIGHT = 129;
+/**
+ * 상단 고정 헤더 높이.
+ *
+ * Figma 는 129 였지만 로고가 (25, 79)에 있어 홈·마켓 헤더(로고 20, 48)와 어긋났다.
+ * 홈 헤더 규격(상태바 44 + 로고 줄 40)에 맞춰 84 로 맞춘다.
+ * 마켓 계열 헤더와 같은 값이라 장바구니로 들어올 때 로고가 튀지 않는다.
+ */
+const HEADER_HEIGHT = 84;
+/** Figma 원본(129) 대비 줄어든 만큼 — 아래 블록 좌표에서 뺀다 */
+const HEADER_GROWTH = HEADER_HEIGHT - 129;
 const TAB_BAR_HEIGHT = 96;
 /** 첫 카드 top (Figma 216 + margin 8) */
-const LIST_TOP = 224;
+const LIST_TOP = 224 + HEADER_GROWTH;
 /** 카드 높이 */
 const CARD_HEIGHT = 136.667;
 /** 카드 사이 간격 */
@@ -41,7 +52,7 @@ const CARD_GAP = 12;
 /** 합계 블록 높이 (Figma 1026:2528) */
 const SUMMARY_HEIGHT = 108.667;
 /** Figma 기본 상태의 합계 블록 top */
-const SUMMARY_TOP_MIN = 728.333;
+const SUMMARY_TOP_MIN = 728.333 + HEADER_GROWTH;
 
 /** 배송방법 셀렉트 (Figma 1026:2444) — 디자인은 정적이지만 실제로 고를 수 있게 한다 */
 function DeliverySelect({ value, onChange }) {
@@ -216,15 +227,36 @@ export default function CartScreen() {
       name="MY 장바구니"
       headerHeight={HEADER_HEIGHT}
       header={
-        <div className="relative h-[129px] w-[393px] overflow-clip bg-header-dark" data-node-id="1026:2399" data-name="Container">
-          <StatusBar tone="white" />
-          <div className="absolute left-0 top-[51px] h-[60px] w-[393px]" data-node-id="1026:2402">
-            <p
-              className="absolute left-[25px] top-[28px] h-[13px] w-[123px] whitespace-nowrap font-logo text-[20px] font-bold not-italic leading-[16.5px] text-white"
-              data-node-id="1026:2405"
-            >
-              InnerDerma
-            </p>
+        /*
+          상태바·로고 줄은 홈 헤더(870:3791)·마켓 헤더와 같은 규격을 쓴다.
+          예전에는 상태바를 기본 배치(left 13 / top 7)로 두고 로고를 (25, 79)에
+          h-13/w-123 + leading-16.5 로 박아 둬서, 마켓에서 장바구니로 들어올 때
+          로고가 31px 내려앉고 크기도 달라 보였다.
+          우측 아이콘은 Figma 장바구니 프레임에 없으므로 넣지 않는다.
+        */
+        <div
+          className="relative flex w-[393px] flex-col items-start overflow-clip bg-header-dark"
+          style={{ height: HEADER_HEIGHT }}
+          data-node-id="1026:2399"
+          data-name="Container"
+        >
+          <div className="relative h-[44px] w-full shrink-0">
+            <StatusBar tone="white" className="absolute left-0 top-0 h-[44px] w-[393px]" />
+          </div>
+
+          {/* 로고 줄 — 홈 헤더와 같은 패딩. 여기 값을 바꾸면 로고 y 가 홈과 어긋난다 */}
+          <div
+            className="relative flex w-full shrink-0 items-center justify-between px-[20px] pb-[16px] pt-[4px]"
+            data-node-id="1026:2402"
+          >
+            <div className="relative flex shrink-0 flex-col items-start">
+              <p
+                className="relative shrink-0 whitespace-nowrap font-logo text-[20px] font-bold not-italic leading-[20px] text-white [word-break:break-word]"
+                data-node-id="1026:2405"
+              >
+                InnerDerma
+              </p>
+            </div>
           </div>
         </div>
       }
@@ -234,7 +266,8 @@ export default function CartScreen() {
     >
       {/* 제목 */}
       <div
-        className="absolute left-0 top-[129px] flex h-[53px] w-[393px] flex-col items-start px-[24px] pb-[8px] pt-[20px]"
+        className="absolute left-0 flex h-[53px] w-[393px] flex-col items-start px-[24px] pb-[8px] pt-[20px]"
+        style={{ top: 129 + HEADER_GROWTH }}
         data-node-id="1026:2406"
         data-name="Heading 1"
       >
@@ -245,7 +278,8 @@ export default function CartScreen() {
 
       {/* 도구 행 */}
       <div
-        className="absolute left-0 top-[182px] flex h-[34px] w-[393px] items-center px-[24px] py-[8px]"
+        className="absolute left-0 flex h-[34px] w-[393px] items-center px-[24px] py-[8px]"
+        style={{ top: 182 + HEADER_GROWTH }}
         data-node-id="1026:2408"
       >
         <button
@@ -337,7 +371,10 @@ export default function CartScreen() {
           />
         ))
       ) : (
-        <p className="absolute left-0 top-[380px] w-[393px] text-center font-sans text-[13px] font-normal leading-[20px] text-body">
+        <p
+          className="absolute left-0 w-[393px] text-center font-sans text-[13px] font-normal leading-[20px] text-body"
+          style={{ top: 380 + HEADER_GROWTH }}
+        >
           {t.cart.emptyMessage}
         </p>
       )}

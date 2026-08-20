@@ -183,7 +183,7 @@ export default {
   filter: {
     gender: '性別',
     age: '年代',
-    diagnosis: '診断',
+    diagnosis: 'デイリースキン分析',
     all: '全体',
     female: '女性',
     male: '男性',

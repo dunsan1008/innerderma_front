@@ -18,6 +18,15 @@ import { buildWeekStrip } from '@/lib/calendar';
 const TAB_BAR_TOP = 756;
 const TAB_BAR_HEIGHT = 96;
 
+/**
+ * 상단 헤더 높이 — 솔루션을 받은 뒤 홈 헤더(루틴 헤더 870:3773)와 같은 157 로 맞춘다.
+ * Figma 최초 접속 홈은 219 였는데, 같은 홈인데도 헤더 높이가 달라 화면을 옮길 때
+ * 상단바가 늘었다 줄었다 했다. 줄어든 62px 만큼 아래 콘텐츠도 함께 올린다.
+ */
+const HEADER_HEIGHT = 157;
+/** Figma 원본(219) 대비 줄어든 만큼 — 아래 블록 좌표에서 뺀다 */
+const HEADER_SHRINK = 219 - HEADER_HEIGHT;
+
 export default function HomeFirstVisitScreen() {
   const navigate = useNavigate();
   const t = useT();
@@ -34,21 +43,19 @@ export default function HomeFirstVisitScreen() {
       <SolutionHeader
         days={days}
         selectedDate={selectedDate}
-        height={219}
+        height={HEADER_HEIGHT}
         onOpenCalendar={openCalendar}
         onOpenMyPage={() => navigate('/mypage')}
         onOpenLang={useUiStore.getState().openLang}
       />
 
-      <CycleSegment
-        variant="home"
-        value="night"
-        captions={{ night: '-', morning: '-' }}
-        className="absolute left-0 right-0 top-[219px]"
-      />
+      <div className="absolute left-0 right-0" style={{ top: HEADER_HEIGHT }}>
+        <CycleSegment variant="home" value="night" captions={{ night: '-', morning: '-' }} />
+      </div>
 
       <div
-        className="absolute left-0 right-0 top-[295px] flex flex-col items-start px-[20px] pt-[20px]"
+        className="absolute left-0 right-0 flex flex-col items-start px-[20px] pt-[20px]"
+        style={{ top: 295 - HEADER_SHRINK }}
         data-node-id="870:3631"
       >
         <div className="relative flex h-[43px] w-[353px] shrink-0 flex-col items-start pt-[2px]" data-node-id="870:3632">
@@ -64,7 +71,8 @@ export default function HomeFirstVisitScreen() {
 
       {/* 촬영 전이라 내용이 비어 있는 루틴 카드 3개 */}
       <div
-        className="absolute left-0 top-[390px] flex h-[366px] flex-col items-start gap-[8px] py-[30px] pl-[20px]"
+        className="absolute left-0 flex h-[366px] flex-col items-start gap-[8px] py-[30px] pl-[20px]"
+        style={{ top: 390 - HEADER_SHRINK }}
         data-node-id="870:3634"
       >
         {['870:3635', '870:3636', '870:3637'].map((id) => (

@@ -187,7 +187,7 @@ export default {
   filter: {
     gender: 'Gender',
     age: 'Age',
-    diagnosis: 'Diagnosis',
+    diagnosis: 'Daily Skin Analysis',
     all: 'All',
     female: 'Female',
     male: 'Male',

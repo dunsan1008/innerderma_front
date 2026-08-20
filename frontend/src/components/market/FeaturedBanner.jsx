@@ -123,6 +123,11 @@ export default function FeaturedBanner({ banner, slides, onOpen }) {
           {/* 인디케이터 */}
           {items.length > 1 ? (
             <div className="absolute bottom-[10px] left-0 flex w-full items-center justify-center gap-[6px]">
+              {/*
+                점을 누르면 슬라이드만 바꾼다. 포인터 이벤트를 여기서 멈추지 않으면
+                부모의 onPointerUp 이 "제자리 탭"으로 보고 onOpen 을 불러
+                상세 페이지로 튀어 버린다(실제로 그랬다).
+              */}
               {items.map((slide, i) => (
                 <button
                   key={slide.name}
@@ -130,6 +135,8 @@ export default function FeaturedBanner({ banner, slides, onOpen }) {
                   aria-label={t.market.bannerIndicatorAria(i + 1)}
                   aria-current={i === index}
                   onClick={() => go(i)}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onPointerUp={(e) => e.stopPropagation()}
                   className={`h-[6px] rounded-full transition-all ${
                     i === index ? 'w-[16px] bg-white' : 'w-[6px] bg-white-50'
                   }`}

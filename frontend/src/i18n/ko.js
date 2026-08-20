@@ -205,7 +205,7 @@ export default {
   filter: {
     gender: '성별',
     age: '연령대',
-    diagnosis: '맞춤형 진단',
+    diagnosis: '데일리 스킨 분석',
     all: '전체',
     female: '여성',
     male: '남성',

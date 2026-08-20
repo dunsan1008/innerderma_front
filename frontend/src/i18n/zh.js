@@ -183,7 +183,7 @@ export default {
   filter: {
     gender: '性别',
     age: '年龄',
-    diagnosis: '诊断',
+    diagnosis: '每日皮肤分析',
     all: '全部',
     female: '女',
     male: '男',
