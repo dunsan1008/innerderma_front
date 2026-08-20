@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Screen from '@/components/layout/Screen';
 import StatusBar from '@/components/layout/StatusBar';
+import { issueToken } from '@/api/auth';
+import { useAuthStore } from '@/store/authStore';
 
 /**
  * 첫 화면 (Figma 870:3435).
@@ -10,12 +12,32 @@ import StatusBar from '@/components/layout/StatusBar';
  */
 export default function SplashScreen() {
   const navigate = useNavigate();
+  const userCode = useAuthStore((s) => s.userCode);
+  const setSession = useAuthStore((s) => s.setSession);
+  const clearSession = useAuthStore((s) => s.clearSession);
 
-  // 스플래시는 잠시 노출 후 가입 화면으로 넘어간다.
+  /**
+   * 이미 가입된 userCode 가 있으면 재방문이므로 가입 화면을 건너뛰고 토큰만
+   * 새로 발급받아 홈으로 간다. 없으면(최초 접속) 기존대로 가입 화면으로 보낸다.
+   * 토큰 재발급이 실패하면(예: 서버에서 계정이 지워짐) 세션을 비우고 다시 가입시킨다.
+   */
   useEffect(() => {
-    const timer = setTimeout(() => navigate('/signup'), 1600);
+    const timer = setTimeout(async () => {
+      if (!userCode) {
+        navigate('/signup');
+        return;
+      }
+      try {
+        const { token, userCode: returnedUserCode } = await issueToken(userCode);
+        setSession({ userCode: returnedUserCode, name: useAuthStore.getState().name, token });
+        navigate('/home');
+      } catch {
+        clearSession();
+        navigate('/signup');
+      }
+    }, 1600);
     return () => clearTimeout(timer);
-  }, [navigate]);
+  }, [navigate, userCode, setSession, clearSession]);
 
   return (
     <Screen className="bg-ink" nodeId="870:3435" name="첫 화면">
