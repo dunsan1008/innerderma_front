@@ -22,6 +22,15 @@ const ROW_RIGHT = 20;
 const ITEM_GAP = 16;
 /** 라벨과 캐럿 사이 간격 */
 const LABEL_CARET_GAP = 4;
+/**
+ * 캐럿을 아래로 내리는 양 (px).
+ *
+ * `align-items: center` 는 글자의 **줄 박스**를 기준으로 맞추는데, 한글은 줄 박스
+ * 안에서 글자가 아래쪽에 치우쳐 있다(12px 글자 / 줄간격 19.5px 기준 잉크 중심이
+ * 줄 박스 중심보다 2.2px 아래). 그래서 줄 박스로 정렬하면 캐럿이 글자보다 위로
+ * 떠 보인다. 캐럿을 그만큼 내려 글자 잉크 중심에 맞춘다.
+ */
+const CARET_OFFSET_Y = 2.2;
 
 export default function FilterRow({ top, items, onOpen }) {
   const t = useT();
@@ -40,7 +49,10 @@ export default function FilterRow({ top, items, onOpen }) {
           style={{ gap: LABEL_CARET_GAP }}
         >
           {t.filter[item.key]}
-          <span className="relative block h-[5px] w-[10px] shrink-0">
+          <span
+            className="relative block h-[5px] w-[10px] shrink-0"
+            style={{ transform: `translateY(${CARET_OFFSET_Y}px)` }}
+          >
             <span className="absolute inset-[-7.07%_-3.54%_-14.14%_-3.54%]">
               <img alt="" src={caret} className="block size-full max-w-none" />
             </span>
