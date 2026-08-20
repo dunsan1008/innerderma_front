@@ -135,9 +135,13 @@ function EveningWashCard() {
           </div>
         </div>
 
-        {/* Figma 는 한글을 문자 단위로 줄바꿈하므로 break-all 로 맞춘다 */}
+        {/*
+          한국어는 어절 단위로 줄바꿈한다.
+          Figma 가 문자 단위로 접어 둬서 break-all 로 맞춰 놨었는데,
+          "메이크업과 외|출하신" 처럼 단어 중간이 잘려 읽기 나빴다.
+        */}
         <div className="relative flex w-full shrink-0 flex-col items-start pt-[8px]">
-          <p className="relative w-full shrink-0 break-all font-sans text-[12px] font-normal leading-[18px] text-text-strong">
+          <p className="relative w-full shrink-0 font-sans text-[12px] font-normal leading-[18px] text-text-strong [word-break:keep-all]">
             {ew.description}
           </p>
         </div>

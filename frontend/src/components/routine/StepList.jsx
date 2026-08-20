@@ -48,7 +48,8 @@ function StepCard({ step, nodeId }) {
               </div>
             </div>
             <div className="relative flex min-w-0 flex-col items-start">
-              <p className="relative font-sans text-[14px] font-bold leading-[21px] text-text-strong [word-break:break-word]">
+              {/* 한국어는 어절 단위로 줄바꿈한다 (keep-all) — 단어 중간에서 잘리면 읽기 나쁘다 */}
+              <p className="relative font-sans text-[14px] font-bold leading-[21px] text-text-strong [word-break:keep-all]">
                 {step.title}
               </p>
             </div>
@@ -63,7 +64,7 @@ function StepCard({ step, nodeId }) {
           </div>
         </div>
         <div className="relative flex w-full shrink-0 flex-col items-start">
-          <p className="relative shrink-0 font-sans text-[12px] font-medium leading-[18px] text-text-strong [word-break:break-word]">
+          <p className="relative shrink-0 font-sans text-[12px] font-medium leading-[18px] text-text-strong [word-break:keep-all]">
             {step.description}
           </p>
         </div>

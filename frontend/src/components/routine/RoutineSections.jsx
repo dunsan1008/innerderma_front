@@ -26,7 +26,7 @@ export function SectionHeader({ label, sub, title, labelClass = 'text-accent-tea
         </p>
       </div>
       <div className="relative flex w-[353px] shrink-0 flex-col items-start pt-[4px]">
-        <p className="relative shrink-0 font-sans text-[18px] font-bold leading-[26px] text-text-strong [word-break:break-word]">
+        <p className="relative shrink-0 font-sans text-[18px] font-bold leading-[26px] text-text-strong [word-break:keep-all]">
           {title}
         </p>
       </div>
@@ -55,12 +55,12 @@ export function InnerCareHeader({ nodeId }) {
       </div>
       <div className="relative flex w-[353px] shrink-0 flex-col items-start pt-[4px]">
         <div className="relative flex w-full shrink-0 flex-col items-start">
-          <p className="relative shrink-0 font-sans text-[18px] font-bold leading-[26px] text-text-strong [word-break:break-word]">
+          <p className="relative shrink-0 font-sans text-[18px] font-bold leading-[26px] text-text-strong [word-break:keep-all]">
             {t.solution.intakeSolution1}
           </p>
         </div>
         <div className="relative flex w-full shrink-0 flex-col items-start">
-          <p className="relative shrink-0 font-sans text-[18px] font-bold leading-[26px] text-text-strong [word-break:break-word]">
+          <p className="relative shrink-0 font-sans text-[18px] font-bold leading-[26px] text-text-strong [word-break:keep-all]">
             {t.solution.intakeSolution2}
           </p>
         </div>
@@ -93,7 +93,7 @@ export function SupplementCards({ cards, nodeId }) {
             </p>
           </div>
           <div className="relative flex w-[319px] shrink-0 flex-col items-start pt-[4px]">
-            <p className="relative shrink-0 font-sans text-[14px] font-bold leading-[21px] text-text-strong [word-break:break-word]">
+            <p className="relative shrink-0 font-sans text-[14px] font-bold leading-[21px] text-text-strong [word-break:keep-all]">
               {card.name}
             </p>
           </div>
@@ -102,7 +102,7 @@ export function SupplementCards({ cards, nodeId }) {
               card.note ? 'pt-[6px]' : 'pb-[8px] pt-[6px]'
             }`}
           >
-            <p className="relative shrink-0 font-sans text-[12px] font-normal leading-[18px] text-text-strong [word-break:break-word]">
+            <p className="relative shrink-0 font-sans text-[12px] font-normal leading-[18px] text-text-strong [word-break:keep-all]">
               {card.howTo}
             </p>
           </div>
@@ -110,7 +110,7 @@ export function SupplementCards({ cards, nodeId }) {
             <div className="relative flex w-full shrink-0 flex-col items-start pt-[8px]" data-name="Container:margin">
               <div className="relative flex w-full shrink-0 flex-col items-start rounded-[10px] border border-solid border-note-line bg-note-bg px-[12px] py-[8px]">
                 <div className="relative flex w-full shrink-0 flex-col items-start">
-                  <p className="relative shrink-0 font-sans text-[11px] font-normal leading-[16px] text-accent-green [word-break:break-word]">
+                  <p className="relative shrink-0 font-sans text-[11px] font-normal leading-[16px] text-accent-green [word-break:keep-all]">
                     {card.note}
                   </p>
                 </div>
@@ -140,7 +140,7 @@ export function AvoidBox({ items, nodeId }) {
       <div className="relative flex w-full shrink-0 flex-col items-start pt-[8px]" data-name="Container:margin">
         <div className="relative flex w-full shrink-0 flex-col items-start rounded-[16px] border border-solid border-warn-line bg-warn-bg p-[16px]">
           <div className="relative flex w-full shrink-0 flex-col items-start">
-            <p className="relative shrink-0 font-sans text-[13px] font-semibold leading-[19.5px] text-accent-brown [word-break:break-word]">
+            <p className="relative shrink-0 font-sans text-[13px] font-semibold leading-[19.5px] text-accent-brown [word-break:keep-all]">
               {t.solution.avoidToday}
             </p>
           </div>
@@ -153,7 +153,7 @@ export function AvoidBox({ items, nodeId }) {
             >
               <div className="relative size-[6px] shrink-0 rounded-full bg-accent-brown" />
               <div className="relative flex shrink-0 flex-col items-start">
-                <p className="relative shrink-0 font-sans text-[12px] font-normal leading-[18px] text-accent-brown [word-break:break-word]">
+                <p className="relative shrink-0 font-sans text-[12px] font-normal leading-[18px] text-accent-brown [word-break:keep-all]">
                   {item}
                 </p>
               </div>
@@ -188,7 +188,7 @@ export function WhyBox({ text, tags, paddingBottom = 32, nodeId }) {
           </p>
         </div>
         <div className="relative flex w-full shrink-0 flex-col items-start pt-[8px]">
-          <p className="relative w-[313px] shrink-0 font-sans text-[13px] font-normal leading-[20px] text-ink-90 [word-break:break-word]">
+          <p className="relative w-[313px] shrink-0 font-sans text-[13px] font-normal leading-[20px] text-ink-90 [word-break:keep-all]">
             {text}
           </p>
         </div>
