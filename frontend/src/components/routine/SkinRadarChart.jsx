@@ -15,7 +15,14 @@ function polarPoint(cx, cy, r, angleDeg) {
 export default function SkinRadarChart({ items, color = '#027e70', size = 240 }) {
   const n = items.length;
   const cx = size / 2;
-  const cy = size / 2;
+  /*
+    cy 를 viewBox 중앙보다 살짝 아래로 내린다.
+    첫 번째 축(0도 = 정 위쪽)의 라벨이 cy - labelR 에 그려지는데,
+    cy = size/2 이면 그 y 가 0 근처라 '색소' 글자가 viewBox 위쪽으로 잘렸다.
+    fontSize 11 의 절반(5.5) + 여유 2px ≈ 8px 만큼 내려서 항상 viewBox 안에 들어오게 한다.
+  */
+  const LABEL_PADDING = 8;
+  const cy = size / 2 + LABEL_PADDING;
   const maxR = size * 0.34;
   const labelR = maxR + size * 0.15;
   const angleFor = (i) => (i * 360) / n;
