@@ -9,6 +9,7 @@ import {
   WIM_BANNER_SLIDE,
   WIM_BANNER_SLIDES,
   WIM_PRE_SOLUTION_SLIDE,
+  WIM_PRE_SOLUTION_SLIDES,
   WIM_PRODUCTS,
 } from '@/constants/wimProducts';
 
@@ -222,7 +223,7 @@ export const MARKET_SCREENS = {
     },
     products: WIM_PRODUCTS,
     bannerSlides: WIM_BANNER_SLIDES,
-    preSolutionSlides: [WIM_PRE_SOLUTION_SLIDE],
+    preSolutionSlides: WIM_PRE_SOLUTION_SLIDES,
     tabBarTop: 1541,
   },
 };

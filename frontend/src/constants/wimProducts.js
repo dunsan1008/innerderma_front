@@ -126,3 +126,14 @@ export const WIM_PRE_SOLUTION_SLIDE = {
   price: '34,000원',
   tags: ['시술케어', '장내환경', '정밀진단'],
 };
+
+/**
+ * 촬영 전 윔 스토어 배너 슬라이드 2장.
+ *
+ * 피쓰 서울 촬영 전 배너(PITH_PRE_SOLUTION_SLIDES)가 2장인 것처럼 윔도 2장으로 맞춘다.
+ * 두 번째 슬라이드는 ITEMS 에 있는 스위치 제품을 가져와 찜·상세 연동이 유지되게 했다.
+ */
+export const WIM_PRE_SOLUTION_SLIDES = [
+  WIM_PRE_SOLUTION_SLIDE,
+  slideOf('1104:1483'), // 마시는 식이섬유 비포밀 스위치 (30포/BOX)
+];
