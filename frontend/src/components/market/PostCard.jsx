@@ -31,23 +31,55 @@ const HEART = { filled: heartFilled, empty: heartEmpty };
  * @param {boolean}  [selected]   선택 여부
  * @param {Function} [onToggleSelect] 선택 토글 콜백
  * @param {Function} [onOpen]     카드 본문을 누르면 상세로 이동
+ * @param {boolean}  [clampName]  제품명을 두 줄로 자를지. 기본 true(마켓 규칙) — 아래 주석 참고
+ * @param {boolean}  [flow]       흐름 배치로 렌더할지. 기본 false(마켓의 절대좌표 격자)
  */
-export default function PostCard({ product, selectable = false, selected = false, onToggleSelect, onOpen }) {
+export default function PostCard({
+  product,
+  selectable = false,
+  selected = false,
+  onToggleSelect,
+  onOpen,
+  clampName = true,
+  flow = false,
+}) {
   const t = useT();
   const { left, top, imageWidth, layers, name, nameLines, price, tags, sizes, nodeId } = product;
 
-  /** 두 줄까지 표시하고 넘치면 … (줄 수 판정은 CSS line-clamp) */
+  /**
+   * 표시용 이름. 자르기 여부는 `clampName` 이 정한다.
+   *  - `true`(기본): 두 줄까지 보여주고 넘치면 … (줄 수 판정은 CSS line-clamp)
+   *  - `false`: 자르지 않는다 — 줄바꿈되어 전부 보인다
+   *
+   * 기본값이 `true` 인 이유: 마켓 탭은 상품마다 이름 길이가 크게 달라 그대로 두면 카드
+   * 높이가 들쭉날쭉해지고 태그 줄이 밀린다. "두 줄을 넘어가는 기점부터 …" 는 마켓의
+   * 명시된 표기 규칙이다(`lib/productName.js`, `scripts/verify.mjs` 의 M 항목 검사).
+   * 솔루션 화면처럼 이름을 끝까지 보여줘야 하는 곳만 `clampName={false}` 로 끈다.
+   */
   const displayName = displayProductName(product);
 
   const wished = useWishlistStore((s) => s.keys.includes(productKey(product)));
   const toggle = useWishlistStore((s) => s.toggle);
 
   return (
+    /*
+      배치와 높이.
+        - `flow=false`(기본): 절대좌표 + 높이 272 고정. 마켓·찜 화면의 격자가 카드 좌표를
+          직접 계산해 넘긴다.
+        - `flow=true`: 흐름 배치 + 최소 높이 272. 이름이 길어져 본문이 자라면 카드가
+          아래로 늘어나고, 부모 격자(flex-wrap)의 다음 줄이 그만큼 밀린다.
+          절대좌표로 두면 카드가 자라도 다음 행이 그대로 있어 카드끼리 겹친다.
+      `overflow-clip` 은 두 모드 공통이다 — 이미지 레이어가 카드 밖(top -20 / left -11)까지
+      번져 나가므로 이걸 풀면 사진이 카드 라운드 밖으로 삐져나온다.
+    */
     <div
-      className={`absolute flex h-[272px] w-[167px] flex-col items-start overflow-clip rounded-[20px] border-solid bg-white pt-[20px] transition-colors ${
-        selected ? 'border-[1.5px] border-ink' : 'border-[0.667px] border-line'
-      }`}
-      style={{ left, top, boxShadow: '0px 2px 8px 0px rgba(0,0,0,0.04)' }}
+      className={`flex w-[167px] flex-col items-start overflow-clip rounded-[20px] border-solid bg-white pt-[20px] transition-colors ${
+        flow ? 'relative min-h-[272px]' : 'absolute h-[272px]'
+      } ${selected ? 'border-[1.5px] border-ink' : 'border-[0.667px] border-line'}`}
+      style={{
+        ...(flow ? null : { left, top }),
+        boxShadow: '0px 2px 8px 0px rgba(0,0,0,0.04)',
+      }}
       data-node-id={nodeId}
       data-name="PostCard"
       data-selected={selectable ? selected : undefined}
@@ -136,17 +168,24 @@ export default function PostCard({ product, selectable = false, selected = false
         </button>
       </div>
 
-      <div className="relative flex h-[108px] w-full shrink-0 flex-col items-start px-[10px] pb-[10px] pt-[8px] bg-white">
+      <div
+        className={`relative flex w-full shrink-0 flex-col items-start bg-white px-[10px] pb-[10px] pt-[8px] ${
+          clampName ? 'h-[108px]' : 'min-h-[108px]'
+        }`}
+      >
         {/*
-          이름 — 두 줄까지 보여주고 그걸 넘어가는 시점부터 … 으로 잘린다.
-          Figma 는 제품마다 이름을 2~3줄로 손수 쪼개 뒀지만 길이가 제각각이라
-          카드 높이와 태그 줄이 밀렸다. 전체 이름을 한 덩이로 넣고 줄바꿈·생략은
-          브라우저(line-clamp)에 맡긴다. 두 줄 높이를 고정해 두면 이름이 한 줄이든
-          두 줄이든 가격·태그 줄이 같은 자리에 온다.
+          이름.
+          Figma 는 제품마다 이름을 2~3줄로 손수 쪼개 뒀지만 길이가 제각각이라 카드 높이와
+          태그 줄이 밀렸다. 전체 이름을 한 덩이로 넣고 줄바꿈은 브라우저에 맡긴다.
+
+          `clampName` 이 true 면(마켓 기본) 두 줄 높이를 **고정**하고 넘치는 부분을 …
+          으로 자른다 — 이름이 한 줄이든 두 줄이든 가격·태그 줄이 같은 자리에 온다.
+          false 면(솔루션 화면) 두 줄 높이를 **최소 높이**로만 쓴다 — 짧은 이름은 지금과
+          같은 자리에 오고, 긴 이름은 줄바꿈되어 전부 보이면서 카드를 아래로 늘린다.
         */}
         <div
           className="relative flex shrink-0 flex-col items-start"
-          style={{ height: sizes.nameHeight, width: '100%' }}
+          style={{ [clampName ? 'height' : 'minHeight']: sizes.nameHeight, width: '100%' }}
           data-name="Paragraph"
         >
           <p
@@ -154,7 +193,7 @@ export default function PostCard({ product, selectable = false, selected = false
             style={{
               fontSize: sizes.nameSize,
               lineHeight: `${sizes.nameLeading || 16.5}px`,
-              ...clampLines(),
+              ...(clampName ? clampLines() : null),
             }}
             data-name="ProductName"
           >

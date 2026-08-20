@@ -5,7 +5,8 @@ import wim3 from '@/assets/figma/products/wim-3.jpg';
 import wim4 from '@/assets/figma/products/wim-4.jpg';
 import wim5 from '@/assets/figma/products/wim-5.jpg';
 import wim6 from '@/assets/figma/products/wim-6.jpg';
-import { CARD_IMAGE_BLEED, CARD_SIZES, CARD_SLOTS } from '@/constants/cardLayout';
+import { CARD_IMAGE_BLEED, CARD_SIZES, buildSlots } from '@/constants/cardLayout';
+import { matchesSkinStateCategory } from '@/lib/skinStateCategory';
 
 /**
  * 윔 스토어 상품 (Figma 마켓 4 / 1117:1689).
@@ -78,16 +79,69 @@ const ITEMS = [
   },
 ];
 
-export const WIM_PRODUCTS = ITEMS.map((item, i) => ({
-  nodeId: item.nodeId,
-  left: CARD_SLOTS[i].left,
-  top: CARD_SLOTS[i].top,
-  layers: layersOf(item.image),
-  name: item.name,
-  price: item.price,
-  tags: item.tags,
-  sizes: CARD_SIZES,
-}));
+/**
+ * 한글 태그 → 백엔드 `skinStateTags` enum.
+ *
+ * 카테고리 탭을 가르는 기준을 정해야 했는데, 태그를 그대로 쓸 수 없었다.
+ * `수부지` 태그는 **6개 상품 전부**가 갖고 있어 정보량이 0 이다(그 태그로 나누면
+ * 수부지 탭 = 전체 탭이 되어 탭이 있는 의미가 없다). `저자극 인증` 도 판정에서
+ * 뺐다 — 원료·제조 인증 표기라 피부 상태가 아니고, 4/6 에 붙어 있어 이것까지
+ * STABLE 로 보면 피부탄력 탭이 전체와 같아진다.
+ *
+ * 그래서 **피부 기능을 가리키는 태그만** 백엔드 enum 으로 옮겨 `skinStates` 를
+ * 만들고, 실상품과 똑같은 판정(`matchesSkinStateCategory`)으로 탭을 나눈다.
+ * 이렇게 두면 `/products` 가 붙어 실제 `skinStateTags` 가 내려올 때 더미와
+ * 같은 규칙으로 갈라지므로 탭 내용이 갑자기 달라지지 않는다.
+ *
+ *  - 피부보호·피부재생 → BARRIER_RECOVERY (장벽을 지키고 되돌리는 축)
+ *  - 지방재생·저탄수   → HYDRATION (유·수분 균형 = 수분부족형 지성의 축)
+ */
+const SKIN_STATE_BY_TAG = {
+  피부보호: 'BARRIER_RECOVERY',
+  피부재생: 'BARRIER_RECOVERY',
+  지방재생: 'HYDRATION',
+  저탄수: 'HYDRATION',
+};
+
+const skinStatesOf = (item) => [
+  ...new Set(item.tags.map((tag) => SKIN_STATE_BY_TAG[tag]).filter(Boolean)),
+];
+
+/**
+ * 카드 배열로 변환. 좌표는 상품 수에 맞춰 `buildSlots` 로 다시 잡는다 —
+ * 카테고리별로 상품 수가 달라지므로 6칸 고정(CARD_SLOTS)을 쓰면 3개짜리 탭에서
+ * 빈 자리가 남거나 프레임 높이가 어긋난다. 6개까지는 CARD_SLOTS 와 같은 값이다.
+ */
+const toCards = (items) => {
+  const slots = buildSlots(items.length);
+  return items.map((item, i) => ({
+    nodeId: item.nodeId,
+    left: slots[i].left,
+    top: slots[i].top,
+    layers: layersOf(item.image),
+    name: item.name,
+    price: item.price,
+    tags: item.tags,
+    sizes: CARD_SIZES,
+  }));
+};
+
+const itemsOf = (category) =>
+  ITEMS.filter((item) => matchesSkinStateCategory(skinStatesOf(item), category));
+
+const OILY_ITEMS = itemsOf('oily');
+const SKIN_ITEMS = itemsOf('skin');
+
+/**
+ * 전체 탭 — 6개 전부. "전체 탭에는 말 그대로 모든 제품이 드러나야 한다"는 규칙을 지킨다.
+ * 카테고리 탭은 그 부분집합이고, 두 카테고리에 걸치는 상품(피부보호 + 저탄수)은
+ * 양쪽에 다 나온다 — 실상품도 `skinStateTags` 를 여러 개 갖고 있으면 그렇게 동작한다.
+ *
+ * 현재 갈림: 수부지 3개(스위치·검은콩·말차) / 피부탄력 5개(비포밀·스위치·말차·도시락·초코)
+ */
+export const WIM_PRODUCTS = toCards(ITEMS);
+export const WIM_OILY_PRODUCTS = toCards(OILY_ITEMS);
+export const WIM_SKIN_PRODUCTS = toCards(SKIN_ITEMS);
 
 /** 추천 배너 (Figma 1104:1409 / 1104:1411) — 좌표는 마켓 1 배너와 동일 */
 export const WIM_BANNER_SLIDE = {
@@ -137,3 +191,23 @@ export const WIM_PRE_SOLUTION_SLIDES = [
   WIM_PRE_SOLUTION_SLIDE,
   slideOf('1104:1483'), // 마시는 식이섬유 비포밀 스위치 (30포/BOX)
 ];
+
+/**
+ * 카테고리 탭(수부지 · 피부탄력)의 추천 배너.
+ *
+ * 그 탭에 실제로 진열된 상품에서만 뽑는다 — 배너를 눌러 들어간 상세가 탭 목록에
+ * 없는 상품이면 추천 근거가 어긋나 보인다. 최대 3장으로 피쓰 서울과 같은 리듬을 맞춘다.
+ *
+ * 피부탄력은 목록을 **뒤에서부터** 가져온다. 앞에서부터 자르면 첫 장이 촬영 전
+ * 배너(비포밀)와 같은 상품이 되어 촬영 전/후 배너가 구분되지 않는다.
+ */
+const slidesOf = (items) =>
+  items.slice(0, 3).map((item) => ({
+    image: item.image,
+    name: item.name,
+    price: item.price,
+    tags: item.tags,
+  }));
+
+export const WIM_OILY_BANNER_SLIDES = slidesOf(OILY_ITEMS);
+export const WIM_SKIN_BANNER_SLIDES = slidesOf([...SKIN_ITEMS].reverse());

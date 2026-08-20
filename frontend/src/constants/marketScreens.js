@@ -8,9 +8,13 @@ import { MARKET_ALL_COMBINED, MARKET_ALL_PRODUCTS, MARKET_OILY_PRODUCTS, MARKET_
 import {
   WIM_BANNER_SLIDE,
   WIM_BANNER_SLIDES,
+  WIM_OILY_BANNER_SLIDES,
+  WIM_OILY_PRODUCTS,
   WIM_PRE_SOLUTION_SLIDE,
   WIM_PRE_SOLUTION_SLIDES,
   WIM_PRODUCTS,
+  WIM_SKIN_BANNER_SLIDES,
+  WIM_SKIN_PRODUCTS,
 } from '@/constants/wimProducts';
 
 /**
@@ -73,6 +77,79 @@ export const PITH_PRE_SOLUTION_SLIDES = [
  * 좌표는 FilterRow 가 오른쪽 정렬로 직접 잡으므로 여기서 갖지 않는다.
  */
 const FILTER_ITEMS = [{ key: 'gender' }, { key: 'age' }, { key: 'diagnosis' }];
+
+/**
+ * 윔 스토어 3탭 (Figma 마켓 4 / 1117:1689).
+ *
+ * Figma 에는 윔 화면이 한 장(전체)뿐이라 카테고리별 프레임이 없다. 그래서 세 탭이
+ * 같은 nodeId 를 공유하고, **좌표·규격은 마켓 1 기준으로 통일**한다는 기존 결정을
+ * 그대로 따른다(상품 목록과 배너 슬라이드만 카테고리별로 다르다). 덕분에 탭을 눌러도
+ * 배너·필터 행·카드 격자가 제자리에서 내용만 바뀐다.
+ *
+ * `showHeart` 는 세 탭 모두 false 다 — 피쓰는 Figma 마켓 2·3 에 하트가 하나 더 있어
+ * 탭마다 헤더가 달라지지만, 윔은 근거가 되는 프레임이 없으므로 헤더를 고정해
+ * 탭 전환 시 상단바가 흔들리지 않게 둔다.
+ */
+const wimScreen = ({ category, name, products, bannerSlides }) => ({
+  /** 상품 수가 카테고리마다 다르므로 마지막 카드 위치에서 높이를 구한다 */
+  get frameHeight() {
+    const last = products[products.length - 1];
+    return last ? last.top + 272 + 107 : 1637;
+  },
+  nodeId: '1117:1689',
+  name,
+  store: 'wim',
+  category,
+  showHeart: false,
+  title: { x: 19, y: 161, width: 345, height: 24 },
+  banner: {
+    nodeId: '1104:1409',
+    image: WIM_BANNER_SLIDE.image,
+    frame: [14, 214, 365, 316],
+    stripHeight: 88,
+    name: WIM_BANNER_SLIDE.name,
+    nameAt: [14 + 21, 214 + 225],
+    price: WIM_BANNER_SLIDE.price,
+    priceAt: [14 + 279, 214 + 244],
+    tags: [
+      { label: '피부재생', x: 14 + 21, y: 214 + 274, width: 61, textWidth: 45 },
+      { label: '수부지', x: 14 + 88, y: 214 + 274, width: 61, textWidth: 40 },
+      { label: '저자극 인증', x: 14 + 155, y: 214 + 274, width: 68, textWidth: 54 },
+    ],
+  },
+  tabs: { x: 3, y: 543, width: 393 },
+  filters: {
+    top: 609,
+    items: FILTER_ITEMS,
+  },
+  products,
+  bannerSlides,
+  preSolutionSlides: WIM_PRE_SOLUTION_SLIDES,
+  get tabBarTop() {
+    return this.frameHeight - 96;
+  },
+});
+
+const WIM_SCREENS = {
+  wim: wimScreen({
+    category: 'all',
+    name: '마켓 4 - wim store',
+    products: WIM_PRODUCTS,
+    bannerSlides: WIM_BANNER_SLIDES,
+  }),
+  wimOily: wimScreen({
+    category: 'oily',
+    name: '마켓 4 - wim store (수부지)',
+    products: WIM_OILY_PRODUCTS,
+    bannerSlides: WIM_OILY_BANNER_SLIDES,
+  }),
+  wimSkin: wimScreen({
+    category: 'skin',
+    name: '마켓 4 - wim store (피부탄력)',
+    products: WIM_SKIN_PRODUCTS,
+    bannerSlides: WIM_SKIN_BANNER_SLIDES,
+  }),
+};
 
 /**
  * 마켓 화면 3종의 배치값. 모두 Figma 프레임 실측 절대 좌표다.
@@ -188,44 +265,7 @@ export const MARKET_SCREENS = {
     tabBarTop: 1541,
   },
 
-  /**
-   * 윔 스토어 (Figma 마켓 4 / 1117:1689).
-   * 상품 데이터만 마켓 4 것이고, 좌표·규격은 위 마켓 1 과 완전히 동일하다.
-   * (탭 전환 시 배너·탭·카드가 제자리에서 내용만 바뀌게 하기 위함)
-   */
-  wim: {
-    frameHeight: 1637,
-    nodeId: '1117:1689',
-    name: '마켓 4 - wim store',
-    store: 'wim',
-    category: 'all',
-    showHeart: false,
-    title: { x: 19, y: 161, width: 345, height: 24 },
-    banner: {
-      nodeId: '1104:1409',
-      image: WIM_BANNER_SLIDE.image,
-      frame: [14, 214, 365, 316],
-      stripHeight: 88,
-      name: WIM_BANNER_SLIDE.name,
-      nameAt: [14 + 21, 214 + 225],
-      price: WIM_BANNER_SLIDE.price,
-      priceAt: [14 + 279, 214 + 244],
-      tags: [
-        { label: '피부재생', x: 14 + 21, y: 214 + 274, width: 61, textWidth: 45 },
-        { label: '수부지', x: 14 + 88, y: 214 + 274, width: 61, textWidth: 40 },
-        { label: '저자극 인증', x: 14 + 155, y: 214 + 274, width: 68, textWidth: 54 },
-      ],
-    },
-    tabs: { x: 3, y: 543, width: 393 },
-    filters: {
-      top: 609,
-      items: FILTER_ITEMS,
-    },
-    products: WIM_PRODUCTS,
-    bannerSlides: WIM_BANNER_SLIDES,
-    preSolutionSlides: WIM_PRE_SOLUTION_SLIDES,
-    tabBarTop: 1541,
-  },
+  ...WIM_SCREENS,
 };
 
 /**

@@ -59,8 +59,14 @@ function AppContent() {
           <Route path="/market" element={<MarketScreen variant="all" />} />
           <Route path="/market/oily" element={<MarketScreen variant="oily" />} />
           <Route path="/market/elasticity" element={<MarketScreen variant="skin" />} />
-          {/* 윔 스토어 — 마켓 4. 레이아웃은 마켓 1 과 동일하고 상품만 다르다 */}
+          {/*
+            윔 스토어 — 마켓 4. 레이아웃은 마켓 1 과 동일하고 상품만 다르다.
+            카테고리 탭도 피쓰와 같은 3개를 갖는다. 경로는 피쓰 규칙(`oily`/`elasticity`)을
+            그대로 이어 붙여, 스토어를 바꿔도 URL 의 카테고리 부분이 같은 이름으로 남는다.
+          */}
           <Route path="/market/wim" element={<MarketScreen variant="wim" />} />
+          <Route path="/market/wim/oily" element={<MarketScreen variant="wimOily" />} />
+          <Route path="/market/wim/elasticity" element={<MarketScreen variant="wimSkin" />} />
           <Route path="/market/wishlist" element={<WishlistScreen />} />
           <Route path="/market/cart" element={<CartScreen />} />
           {/* 상세는 더미 상품 1종이라 id 없이도 열리게 둔다 */}

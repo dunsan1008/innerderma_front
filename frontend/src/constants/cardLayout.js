@@ -31,8 +31,12 @@ export const CARD_IMAGE_BLEED = [-11, -CARD_PADDING_TOP, 189, CARD_IMAGE_HEIGHT 
 
 /**
  * 카드 본문(이름·가격·태그) 규격.
- * 이름은 두 줄까지 허용하고 넘치면 `…` 으로 잘리므로(lib/productName.js) 높이가 항상 같다.
- * 덕분에 이름 길이가 달라도 가격·태그 줄이 밀리지 않는다.
+ * 마켓에서는 이름을 두 줄까지 허용하고 넘치면 `…` 으로 자르므로(lib/productName.js)
+ * `nameHeight` 가 곧 고정 높이다. 덕분에 이름 길이가 달라도 가격·태그 줄이 밀리지 않는다.
+ *
+ * 솔루션 화면은 이름을 자르지 않으므로(`PostCard` 의 `clampName={false}`) 같은 값을
+ * **최소 높이**로 쓴다 — 짧은 이름은 마켓과 같은 자리에 오고, 긴 이름은 줄바꿈되며
+ * 카드가 아래로 자란다.
  */
 export const CARD_SIZES = {
   nameSize: 12,

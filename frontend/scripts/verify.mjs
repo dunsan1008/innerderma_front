@@ -1294,7 +1294,13 @@ for (const [label, path] of [['피쓰 서울', '/market'], ['윔 스토어', '/m
     `촬영 전="${preName}" / 촬영 후="${postName}"`);
 }
 
-// ── P) 윔 스토어에서 수부지·피부탄력 탭은 스태틱 ──
+/**
+ * ── P) 윔 스토어 카테고리 탭이 동작한다 ──
+ *
+ * 예전에는 윔에 카테고리 라우트가 없어서 탭을 누르면 피쓰로 스토어가 바뀌어 버렸고,
+ * 그래서 세 탭을 아예 못 누르게 막아 뒀다(disabled). 이제 윔도 카테고리 라우트가 있어
+ * 피쓰처럼 눌러서 이동한다 — 핵심은 **이동해도 스토어가 윔에 머문다**는 것이다.
+ */
 await page.goto(`${base}/market/wim`, { waitUntil: 'load' });
 await page.waitForTimeout(500);
 const wimTabs = await page.evaluate(() => {
@@ -1305,17 +1311,34 @@ const wimTabs = await page.evaluate(() => {
     static: b.getAttribute('data-static'),
   }));
 });
-check('P) 윔 스토어에서 수부지·피부탄력 탭이 스태틱',
-  wimTabs.filter((t) => t.label !== '전체').every((t) => t.disabled === true),
+check('P) 윔 스토어 카테고리 탭 3개가 모두 누를 수 있다',
+  wimTabs.length === 3 && wimTabs.every((t) => t.disabled === false && t.static === null),
   JSON.stringify(wimTabs));
-check('P) 윔 스토어에서 전체 탭도 스태틱 (피쓰로 이동 방지)',
-  wimTabs.find((t) => t.label === '전체')?.disabled === true);
 
-// 눌러도 피쓰 서울로 넘어가지 않는다
-await page.locator('[data-node-id="870:4939"]').click({ force: true }).catch(() => {});
-await page.waitForTimeout(400);
-check('P) 스태틱 탭을 눌러도 윔 스토어에 머문다',
-  new URL(page.url()).pathname === '/market/wim', `url=${new URL(page.url()).pathname}`);
+/** 탭을 눌러 이동해도 스토어 토글이 계속 윔을 가리켜야 한다 */
+const storeIsWim = () =>
+  page.evaluate(() => document.querySelector('[data-name="StoreToggle"]')?.getAttribute('data-wim'));
+
+for (const [label, nodeId, expectPath] of [
+  ['수부지', '870:4939', '/market/wim/oily'],
+  ['피부탄력', '870:4941', '/market/wim/elasticity'],
+  ['전체', '870:4937', '/market/wim'],
+]) {
+  await page.locator(`[data-node-id="${nodeId}"]`).click();
+  await page.waitForTimeout(500);
+  const path = new URL(page.url()).pathname;
+  check(`P) 윔 ${label} 탭 → ${expectPath} 이동`, path === expectPath, `url=${path}`);
+  check(`P) 윔 ${label} 탭으로 이동해도 윔 스토어에 머문다`, (await storeIsWim()) === 'true',
+    `data-wim=${await storeIsWim()}`);
+  check(`P) 윔 ${label} 탭에 상품 카드가 있다`,
+    (await page.locator('[data-name="PostCard"]').count()) > 0,
+    `카드 ${await page.locator('[data-name="PostCard"]').count()}개`);
+}
+
+/** 전체 탭에는 윔 상품 6개가 모두 나온다 */
+check('P) 윔 전체 탭에 상품 6개 전부',
+  (await page.locator('[data-name="PostCard"]').count()) === 6,
+  `카드 ${await page.locator('[data-name="PostCard"]').count()}개`);
 
 // 피쓰 서울에서는 그대로 이동한다
 await page.goto(`${base}/market`, { waitUntil: 'load' });
