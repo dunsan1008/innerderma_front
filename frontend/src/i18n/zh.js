@@ -95,10 +95,9 @@ export default {
     reopenAria: '再次查看每日肌肤分析',
     factors: {
       pigmentation: '色素',
-      pore: '毛孔',
+      poreTexture: '毛孔与肤质',
       wrinkle: '皱纹',
       redness: '泛红',
-      texture: '肤质',
     },
   },
 

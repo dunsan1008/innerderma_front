@@ -103,10 +103,9 @@ export default {
     reopenAria: '데일리 스킨 분석 다시 보기',
     factors: {
       pigmentation: '색소',
-      pore: '모공',
+      poreTexture: '모공·피부결',
       wrinkle: '주름',
       redness: '홍조',
-      texture: '피부결',
     },
   },
 

@@ -95,10 +95,9 @@ export default {
     reopenAria: 'デイリースキン分析を再表示',
     factors: {
       pigmentation: '色素',
-      pore: '毛穴',
+      poreTexture: '毛穴・キメ',
       wrinkle: 'シワ',
       redness: '赤み',
-      texture: 'キメ',
     },
   },
 

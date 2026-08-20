@@ -98,10 +98,9 @@ export default {
     reopenAria: 'View daily skin analysis again',
     factors: {
       pigmentation: 'Pigmentation',
-      pore: 'Pores',
+      poreTexture: 'Pores & Texture',
       wrinkle: 'Wrinkles',
       redness: 'Redness',
-      texture: 'Texture',
     },
   },
 

@@ -1,6 +1,7 @@
 import { useT } from '@/i18n';
 import useMountTransition from '@/lib/useMountTransition';
 import { SKIN_ANALYSIS_FACTORS } from '@/constants/skinAnalysis';
+import { useSkinAnalysisScores } from '@/hooks/useSkinAnalysisScores';
 import SkinRadarChart from '@/components/routine/SkinRadarChart';
 
 /**
@@ -14,14 +15,23 @@ import SkinRadarChart from '@/components/routine/SkinRadarChart';
  * 솔루션 화면에 도착하는 순간 어두운 배경 위에 겹쳐 한 번 뜨고(RoutineScreen 참고),
  * 이후에는 새로 추가한 재확인 버튼으로 언제든 다시 열 수 있다(RoutineScreen 의
  * 플로팅 버튼 참고).
+ *
+ * 점수는 useSkinAnalysisScores() 가 실제 분석 결과가 있으면 그걸 쓰고,
+ * 없으면(로그인 전 · 그날 분석 없음 · 요청 실패) constants/skinAnalysis.js 의
+ * 더미로 자연스럽게 폴백한다 — 이 화면 전체가 항상 뭔가는 보여줘야 한다.
  */
 export default function SkinAnalysisModal({ open, onClose }) {
   const t = useT();
   const { mounted, entered } = useMountTransition(open, 220);
+  const { scores } = useSkinAnalysisScores(open);
 
   if (!mounted) return null;
 
-  const items = SKIN_ANALYSIS_FACTORS.map((f) => ({ ...f, label: t.skinAnalysis.factors[f.key] }));
+  const items = SKIN_ANALYSIS_FACTORS.map((f) => ({
+    ...f,
+    score: scores?.[f.key] ?? f.score,
+    label: t.skinAnalysis.factors[f.key],
+  }));
 
   return (
     <div
