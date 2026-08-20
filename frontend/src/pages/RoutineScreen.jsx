@@ -220,16 +220,31 @@ export default function RoutineScreen({ cycle: cycleProp }) {
   /** 수행 완료는 오늘 날짜에서만 기록할 수 있다 */
   const isToday = selectedDate === today;
   const doneToday = completedDates.includes(selectedDate);
-  /**
-   * 솔루션이 없는 날 판별:
-   *  - 미래: 아직 촬영이 안 됨
-   *  - 과거인데 completedDates 에 없음: 그날 촬영·수행 기록이 없음
-   *  - 오늘: 촬영을 마쳤으므로 항상 보여준다 (HomeRoute 가 hasCaptureToday 로 분기하니 여기까지 온 건 촬영 완료 의미)
-   */
   const future = isFutureDate(selectedDate, today);
-  const noSolution = future || (!isToday && !completedDates.includes(selectedDate));
   const night = cycle === 'night';
   const L = LAYOUT[cycle];
+
+  /**
+   * 실제 케어 솔루션 조회. 아직 그 날짜에 솔루션이 없거나(신규 유저, 미연동 환경)
+   * 요청이 실패하면 solution 은 null 로 남고, 아래에서 기존 더미(rt.*)로 자연스럽게
+   * 폴백한다 — 이 화면은 백엔드 연동 여부와 무관하게 항상 뭔가는 보여줘야 한다.
+   */
+  const { solution, loading: solutionLoading } = useCareSolution(selectedDate);
+
+  /**
+   * 솔루션이 없는 날 판별:
+   *  - 미래: 아직 촬영이 안 됨 → 조회할 것도 없이 확정한다.
+   *  - 그 외 날짜는 실제 백엔드 솔루션 존재 여부를 우선한다. 예전에는 로컬
+   *    `completedDates`(수행 완료 버튼을 눌렀는지)만 보고 판단해서, 다른 기기에서
+   *    촬영했거나 완료 버튼을 안 눌렀을 뿐인데도 실제로는 솔루션이 있는 날을
+   *    "솔루션 없음"으로 잘못 보여줬다.
+   *  - 아직 응답 전(loading)이면 성급하게 "솔루션 없음"으로 보여주지 않고 기다린다
+   *    (오늘은 원래 로직대로 보여주고, 그 외 날짜는 로딩이 끝날 때까지 대기).
+   *  - 응답이 왔는데도 솔루션이 없으면(진짜 그날 기록이 없거나 백엔드 미연동 환경)
+   *    기존 로컬 휴리스틱(오늘 여부 / completedDates)으로 폴백한다.
+   */
+  const noSolution =
+    future || (!solutionLoading && !solution && !isToday && !completedDates.includes(selectedDate));
 
   /** 하단 추천 카드 4개 — 마켓 목록의 상품을 이름으로 찾아 그대로 쓴다 */
   const recommendProducts = useMemo(
@@ -237,12 +252,6 @@ export default function RoutineScreen({ cycle: cycleProp }) {
     [],
   );
 
-  /**
-   * 실제 케어 솔루션 조회. 아직 그 날짜에 솔루션이 없거나(신규 유저, 미연동 환경)
-   * 요청이 실패하면 solution 은 null 로 남고, 아래에서 기존 더미(rt.*)로 자연스럽게
-   * 폴백한다 — 이 화면은 백엔드 연동 여부와 무관하게 항상 뭔가는 보여줘야 한다.
-   */
-  const { solution } = useCareSolution(selectedDate);
   const realSteps = solution ? (night ? solution.eveningSteps : solution.morningSteps) : null;
   const steps = realSteps?.length
     ? realSteps.map((s, i) => ({ ...s, no: String(i + 1).padStart(2, '0'), nodeId: `step-${i}` }))
