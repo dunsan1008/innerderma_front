@@ -154,8 +154,8 @@ export default function ProductDetailScreen() {
 
   /** 하단 바의 선택 개수 — Figma 기본값은 0개 */
   const [quantity, setQuantity] = useState(0);
-  /** 베스트 조합 펼침 여부 */
-  const [comboOpen, setComboOpen] = useState(true);
+  /** 베스트 조합 펼침 여부 — 기본은 접힌 상태이고, 사용자가 화살표를 눌러야 열린다 */
+  const [comboOpen, setComboOpen] = useState(false);
 
   const total = view.priceValue * quantity;
 

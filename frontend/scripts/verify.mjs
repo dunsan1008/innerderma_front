@@ -871,6 +871,9 @@ await page.screenshot({ path: `${OUT}/cart.png` });
  */
 await page.goto(`${base}/market/product/${encodeURIComponent('피쓰 코어 리빌드 크림 50ml')}`, { waitUntil: 'load' });
 await page.waitForTimeout(500);
+// 베스트 조합은 기본이 접힌 상태라 먼저 펼쳐야 CTA 를 누를 수 있다
+await page.locator('[data-testid="combo-toggle"]').click();
+await page.waitForTimeout(500);
 await page.locator('[data-testid="combo-add"]').click();
 await page.waitForTimeout(700);
 const comboItems = await page.evaluate(() =>
@@ -1196,25 +1199,28 @@ const comboBox = () =>
       ctaOpacity: +getComputedStyle(cta).opacity,
     };
   });
-const opened = await comboBox();
-check('M) 베스트 조합 기본 펼침', opened.open === 'true' && opened.ctaOpacity === 1, JSON.stringify(opened));
-await page.locator('[data-testid="combo-toggle"]').click();
-await page.waitForTimeout(500);
+// 기본은 접힌 상태 — 사용자가 화살표를 눌러야 열린다
 const closed = await comboBox();
-check('M) 접으면 카드 높이가 줄고 CTA 가 사라짐',
-  closed.open === 'false' && closed.height < opened.height && closed.ctaOpacity === 0,
-  `${opened.height} → ${closed.height} / CTA ${closed.ctaOpacity}`);
-check('M) 접으면 화살표가 반전',
+check('M) 베스트 조합 기본 접힘', closed.open === 'false' && closed.ctaOpacity === 0, JSON.stringify(closed));
+check('M) 접힌 상태에서는 화살표가 반전',
   (await page.evaluate(() => {
     const span = document.querySelector('[data-testid="combo-toggle"] span');
     return new DOMMatrix(getComputedStyle(span).transform).a < -0.9;
   })));
+
 await page.locator('[data-testid="combo-toggle"]').click();
 await page.waitForTimeout(500);
-const reopened = await comboBox();
-check('M) 다시 펴면 원래 높이·CTA 복귀',
-  reopened.open === 'true' && Math.abs(reopened.height - opened.height) < 1 && reopened.ctaOpacity === 1,
-  `${closed.height} → ${reopened.height}`);
+const opened = await comboBox();
+check('M) 펴면 카드 높이가 늘고 CTA 가 나타남',
+  opened.open === 'true' && opened.height > closed.height && opened.ctaOpacity === 1,
+  `${closed.height} → ${opened.height} / CTA ${opened.ctaOpacity}`);
+
+await page.locator('[data-testid="combo-toggle"]').click();
+await page.waitForTimeout(500);
+const reclosed = await comboBox();
+check('M) 다시 접으면 원래 높이·CTA 복귀',
+  reclosed.open === 'false' && Math.abs(reclosed.height - closed.height) < 1 && reclosed.ctaOpacity === 0,
+  `${opened.height} → ${reclosed.height}`);
 await page.screenshot({ path: `${OUT}/product-detail-combo.png` });
 
 // 찜 화면 체크박스가 하트와 같은 가로열인지
