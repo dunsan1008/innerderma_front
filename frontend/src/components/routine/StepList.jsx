@@ -56,14 +56,16 @@ function StepCard({ step, nodeId }) {
               </p>
             </div>
           </div>
-          <div
-            className={`relative flex shrink-0 flex-col items-start rounded-full px-[8px] py-[2px] ${TAG_STYLE[step.tagKey]}`}
-            data-name="CategoryTag"
-          >
-            <p className="relative shrink-0 font-sans text-[10px] font-medium leading-[15px] [word-break:break-word]">
-              {step.tag}
-            </p>
-          </div>
+          {step.tag ? (
+            <div
+              className={`relative flex shrink-0 flex-col items-start rounded-full px-[8px] py-[2px] ${TAG_STYLE[step.tagKey]}`}
+              data-name="CategoryTag"
+            >
+              <p className="relative shrink-0 font-sans text-[10px] font-medium leading-[15px] [word-break:break-word]">
+                {step.tag}
+              </p>
+            </div>
+          ) : null}
         </div>
         <div className="relative flex w-full shrink-0 flex-col items-start">
           <p className={`relative shrink-0 font-sans text-[12px] font-medium leading-[18px] text-text-strong ${wrap}`}>

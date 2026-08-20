@@ -4,7 +4,7 @@ import Screen from '@/components/layout/Screen';
 import StatusBar from '@/components/layout/StatusBar';
 import { issueToken } from '@/api/auth';
 import { useAuthStore } from '@/store/authStore';
-import { syncBackendCollections } from '@/lib/syncBackendCollections';
+import { syncBackendCollections, syncCareCompletions } from '@/lib/syncBackendCollections';
 
 /**
  * 첫 화면 (Figma 870:3435).
@@ -33,6 +33,7 @@ export default function SplashScreen() {
         setSession({ userCode: returnedUserCode, name: useAuthStore.getState().name, token });
         // 화면 전환을 막지 않는다 — 홈으로 넘어간 뒤 백그라운드에서 채워진다
         syncBackendCollections(returnedUserCode);
+        syncCareCompletions(returnedUserCode);
         navigate('/home');
       } catch {
         clearSession();

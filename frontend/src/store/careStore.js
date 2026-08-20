@@ -93,6 +93,18 @@ export const useCareStore = create(
 
       isCompleted: (dateKey) => get().completedDates.includes(dateKey),
 
+      /**
+       * 서버 완료 기록을 로컬에 병합한다(다른 기기에서 완료한 날짜도 캘린더에 보이도록) —
+       * 이미 로컬에 있는 날짜는 건드리지 않는다. cartStore/wishlistStore의
+       * mergeFromServer와 같은 패턴.
+       */
+      mergeFromServer: (dateKeys) =>
+        set((state) => {
+          const existing = new Set(state.completedDates);
+          const toAdd = dateKeys.filter((d) => !existing.has(d));
+          return toAdd.length ? { completedDates: [...state.completedDates, ...toAdd] } : state;
+        }),
+
       /** 온보딩 직후처럼 아직 촬영하지 않은 상태로 되돌린다 */
       startFresh: () => set({ hasCaptureToday: false, captureDataUrl: null }),
 

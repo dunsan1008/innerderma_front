@@ -30,7 +30,7 @@ export function getCareCompletions(userCode, date) {
   return client.get(`/users/${userCode}/care-completions`, { params: { date } });
 }
 
-/** 루틴 수행 완료 저장. phase: 'NIGHT' | 'MORNING' */
+/** 루틴 수행 완료 저장. phase: 'MORNING' | 'EVENING' */
 export function saveCareCompletion(userCode, { servedDate, phase, completed }) {
   return client.put(`/users/${userCode}/care-completions`, { servedDate, phase, completed });
 }
