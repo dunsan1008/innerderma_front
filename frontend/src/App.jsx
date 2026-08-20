@@ -5,6 +5,7 @@ import ErrorBoundary from '@/components/layout/ErrorBoundary';
 import SplashScreen from '@/pages/SplashScreen';
 import SignupScreen from '@/pages/SignupScreen';
 import ConnectingScreen from '@/pages/ConnectingScreen';
+import TreatmentSelectScreen from '@/pages/TreatmentSelectScreen';
 import ConnectedScreen from '@/pages/ConnectedScreen';
 import HomeFirstVisitScreen from '@/pages/HomeFirstVisitScreen';
 import HomeRoute from '@/pages/HomeRoute';
@@ -40,6 +41,7 @@ function AppContent() {
           <Route path="/" element={<SplashScreen />} />
           <Route path="/signup" element={<SignupScreen />} />
           <Route path="/connecting" element={<ConnectingScreen />} />
+          <Route path="/treatment-select" element={<TreatmentSelectScreen />} />
           <Route path="/connected" element={<ConnectedScreen />} />
           <Route path="/home" element={<HomeRoute />} />
           {/* 검증용: 최초 접속 홈화면(촬영 기록 없는 상태)을 직접 확인하는 경로 */}

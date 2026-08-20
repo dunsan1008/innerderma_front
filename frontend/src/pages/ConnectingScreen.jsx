@@ -5,7 +5,9 @@ import Screen from '@/components/layout/Screen';
 import StatusBar from '@/components/layout/StatusBar';
 import Spinner from '@/components/ui/Spinner';
 import { register } from '@/api/auth';
+import { registerProcedure } from '@/api/procedures';
 import { useAuthStore } from '@/store/authStore';
+import { useOnboardingStore } from '@/store/onboardingStore';
 import { generateUserCode } from '@/lib/userCode';
 
 /** 백엔드에 name/phoneNumber 가 필수라 데모용 고정값을 쓴다 — 실제 입력 폼은 아직 없다. */
@@ -31,30 +33,54 @@ export default function ConnectingScreen() {
     let cancelled = false;
     const start = Date.now();
 
-    const proceed = () => {
+    const proceed = (target) => {
       const elapsed = Date.now() - start;
       const wait = Math.max(MIN_DISPLAY_MS - elapsed, 0);
       setTimeout(() => {
-        if (!cancelled) navigate('/connected');
+        if (!cancelled) navigate(target);
       }, wait);
     };
 
     (async () => {
       const userCode = generateUserCode();
+      let registeredUserCode = null;
       try {
         const { token, userCode: returnedUserCode, name } = await register({
           userCode,
           name: DEMO_NAME,
           phoneNumber: DEMO_PHONE_NUMBER,
         });
-        if (!cancelled) setSession({ userCode: returnedUserCode, name, token });
+        if (cancelled) return;
+        setSession({ userCode: returnedUserCode, name, token });
+        registeredUserCode = returnedUserCode;
       } catch (err) {
         // 대회 시연 중 흐름이 끊기지 않도록, 가입 실패는 콘솔에만 남기고 다음 화면으로 넘어간다.
         // (세션이 비어 있으면 다음 스플래시 진입 시 다시 가입을 시도하게 된다)
         console.error('[ConnectingScreen] register failed', err);
-      } finally {
-        proceed();
       }
+
+      if (cancelled) return;
+
+      /*
+       * 시술 여부(SignupScreen 선택)를 계정에 등록한다. 목록 조회·등록 API 둘 다 인증이
+       * 필요해서 가입이 끝난 지금 처리한다.
+       *  - "시술을 받았어요" → 시술 종류 선택 화면으로 보낸다(목록 조회부터 그 화면이 한다).
+       *  - "진단만 받았어요"/가입 실패 → 여기서 { hadProcedure: false } 로 바로 등록하고 넘어간다.
+       */
+      const userType = useOnboardingStore.getState().userType;
+      if (registeredUserCode && userType === 'DIAGNOSIS_AND_TREATMENT') {
+        proceed('/treatment-select');
+        return;
+      }
+
+      if (registeredUserCode) {
+        try {
+          await registerProcedure(registeredUserCode, { hadProcedure: false });
+        } catch (err) {
+          console.error('[ConnectingScreen] registerProcedure(hadProcedure:false) failed', err);
+        }
+      }
+      if (!cancelled) proceed('/connected');
     })();
 
     return () => {

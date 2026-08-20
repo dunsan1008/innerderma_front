@@ -71,6 +71,9 @@ const FULL_NODE_IDS = {
  * @param {object} rt `useRoutineText()` 결과 (번역된 더미 폴백 + 섹션 라벨)
  * @param {'night'|'morning'} cycle
  * @param {object|null} [aiCare] `useAiCare()` 가 준 `/ai-care` 응답. 없으면 기존 체인만 쓴다.
+ *   `aiCare.routineWithheld` 가 true 면(시술 회복기) 스텝·회피 목록·섭취 카드·저녁 세안
+ *   카드를 전부 비우고 폴백 체인을 타지 않는다 — `aiCare.routineWithheldReason` 을
+ *   "왜 이 루틴인가요" 자리에 그대로 보여준다.
  * @returns {object} `depth: 'full'` 인 SolutionView
  */
 export function toFullView(solution, rt, cycle, aiCare = null) {
@@ -83,6 +86,17 @@ export function toFullView(solution, rt, cycle, aiCare = null) {
    */
   const aiCareContent = aiCare?.care ?? null;
   const aiCycleCare = aiCareContent ? (night ? aiCareContent.night : aiCareContent.morning) : null;
+
+  /**
+   * 시술 회복기 루틴 보류(`routineWithheld`). 백엔드가 안전상 회복 기간 동안 의도적으로
+   * 제품 추천을 비워서 준다("이건 규칙상 정상" — 프론트가 임의로 판단한 게 아니다).
+   * 이때 스텝·회피 목록·섭취 카드가 비어 있다고 solution/더미로 폴백하면 회복기에도
+   * 평소처럼 제품을 추천하는 꼴이 되어 의도를 정면으로 어긴다 — 그래서 withheld 면
+   * 폴백 체인 전체를 건너뛰고 빈 상태를 그대로 유지하며, 이유(`routineWithheldReason`)를
+   * "왜 이 루틴인가요" 자리에 그대로 보여준다.
+   */
+  const withheld = aiCare?.routineWithheld === true;
+  const withheldReason = withheld ? aiCare.routineWithheldReason || '' : null;
 
   /** 하단 추천 카드 4개 — 마켓 목록의 상품을 이름으로 찾아 그대로 쓴다 */
   const recommendProducts = SOLUTION_RECOMMEND_NAMES.map((name) => findProductByKey(name)).filter(Boolean);
@@ -101,39 +115,45 @@ export function toFullView(solution, rt, cycle, aiCare = null) {
       }))
     : null;
   const solutionSteps = solution ? (night ? solution.eveningSteps : solution.morningSteps) : null;
-  const realSteps = aiSteps ?? solutionSteps;
-  const steps = realSteps?.length
-    ? realSteps.map((s, i) => ({ ...s, no: String(i + 1).padStart(2, '0'), nodeId: `step-${i}` }))
-    : night
-      ? rt.nightSteps
-      : rt.morningSteps;
+  const realSteps = withheld ? [] : (aiSteps ?? solutionSteps);
+  const steps = withheld
+    ? []
+    : realSteps?.length
+      ? realSteps.map((s, i) => ({ ...s, no: String(i + 1).padStart(2, '0'), nodeId: `step-${i}` }))
+      : night
+        ? rt.nightSteps
+        : rt.morningSteps;
   /**
    * 피해야 할 것: aiCare 는 밤/아침 구분 없이 `innerCare.avoid` 하나뿐이라
    * 두 사이클 화면에 동일하게 쓴다(기존 solution 은 eveningAvoid/morningAvoid로 나뉘어 있었다).
    */
   const aiAvoid = aiCareContent?.innerCare?.avoid?.length ? aiCareContent.innerCare.avoid : null;
-  const avoidItems =
-    aiAvoid ??
-    (solution
-      ? night
-        ? solution.eveningAvoid
-        : solution.morningAvoid
-      : night
-        ? rt.nightAvoid
-        : rt.morningAvoid);
+  const avoidItems = withheld
+    ? []
+    : aiAvoid ??
+      (solution
+        ? night
+          ? solution.eveningAvoid
+          : solution.morningAvoid
+        : night
+          ? rt.nightAvoid
+          : rt.morningAvoid);
   /** 섭취 추천: aiCare의 innerCare.recommended(productName/usage/reason) → solution.supplements → 더미 */
   const aiRecommended = aiCareContent?.innerCare?.recommended?.length
     ? aiCareContent.innerCare.recommended.map((r) => ({ name: r.productName, howTo: r.usage, note: r.reason || null }))
     : null;
-  const supplementCards =
-    aiRecommended ??
-    (solution?.supplements?.length
-      ? solution.supplements.map((s) => ({ name: s.title, howTo: s.usage, note: null }))
-      : rt.supplementCards);
-  /** 저녁 세안 카드는 aiCare에 대응 필드가 없어 기존 solution/더미 그대로 쓴다 */
-  const eveningWash = solution?.eveningWash
-    ? { badge: 'N', ...solution.eveningWash }
-    : rt.eveningWash;
+  const supplementCards = withheld
+    ? []
+    : aiRecommended ??
+      (solution?.supplements?.length
+        ? solution.supplements.map((s) => ({ name: s.title, howTo: s.usage, note: null }))
+        : rt.supplementCards);
+  /** 저녁 세안 카드는 aiCare에 대응 필드가 없어 기존 solution/더미 그대로 쓴다 — withheld면 이것도 비운다 */
+  const eveningWash = withheld
+    ? null
+    : solution?.eveningWash
+      ? { badge: 'N', ...solution.eveningWash }
+      : rt.eveningWash;
   /**
    * "왜 이 루틴인가요" 본문:
    *  - aiCare 가 있으면 상태 요약 + 오늘의 목표를 우선 쓰고, 주의사항(caution)이 있으면
@@ -145,7 +165,9 @@ export function toFullView(solution, rt, cycle, aiCare = null) {
   const aiWhyText = aiCareContent
     ? [aiCareContent.caution, aiCareContent.skinStateSummary, aiCareContent.todayGoal].filter(Boolean).join(' ')
     : '';
-  const whyText = aiWhyText || solution?.whsDiagnosisSummary || solution?.safetyMessage || rt.whyText;
+  const whyText = withheld
+    ? withheldReason || rt.whyText
+    : aiWhyText || solution?.whsDiagnosisSummary || solution?.safetyMessage || rt.whyText;
   const whyTags = solution?.concernTags?.length ? solution.concernTags : rt.whyTags;
 
   return {

@@ -42,6 +42,12 @@ export default {
     signupQuestion: 'Q. What service did you receive\nat Wellness House Seoul?',
     signupHint: 'Please select the service you used during your visit.\nWe will prepare a personalized care routine for you.',
     purpose: 'Care Purpose',
+    treatmentSelectTitle: 'Select the treatment you received',
+    treatmentSelectHint: "We'll tailor your routine to your recovery stage based on this record.",
+    treatmentSelectConfirm: 'Confirm',
+    treatmentSelectLoading: 'Loading treatment list...',
+    treatmentSelectError: "Couldn't load the treatment list.",
+    treatmentSelectRetry: 'Retry',
   },
 
   home: {

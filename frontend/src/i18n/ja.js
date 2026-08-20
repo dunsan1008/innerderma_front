@@ -42,6 +42,12 @@ export default {
     signupQuestion: 'Q. Wellness House ソウルで\nどのサービスを受けましたか？',
     signupHint: '来院時にご利用のサービスを選択してください。\nカスタムケアルーティンをご用意します。',
     purpose: 'ケア目的',
+    treatmentSelectTitle: '受けた施術を選択してください',
+    treatmentSelectHint: '記録された施術情報をもとに、回復段階に合わせたルーティンをご用意します。',
+    treatmentSelectConfirm: '選択完了',
+    treatmentSelectLoading: '施術リストを読み込んでいます',
+    treatmentSelectError: '施術リストを読み込めませんでした。',
+    treatmentSelectRetry: '再試行',
   },
 
   home: {

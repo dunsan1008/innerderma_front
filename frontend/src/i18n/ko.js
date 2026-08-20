@@ -46,6 +46,12 @@ export default {
     signupQuestion: 'Q. 웰니스하우스 서울에서\n어떤 서비스를 받으셨나요?',
     signupHint: '방문 시 이용한 서비스를 선택해 주세요.\n맞춤 관리 루틴을 준비해 드릴게요.',
     purpose: '관리 목적',
+    treatmentSelectTitle: '받으신 시술을 선택해 주세요',
+    treatmentSelectHint: '기록된 시술 정보로 회복 단계에 맞는 루틴을 준비해 드릴게요.',
+    treatmentSelectConfirm: '선택 완료',
+    treatmentSelectLoading: '시술 목록을 불러오는 중입니다',
+    treatmentSelectError: '시술 목록을 불러오지 못했어요.',
+    treatmentSelectRetry: '다시 시도',
   },
 
   // ─── 홈 ───

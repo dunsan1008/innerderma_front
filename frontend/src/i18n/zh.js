@@ -42,6 +42,12 @@ export default {
     signupQuestion: 'Q. 您在Wellness House首尔\n接受了哪些服务？',
     signupHint: '请选择您就诊时使用的服务。\n我们将为您准备定制护理方案。',
     purpose: '护理目的',
+    treatmentSelectTitle: '请选择您接受的项目',
+    treatmentSelectHint: '将根据该记录，为您准备符合恢复阶段的护理方案。',
+    treatmentSelectConfirm: '确认选择',
+    treatmentSelectLoading: '正在加载项目列表',
+    treatmentSelectError: '项目列表加载失败。',
+    treatmentSelectRetry: '重试',
   },
 
   home: {
