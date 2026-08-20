@@ -59,35 +59,26 @@ const TAB_BAR_HEIGHT = 96;
 const LAYOUT = {
   night: {
     frameHeight: 2205,
-    header: 0,
     segment: 157,
     sectionHeader: 237,
-    stepList: [328, 406],
-    innerCare: 734,
-    supplements: 855,
-    avoid: 1103,
-    why: [1273, 32],
-    recommendTitle: 1482,
-    recommendCards: 1517,
     tabBar: 2109,
   },
   morning: {
     frameHeight: 2505,
-    header: 0,
     segment: 157,
     sectionHeader: 237,
-    stepList: [328, 435],
-    eveningWash: 763,
-    innerCare: 962,
-    supplements: 1083,
-    avoid: 1331,
-    why: [1501, 0],
-    recommendTitle: 1710,
-    recommendCards: 1745,
-    completeButton: 2337,
     tabBar: 2409,
   },
 };
+
+/**
+ * '왜 이 루틴인가요?' 박스 아래 여백.
+ *
+ * Figma 는 나이트 32 / 모닝 0 으로 서로 달라서, 모닝에서 바로 아래
+ * '오늘의 솔루션과 어울리는 제품 추천' 제목이 붙어 답답했다.
+ * 두 사이클 모두 나이트 값(32)으로 통일한다.
+ */
+const WHY_BOTTOM_GAP = 32;
 
 /** 추천 카드 2x2 그리드 — 마켓 1 과 같은 열 좌표·행 간격을 쓴다 */
 const RECOMMEND_COLUMNS = [20, 204];
@@ -376,7 +367,12 @@ export default function RoutineScreen({ cycle: cycleProp }) {
 
         <AvoidBox items={night ? rt.nightAvoid : rt.morningAvoid} nodeId={night ? '870:3952' : '870:4202'} />
 
-        <WhyBox text={rt.whyText} tags={rt.whyTags} paddingBottom={L.why[1]} nodeId={night ? '870:3971' : '870:4221'} />
+        <WhyBox
+          text={rt.whyText}
+          tags={rt.whyTags}
+          paddingBottom={WHY_BOTTOM_GAP}
+          nodeId={night ? '870:3971' : '870:4221'}
+        />
 
         {/*
           오늘의 솔루션과 어울리는 제품 추천 (Figma 833:3029 · 989:1220 + Group 85 / Frame 88).
