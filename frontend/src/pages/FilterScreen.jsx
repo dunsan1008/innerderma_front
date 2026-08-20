@@ -86,7 +86,7 @@ function AgeOptions({ selected, onToggle }) {
   );
 }
 
-/** 맞춤형 진단 — 피부 진단 기본 요소 */
+/** 데일리 스킨 분석 — 피부 진단 기본 요소 */
 function DiagnosisPanel() {
   const t = useT();
   const METRICS = [
