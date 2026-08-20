@@ -92,6 +92,19 @@ export default {
     recommendTitle: "Products to pair with today's solution",
   },
 
+  skinAnalysis: {
+    title: 'Daily Skin Analysis',
+    routineButton: 'View Daily Care Routine',
+    reopenAria: 'View daily skin analysis again',
+    factors: {
+      pigmentation: 'Pigmentation',
+      pore: 'Pores',
+      wrinkle: 'Wrinkles',
+      redness: 'Redness',
+      texture: 'Texture',
+    },
+  },
+
   noSolution: {
     title: 'No solution generated yet',
     description: 'Solutions are created by analyzing your skin condition from that day\'s capture.\nYou can check your care routine when that date arrives.',

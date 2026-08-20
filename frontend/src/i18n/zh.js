@@ -89,6 +89,19 @@ export default {
     recommendTitle: '搭配今日方案的推荐商品',
   },
 
+  skinAnalysis: {
+    title: '每日肌肤分析',
+    routineButton: '查看每日护理流程',
+    reopenAria: '再次查看每日肌肤分析',
+    factors: {
+      pigmentation: '色素',
+      pore: '毛孔',
+      wrinkle: '皱纹',
+      redness: '泛红',
+      texture: '肤质',
+    },
+  },
+
   noSolution: {
     title: '尚未生成护理方案',
     description: '护理方案基于当天拍摄的皮肤状态分析生成。\n到达该日期后即可查看当天的护理方案。',

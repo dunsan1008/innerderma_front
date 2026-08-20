@@ -96,6 +96,20 @@ export default {
     recommendTitle: '오늘의 솔루션과 어울리는 제품 추천',
   },
 
+  // ─── 데일리 스킨 분석 모달 ───
+  skinAnalysis: {
+    title: '데일리 스킨 분석',
+    routineButton: '데일리 케어 루틴 보러가기',
+    reopenAria: '데일리 스킨 분석 다시 보기',
+    factors: {
+      pigmentation: '색소',
+      pore: '모공',
+      wrinkle: '주름',
+      redness: '홍조',
+      texture: '피부결',
+    },
+  },
+
   // ─── 솔루션 미생성 ───
   noSolution: {
     title: '아직 솔루션이 생성되지 않았어요',

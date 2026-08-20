@@ -89,6 +89,19 @@ export default {
     recommendTitle: '今日のソリューションに合うおすすめ商品',
   },
 
+  skinAnalysis: {
+    title: 'デイリースキン分析',
+    routineButton: 'デイリーケアルーティンを見る',
+    reopenAria: 'デイリースキン分析を再表示',
+    factors: {
+      pigmentation: '色素',
+      pore: '毛穴',
+      wrinkle: 'シワ',
+      redness: '赤み',
+      texture: 'キメ',
+    },
+  },
+
   noSolution: {
     title: 'まだソリューションが生成されていません',
     description: 'ソリューションはその日の撮影した肌状態を分析して作成されます。\n該当日になればケアルーティンを確認できます。',

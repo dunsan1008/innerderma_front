@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import CalendarModal from '@/components/home/CalendarModal';
 import WashCheckModal from '@/components/home/WashCheckModal';
 import LanguageModal from '@/components/layout/LanguageModal';
+import SkinAnalysisModal from '@/components/routine/SkinAnalysisModal';
 import { useUiStore } from '@/store/uiStore';
 import { useCareStore } from '@/store/careStore';
 import useMountTransition from '@/lib/useMountTransition';
@@ -23,6 +24,8 @@ export default function AppModals() {
   const closeLang = useUiStore((s) => s.closeLang);
   const lang = useUiStore((s) => s.lang);
   const setLang = useUiStore((s) => s.setLang);
+  const skinAnalysisOpen = useUiStore((s) => s.skinAnalysisOpen);
+  const closeSkinAnalysis = useUiStore((s) => s.closeSkinAnalysis);
 
   const selectedDate = useCareStore((s) => s.selectedDate);
   const setSelectedDate = useCareStore((s) => s.setSelectedDate);
@@ -76,6 +79,8 @@ export default function AppModals() {
       ) : null}
 
       <LanguageModal open={langOpen} onClose={closeLang} current={lang} onSelect={setLang} />
+
+      <SkinAnalysisModal open={skinAnalysisOpen} onClose={closeSkinAnalysis} />
     </>
   );
 }

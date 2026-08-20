@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useT } from '@/i18n';
 import { useRoutineText } from '@/i18n/useRoutineText';
@@ -202,6 +202,7 @@ function CompleteButton({ onClick, enabled = true, completed = false }) {
 
 export default function RoutineScreen({ cycle: cycleProp }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const params = useParams();
   const t = useT();
   const rt = useRoutineText();
@@ -210,9 +211,22 @@ export default function RoutineScreen({ cycle: cycleProp }) {
   const setPhase = useCareStore((s) => s.setPhase);
   const selectedDate = useCareStore((s) => s.selectedDate);
   const openCalendar = useUiStore((s) => s.openCalendar);
+  const openSkinAnalysis = useUiStore((s) => s.openSkinAnalysis);
   const completedDates = useCareStore((s) => s.completedDates);
   const markCompleted = useCareStore((s) => s.markCompleted);
   const unmarkCompleted = useCareStore((s) => s.unmarkCompleted);
+
+  /**
+   * 촬영·자가진단 → 솔루션 도출 중 → 오늘의 솔루션 한 줄 정리를 지나 이 화면에
+   * 막 도착했을 때만 데일리 스킨 분석 모달을 자동으로 한 번 띄운다
+   * (SolutionSummaryScreen 이 navigate 할 때 이 state 를 실어 보낸다).
+   * state 를 바로 비워서 새로고침·뒤로가기로 다시 떠 있지 않게 한다.
+   */
+  useEffect(() => {
+    if (!location.state?.showSkinAnalysis) return;
+    openSkinAnalysis();
+    navigate(location.pathname, { replace: true, state: {} });
+  }, []);
 
   const today = todayKey();
   const days = buildWeekStrip(selectedDate, completedDates, today);
@@ -370,7 +384,33 @@ export default function RoutineScreen({ cycle: cycleProp }) {
       headerHeight={HEADER_HEIGHT}
       header={header}
       tabBarHeight={TAB_BAR_HEIGHT}
-      tabBar={<TabBar className="relative h-[96px] w-[393px]" />}
+      tabBar={
+        <>
+          <TabBar className="relative h-[96px] w-[393px]" />
+          {/*
+            데일리 스킨 분석 재확인 버튼. Figma 에 없는 요소라 디자인·위치를 직접 정했다.
+            탭바 위, 화면 오른쪽 아래에 떠 있는 원형 버튼 — 탭바 슬롯 안에 같이 넣어 두면
+            스크롤과 무관하게 항상 같은 자리에 고정된다(Screen 이 tabBar 를 절대 위치로 고정한다).
+          */}
+          <button
+            type="button"
+            aria-label={t.skinAnalysis.reopenAria}
+            onClick={openSkinAnalysis}
+            data-testid="skin-analysis-reopen"
+            className="absolute bottom-[112px] right-[16px] flex size-[48px] items-center justify-center rounded-full bg-header-dark shadow-lg transition-transform active:scale-95"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path
+                d="M12 3L20.6 9.2L17.3 19.3L6.7 19.3L3.4 9.2Z"
+                stroke="white"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+                fill="none"
+              />
+            </svg>
+          </button>
+        </>
+      }
       contentBottom={contentBottom}
     >
       {/* 세그먼트는 페이드 대상에서 빼야 선택 표시가 끊기지 않고 미끄러진다 */}
