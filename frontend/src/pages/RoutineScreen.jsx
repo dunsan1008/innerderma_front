@@ -67,22 +67,26 @@ const CONTENT_TAIL_GAP = 26;
 /**
  * 모닝 전용 — 수행 완료 버튼 (Figma 870:4234).
  * 당일에만 누를 수 있다. 지난 날/미래 날을 보고 있으면 비활성 상태로 둔다.
- * 이미 완료한 날이면 완료 표시로 바뀌고 다시 누르면 완료를 취소한다.
+ * 완료 후에는 잠긴다 — 실수로 다시 눌러 완료가 취소되는 걸 막는다(QA 피드백).
+ * 완료 표시(초록)는 유지하되 클릭만 막으므로, 날짜 때문에 비활성인 회색 상태와는
+ * 시각적으로 구분된다.
  */
 function CompleteButton({ onClick, enabled = true, completed = false }) {
   const t = useT();
   const label = completed ? t.solution.completedBtn : t.solution.completeBtn;
+  const clickable = enabled && !completed;
+  const tip = !enabled ? t.solution.completeBtnDisabledTip : completed ? t.solution.completeBtnLockedTip : undefined;
 
   return (
     <div className="relative h-[102px] w-full" data-node-id="870:4234" data-name="MorningContent">
       <button
         type="button"
-        onClick={onClick}
-        disabled={!enabled}
+        onClick={clickable ? onClick : undefined}
+        disabled={!clickable}
         aria-pressed={completed}
-        title={enabled ? undefined : t.solution.completeBtnDisabledTip}
+        title={tip}
         className={`absolute left-[20px] top-[20px] h-[50px] w-[353px] rounded-[16px] transition-colors duration-200 ${
-          !enabled ? 'cursor-not-allowed bg-disabled-bg' : completed ? 'bg-chip-green' : 'bg-header-dark'
+          !enabled ? 'cursor-not-allowed bg-disabled-bg' : completed ? 'cursor-default bg-chip-green' : 'bg-header-dark'
         }`}
         data-node-id="870:4235"
         data-name="Button"
@@ -115,7 +119,6 @@ export default function RoutineScreen({ cycle: cycleProp }) {
   const openSkinAnalysis = useUiStore((s) => s.openSkinAnalysis);
   const completedDates = useCareStore((s) => s.completedDates);
   const markCompleted = useCareStore((s) => s.markCompleted);
-  const unmarkCompleted = useCareStore((s) => s.unmarkCompleted);
 
   /**
    * 촬영·자가진단 → 솔루션 도출 중 → 오늘의 솔루션 한 줄 정리를 지나 이 화면에
@@ -316,23 +319,23 @@ export default function RoutineScreen({ cycle: cycleProp }) {
                 enabled={isToday}
                 completed={doneToday}
                 onClick={() => {
-                  const next = !doneToday;
                   /*
-                   * 로컬(캘린더 초록 표시)은 즉시 반영하고, 서버 기록은 백그라운드로 보낸다
-                   * — 실패해도 화면 흐름을 막지 않는다(카메라 업로드·자가진단과 같은 방식).
-                   * "완료" 버튼은 아침 화면에만 있으므로 phase는 항상 MORNING으로 보낸다.
+                   * 완료 버튼은 완료 후 잠기므로(QA 피드백) 여기 도달하는 건 항상
+                   * 미완료 → 완료 전환뿐이다. 로컬(캘린더 초록 표시)은 즉시 반영하고,
+                   * 서버 기록은 백그라운드로 보낸다 — 실패해도 화면 흐름을 막지 않는다
+                   * (카메라 업로드·자가진단과 같은 방식). "완료" 버튼은 아침 화면에만
+                   * 있으므로 phase는 항상 MORNING으로 보낸다.
                    */
-                  if (next) markCompleted(selectedDate);
-                  else unmarkCompleted(selectedDate);
+                  markCompleted(selectedDate);
 
                   const userCode = useAuthStore.getState().userCode;
                   if (userCode) {
-                    saveCareCompletion(userCode, { servedDate: selectedDate, phase: 'MORNING', completed: next }).catch(
+                    saveCareCompletion(userCode, { servedDate: selectedDate, phase: 'MORNING', completed: true }).catch(
                       (err) => console.error('[RoutineScreen] saveCareCompletion failed', err),
                     );
                   }
 
-                  if (next) navigate('/home');
+                  navigate('/home');
                 }}
               />
             )

@@ -95,6 +95,7 @@ export default {
     completeBtn: 'Mark Complete',
     completedBtn: 'Completed',
     completeBtnDisabledTip: 'You can only mark completion for today',
+    completeBtnLockedTip: "You've already marked this complete",
     todayRecommend: "Today's pick",
     supplementWarning: '⚠ May cause discomfort if taken on an empty stomach.',
     recommendTitle: "Products to pair with today's solution",

@@ -92,6 +92,7 @@ export default {
     completeBtn: '完了',
     completedBtn: '完了済み',
     completeBtnDisabledTip: '当日のみ完了記録ができます',
+    completeBtnLockedTip: 'すでに完了を記録しました',
     todayRecommend: '今日のおすすめ',
     supplementWarning: '⚠ 空腹時に不快感が生じる場合があります。',
     recommendTitle: '今日のソリューションに合うおすすめ商品',

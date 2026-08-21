@@ -99,6 +99,7 @@ export default {
     completeBtn: '수행 완료',
     completedBtn: '수행 완료됨',
     completeBtnDisabledTip: '오늘 날짜에서만 수행 완료를 기록할 수 있어요',
+    completeBtnLockedTip: '이미 수행 완료를 기록했어요',
     todayRecommend: '오늘의 추천',
     supplementWarning: '⚠ 공복 섭취 시 속 불편감이 생길 수 있어요.',
     recommendTitle: '오늘의 솔루션과 어울리는 제품 추천',

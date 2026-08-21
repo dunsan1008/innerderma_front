@@ -92,6 +92,7 @@ export default {
     completeBtn: '完成',
     completedBtn: '已完成',
     completeBtnDisabledTip: '只能在当天记录完成',
+    completeBtnLockedTip: '已经记录过完成了',
     todayRecommend: '今日推荐',
     supplementWarning: '⚠ 空腹服用可能引起不适。',
     recommendTitle: '搭配今日方案的推荐商品',
