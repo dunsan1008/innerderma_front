@@ -241,12 +241,14 @@ export default function HomeFirstVisitScreen() {
           cycle={phase}
           onMeasure={setBodyHeight}
           /*
-            CTA 슬롯. 나이트·모닝 모두 촬영 버튼을 둔다 — 이 화면의 목적 자체가 촬영으로
-            이어지는 것이고, 제거된 회색 카드 3개가 갖고 있던 세안 확인 진입점을 이 버튼이
-            승계한다(탭바 중앙 촬영 버튼과 같은 `openWashCheck` → 세안 확인 → /camera).
+            CTA 슬롯. 모닝에만 촬영 버튼을 둔다(`RoutineScreen` 의 수행 완료 버튼과 같은 규칙).
+            나이트에는 넘기지 않아 `SolutionBody` 가 버튼 자리(26+102)를 만들지 않게 한다 —
+            촬영은 하루 한 번, 아침 진입 흐름이라 밤 화면에 두면 오해를 준다(QA 피드백).
+            제거된 회색 카드 3개가 갖고 있던 세안 확인 진입점은 모닝 버튼이 승계한다
+            (탭바 중앙 촬영 버튼과 같은 `openWashCheck` → 세안 확인 → /camera).
             래퍼 여백·높이는 `SolutionBody` 가 갖고 있으므로 버튼 자체만 넘긴다.
           */
-          cta={<CaptureCtaButton onClick={openWashCheck} />}
+          cta={phase === 'night' ? null : <CaptureCtaButton onClick={openWashCheck} />}
         />
       </div>
     </Screen>
